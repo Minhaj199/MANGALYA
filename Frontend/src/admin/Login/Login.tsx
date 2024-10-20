@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./Login.css";
 import axios from "axios";
+import { request } from "../../utils/axiosUtils";
 
 import { LoginValidatorAdmin } from "../../Validators/LoginValidatorForAdmin"; 
 import { useNavigate } from "react-router-dom";
@@ -19,30 +20,31 @@ export const Login: React.FC = () => {
   const [warnnig,setWarning]=useState<warning>({username:'',password:''})
 async function handleSubmit(){
    
+interface LoginType{
+  username?:string;
+  adminVerified?:string,
+  password?:string
+
+}
+
    if(LoginValidatorAdmin(adminForm,setWarning)){
 
      
      try {
-       const response=await axios({
-         url:'http://localhost:8000/admin/login',
-         method:'post',
-         data:adminForm
-        })
-        // axios interscepter
-        
-        console.log(response.data)
-        if(response.data){
-          if(Object.keys(response.data).includes('username')){
-            setWarning(prev => ({ ...prev, username: response.data.username, password: '' })); 
+       
+      const response:LoginType=await request({url:'/admin/login',method:'post',data:adminForm})
+       
+        if(typeof response==='object'&&response!==undefined){
+          if(Object.keys(response).includes('username')){
+            setWarning(prev => ({ ...prev, username: response.username||'', password: '' })); 
             
-          }else if (Object.keys(response.data).includes('password')){
+          }else if (Object.keys(response).includes('password')){
             
-            setWarning(prev => ({ ...prev, password:response.data.password, username:'' })); 
+            setWarning(prev => ({ ...prev, password:response.password||'', username:'' })); 
             console.log(warnnig)
-          }else if (Object.keys(response.data).includes('adminVerified')){
-            if(response.data.adminVerified){
-
-              console.log(response.data)
+          }else if (Object.keys(response).includes('adminVerified')){
+            if(response?.adminVerified){
+              console.log(response)
               nevigate('/admin/manageUser')
             }
             

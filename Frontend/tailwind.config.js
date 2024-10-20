@@ -19,7 +19,8 @@ export default {
         'red_FA0000':'#FA0000',
         'aash':'#BAA3A3',
         'input_dark':'#700303',
-        'red_Active':'#E82A2A'
+        'red_Active':'#E82A2A',
+        'otp_red':'#3E1111'
       }
     },
   },
