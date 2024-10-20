@@ -1,16 +1,16 @@
 import { Response,Request, response } from "express";
 import { AuthService } from "../../application/user/auth/authService"; 
-import { MongoUserRepsitories,MongoOtpRepository } from "../../Infrastructure/repositories/mongoRepositories"; 
-import { convertToObject } from "typescript";
+import { MongoUserRepsitories,MongoOtpRepository, } from "../../Infrastructure/repositories/mongoRepositories"; 
+
 
 const userRepository=new MongoUserRepsitories()
 const otpRepsitory=new MongoOtpRepository()
 const authService=new AuthService(userRepository,otpRepsitory)
 
 export const signup=async (req:Request,res:Response)=>{
-    const {email,password}=req.body
+    
     try {
-        const user=await authService.signup(email,password)
+        const user=await authService.signupFirstBatch(req.body)
         res.status(201).json({message:'sign up completed',user}) 
     } catch (error:any) {
         console.log(error)
@@ -26,8 +26,15 @@ export const signup=async (req:Request,res:Response)=>{
 }
 export const otpCreation=async(req:Request,res:Response)=>{
     const {email}=req.body
-    const reponse= authService.otpVerification(email)
-   
+    try {
+        
+        const response=await authService.otpVerification(email)
+        if(response){
+            res.status(200).json({message:'Email send successfull'})
+        }
+    } catch (error:any) {
+        res.status(500).json(error.message)
+    }
     
 }
 export const login=async(req:Request,res:Response)=>{
@@ -57,5 +64,20 @@ export const forgotCheckValidate=async(req:Request,res:Response):Promise<void>=>
         }
     } catch (error) {
         res.json(error) 
+    }
+}
+
+export const otpValidation=async(req:Request,res:Response):Promise<void>=>{
+    try {
+        const {email,otp}=req.body
+        const isValid=await authService.otpValidation(otp,email)
+        console.log(isValid)
+        if(isValid){
+            res.json({message:'OTP valid'})
+        }else{
+            res.json({message:'OTP not valid'})
+        }
+    } catch (error) {
+        res.json(error)
     }
 }

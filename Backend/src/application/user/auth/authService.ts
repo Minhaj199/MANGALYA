@@ -7,6 +7,18 @@ import { User } from "../../../domain/entity/userEntity"
 import { OTPrespository } from "../../../domain/repository/OtpRepsitory"
 import { EmailService } from "../../emailService"
 
+interface FirstBatch{
+      
+    'SECOND NAME':string;
+      'DATE OF BIRTH':string;
+      'STATE THAT YOU LIVE':string;
+      'YOUR GENDER':string;
+      'GENDER OF PARTNER':string;
+      'EMAIL':string;
+      'PASSWORD':string,
+      'FIRST NAME':string   
+    
+}
 const emailService=new EmailService()
 export class AuthService{
     private bcryptAdapter:BcryptAdapter
@@ -19,9 +31,28 @@ export class AuthService{
         this.userRepository=userRepository
         this.otpRepsistory=otpRepsitory
     }
-    async signup(email:string,password:string){
-        const hashedPassoword=await this.bcryptAdapter.hash(password)
-        const user={username:'minhaj',email,password:hashedPassoword,block: false, match: 0, subscriber: 'free', expiry: new Date}
+    async signupFirstBatch(firstBatch:FirstBatch){
+        console.log(firstBatch)
+        const hashedPassoword=await this.bcryptAdapter.hash(firstBatch.PASSWORD)
+        const user={
+            PesonalInfo:{
+                firstName:firstBatch["FIRST NAME"],
+                secondName:firstBatch["SECOND NAME"],
+                state:firstBatch["STATE THAT YOU LIVE"],
+                gender:firstBatch["YOUR GENDER"],
+                dateOfBirth:new Date(firstBatch["DATE OF BIRTH"])
+            },
+            parnerData:{
+                gender:firstBatch["GENDER OF PARTNER"]
+            },
+            email:firstBatch.EMAIL,
+            password:hashedPassoword,
+            block:false,
+            match:0,
+            subscriber:'subscribed',
+            expiry:new Date()
+        }
+        
         return await this.userRepository.create(user)
     }
     async login (email:string,password:string){
@@ -56,12 +87,29 @@ export class AuthService{
         
     }
     async otpVerification(email:string){
-        console.log(email)
-        const otp=await generateOTP()
-
-        const isCreated=await this.otpRepsistory.create({otp,email})
-        await emailService.sendEmail(email,'Signup MANGALYA OTP',`Welcome to Mangalya. Your Signup OTP for Authentication is <h1>${otp}<h1/>`)
-         return otp
+        try {
+           
+            const otp=await generateOTP()
+            const isCreated=await this.otpRepsistory.create({otp,email})
+            await emailService.sendEmail(email,'Signup MANGALYA OTP',`Welcome to Mangalya. Your Signup OTP for Authentication is <h1>${otp}<h1/>`)
+            return  true
+            
+        } catch (error) {
+            throw new Error("error on otp authentication")
+        }
         
+    }
+    async otpValidation(otp:string,email:string){
+        try {
+          const response=await this.otpRepsistory.otpValidation(otp,email)
+          console.log(74,response)
+          if(response){
+            return true
+          }else{
+            return false
+          }
+        } catch (error) {
+            throw new Error('otp falure')
+        }
     }
 }

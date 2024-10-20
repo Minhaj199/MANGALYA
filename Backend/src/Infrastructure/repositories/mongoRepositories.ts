@@ -26,4 +26,23 @@ export class MongoOtpRepository implements OTPrespository{
     const savedOTP=await newOTP.save()
     return newOTP as OTPWithID
     }
+    async otpValidation(otp: string,email:string): Promise<boolean> {
+        try {
+            const otpDoc=await OtpModel.findOne({email:email}).sort({id:-1}).limit(1).lean()
+           
+            const otpParsed:number=parseInt(otp)
+            if(otpDoc){
+                if(otpDoc.email===email&&otpDoc.otp===otpParsed){
+                    return true
+                }else{
+                    return false
+                }
+            }else{
+                return false
+            }    
+        } catch (error) {
+            throw new Error('otp failure')
+        }
+        
+    }
 }

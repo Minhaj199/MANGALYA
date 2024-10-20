@@ -7,9 +7,8 @@ export class EmailService implements IEmailService{
     private userName:string|undefined
     private password:string|undefined
     constructor() {
-         this.userName=process.env.GOOGLE_USERNAME
+        this.userName=process.env.GOOGLE_USERNAME
         this.password=process.env.GOOGLE_PASSWORD
-        console.log(this.password,this.userName)
         this.transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
@@ -29,7 +28,7 @@ export class EmailService implements IEmailService{
 
         try {
             await this.transporter.sendMail(mailOptions);
-            console.log('Email sent successfully');
+           
         } catch (error) {
             console.error('Error sending email:', error);
             throw new Error('Failed to send email');
