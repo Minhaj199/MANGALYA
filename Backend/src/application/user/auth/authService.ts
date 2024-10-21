@@ -3,9 +3,9 @@ import { BcryptAdapter } from "../../../Infrastructure/bcryptAdapter"
 import { JWTAdapter } from "../../../Infrastructure/jwt"
 import { generateOTP } from "../../../Infrastructure/otpGenerator" 
 import { UserRepository } from "../../../domain/repository/userRepository"
-import { User } from "../../../domain/entity/userEntity" 
 import { OTPrespository } from "../../../domain/repository/OtpRepsitory"
 import { EmailService } from "../../emailService"
+
 
 interface FirstBatch{
       
@@ -32,7 +32,7 @@ export class AuthService{
         this.otpRepsistory=otpRepsitory
     }
     async signupFirstBatch(firstBatch:FirstBatch){
-        console.log(firstBatch)
+        
         const hashedPassoword=await this.bcryptAdapter.hash(firstBatch.PASSWORD)
         const user={
             PesonalInfo:{
@@ -52,19 +52,26 @@ export class AuthService{
             subscriber:'subscribed',
             expiry:new Date()
         }
-        
-        return await this.userRepository.create(user)
+        try {
+            
+            return await this.userRepository.create(user)
+        } catch (error:any) {
+            throw new Error(error.message)
+        }
     }
     async login (email:string,password:string){
         
         try {
             const user=await this.userRepository.findByEmail(email)
+
+            
             if(!user){
                 throw new Error('user not found')
             }
             if(user){
                 const isMatch=await this.bcryptAdapter.compare(password,user.password)
                 if(isMatch){
+                   
                     const jwt_key:string=process.env.JWT_SECRET_USER||''
                    const token=this.jwtGenerator.createToken({id:JSON.stringify(user._id) ,role:'user'},jwt_key,{expiresIn:'1 hour'})
                     return {user,token}
@@ -73,15 +80,17 @@ export class AuthService{
                     
                     }
                 }else{
+                   
                     throw new Error('user not found')
                 }
-        } catch (error) {
-            
+        } catch (error:any) {
+
+           throw new Error(error.message)
         }
     }
     async ForgetValidateEmail(email:string){
         const isValid=await UserModel.findOne({email:email})
-        
+     
             return isValid
         
         
@@ -99,10 +108,24 @@ export class AuthService{
         }
         
     }
+    async otpVerificationForForgot(email:string){
+        try {
+           
+            const otp=await generateOTP()
+            const isCreated=await this.otpRepsistory.create({otp,email})
+            const subject='Password Reseting'
+            await emailService.sendEmail(email,subject,`Welcome to Mangalya. Your Signup OTP for Authentication is <h1>${otp}<h1/>`)
+            return  true
+            
+        } catch (error) {
+            throw new Error("error on otp authentication")
+        }
+        
+    }
     async otpValidation(otp:string,email:string){
         try {
           const response=await this.otpRepsistory.otpValidation(otp,email)
-          console.log(74,response)
+        
           if(response){
             return true
           }else{
@@ -111,5 +134,21 @@ export class AuthService{
         } catch (error) {
             throw new Error('otp falure')
         }
+    }
+    async passwordChange(email:string,password:string){
+        try {
+            const hashed=await this.bcryptAdapter.hash(password)
+           
+            const response=await UserModel.updateOne({email:email},{password:hashed})
+           
+            if(response){
+                return true
+            }else{
+                throw new Error('error on password creation')
+            }
+            
+        } catch (error) {
+            throw new Error('error on password reseting')
+         }
     }
 }

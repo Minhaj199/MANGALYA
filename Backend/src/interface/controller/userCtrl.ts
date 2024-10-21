@@ -1,8 +1,11 @@
 import { Response,Request, response } from "express";
 import { AuthService } from "../../application/user/auth/authService"; 
 import { MongoUserRepsitories,MongoOtpRepository, } from "../../Infrastructure/repositories/mongoRepositories"; 
+import { EmailService } from "../../application/emailService";
+import { generateOTP } from "../../Infrastructure/otpGenerator";
 
 
+const emailService=new EmailService()
 const userRepository=new MongoUserRepsitories()
 const otpRepsitory=new MongoOtpRepository()
 const authService=new AuthService(userRepository,otpRepsitory)
@@ -24,22 +27,38 @@ export const signup=async (req:Request,res:Response)=>{
  }
     }
 }
+
 export const otpCreation=async(req:Request,res:Response)=>{
-    const {email}=req.body
+    const {email,from}=req.body
+    
+   if(from==='forgot'){
     try {
-        
-        const response=await authService.otpVerification(email)
+        const response=await authService.otpVerificationForForgot(email)
         if(response){
-            res.status(200).json({message:'Email send successfull'})
+            if(response){
+                res.status(200).json({message:'Email send successfull'})
+             } 
         }
     } catch (error:any) {
         res.status(500).json(error.message)
+    }
+   }else{
+
+       try {
+           
+           const response=await authService.otpVerification(email)
+           if(response){
+               res.status(200).json({message:'Email send successfull'})
+            }
+        } catch (error:any) {
+            res.status(500).json(error.message)
+        }
     }
     
 }
 export const login=async(req:Request,res:Response)=>{
     const {email,password}=req.body
-    
+   
     try {
         const response=await authService.login(email,password)
         if(!response?.user){
@@ -52,16 +71,48 @@ export const login=async(req:Request,res:Response)=>{
     }
 }
 export const forgotCheckValidate=async(req:Request,res:Response):Promise<void>=>{
+  
     try {
-        
-        const {email}=req.body
-        console.log(email)
-        const isValid=await authService.ForgetValidateEmail(email)
-        if(isValid){
-           res.json ({email:isValid.email})
-        }else{
-             res.json(false)
+        if(typeof req.query.email==='string'){
+
+            let decoded = decodeURI(req.query.email);
+            
+            const email=decoded
+           
+            const isValid=await authService.ForgetValidateEmail(email)
+                      
+            if(isValid){
+                
+           const response=await authService.otpVerificationForForgot(email)
+           if(response){
+
+               res.json ({email:isValid.email})
+           }
+            }else{
+                 res.json(false)
+            }
         }
+    } catch (error) {
+        res.json(error) 
+    }
+}
+export const forgotCheckValidateSigunp=async(req:Request,res:Response):Promise<void>=>{
+  
+    try {
+       
+
+          
+            
+            const {email}=req.body
+           
+            const isValid=await authService.ForgetValidateEmail(email)
+                      
+            if(isValid){
+                res.json ({email:isValid.email})
+            }else{
+                 res.json(false)
+            }
+        
     } catch (error) {
         res.json(error) 
     }
@@ -70,12 +121,28 @@ export const forgotCheckValidate=async(req:Request,res:Response):Promise<void>=>
 export const otpValidation=async(req:Request,res:Response):Promise<void>=>{
     try {
         const {email,otp}=req.body
+       
         const isValid=await authService.otpValidation(otp,email)
-        console.log(isValid)
+      
         if(isValid){
             res.json({message:'OTP valid'})
         }else{
             res.json({message:'OTP not valid'})
+        }
+    } catch (error) {
+        res.json(error)
+    }
+}
+export const changePassword=async(req:Request,res:Response):Promise<void>=>{
+    try {
+        const {password,email}=req.body
+      
+        const isValid=await authService.passwordChange(email,password)
+      
+        if(isValid){
+            res.json({message:'password changed'})
+        }else{
+            res.json({message:'error on password'})
         }
     } catch (error) {
         res.json(error)

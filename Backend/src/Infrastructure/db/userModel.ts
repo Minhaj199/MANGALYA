@@ -15,7 +15,7 @@ const userSchema=new Schema<IUserModel>({
     parnerData:{
         gender:String
     },
-    email:String,
+    email:{type:String,unique:true},
     password:String,
     block:Boolean,
     match:Number,

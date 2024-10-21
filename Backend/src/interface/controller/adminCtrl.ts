@@ -1,17 +1,18 @@
-import { Request,Response } from "express";
+import {  Request,Response } from "express";
 import { AdminAuth } from "../../application/admin/auth/authService";
 import { UserModel } from "../../Infrastructure/db/userModel";
-
-
+import { JWTAdapter } from "../../Infrastructure/jwt";
+import { jwtInterface } from "../middlewares/jwtAdmin";
 const adminAuthentication=new AdminAuth()
+const jwtAdapter=new JWTAdapter()
 export const login=(req:Request,res:Response)=>{
-   console.log(req.body)
+
     try {
         const {email,password}=req.body
         const isValid=adminAuthentication.login(email,password)
        
         if(isValid?.message==='admin verified'){          
-            res.json({adminVerified:true,tocken:isValid.token})
+            res.json({adminVerified:true,token:isValid.token})
         }else if(isValid?.message==='password not matching'){
             res.json({password:isValid.message})
         }else if(isValid?.message==='user name not found'){
@@ -29,17 +30,55 @@ export const login=(req:Request,res:Response)=>{
 }
 export const fetechData=async(req:Request,res:Response)=>{
     try {
-        
-        const data=await UserModel.find().sort({_id:-1})
+       
+        const data =await UserModel.aggregate([{$project:{username:'$PesonalInfo.firstName',email:1,match:1,subscriber:1,expiry:1,block:1}}])
         const processedData=data.map((el,index)=>({
-            ...el.toObject(),
+            ...el,
             expiry:el.expiry.toDateString(),
+            
             no:index+1
         }))
-        
         res.json(processedData)
     } catch (error) {
-        
+        console.log(error)
+    }
+}
+export const userBlockAndUnblock=async(req:Request,res:Response)=>{
+    try {
+       
+       const response= await UserModel.findByIdAndUpdate(req.body.id,{$set:{block:req.body.updateStatus}})
+       
+       if(response){
+            res.json({message:'updated'})
+        }
+    } catch (error) {
+        console.log(error)
+    }
+}
+export const tokenAuthenticated=(req:Request,res:Response)=>{
+    if(!req.headers['authorizationforuser']){
+         res.json({auth:false,message:'authetication failed'})
+    }
+    const token=req.headers['authorizationforuser']
+    if(token&&typeof token==='string'){
+        const decode=jwtAdapter.verifyTock(token,'admin')
+        if(typeof decode==='string'){
+             res.json({auth:false,message:'authetication failed'})    
+        }
+        const isValid=decode as jwtInterface
+        const currentTime = Math.floor(Date.now() / 1000);
+                if(isValid&&isValid.id==='123'&&isValid.role==='admin'){
+                    if(isValid.exp&&isValid.exp>currentTime){                       
+                        res.json({id:isValid.id,role:isValid.role,auth:true,message:'auth success'})
+                    }else{
+                        res.json({auth:false,message:'authetication failed'})
+                    }
+                }
+                else{
+                    res.json({auth:false,message:'authetication failed'})
+                }
+    }else{
+         res.json({auth:false,message:'authetication failed'})
     }
 }
 
