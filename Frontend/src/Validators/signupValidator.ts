@@ -1,8 +1,8 @@
 import { CredentialInterface } from "../user/Signup/Credentials" 
 import { Dispatch,SetStateAction } from "react"
+import { request } from "../utils/axiosUtils"
 
-
-export const credential_validation=(formData:CredentialInterface,setWarnning:Dispatch<SetStateAction<CredentialInterface>>):boolean=>{
+export const  credential_validation=async(formData:CredentialInterface,setWarnning:Dispatch<SetStateAction<CredentialInterface>>):Promise<boolean>=>{
     
     if(formData['FIRST NAME']?.trim()===''||formData['FIRST NAME']===undefined){
             setWarnning(el=>({...el,['FIRST NAME']:'Blank not allowed'}))
@@ -80,6 +80,15 @@ export const credential_validation=(formData:CredentialInterface,setWarnning:Dis
     }else if(formData['EMAIL']?.trim()===''||formData['EMAIL']===undefined){
         setWarnning(el=>({...el,['EMAIL']:'Insert valid email'}))
         return false
+    }
+    if(formData['EMAIL']){
+        const isExist:any=await request({url:'/user/forgotEmail',method:'post',data:{email:formData['EMAIL']}})
+        console.log(isExist)
+        if(isExist?.email){
+            console.log('84')
+            setWarnning(el=>({...el,['EMAIL']:'Email already exist'}))
+            return false
+        }
     }
     if(formData['PASSWORD']?.trim()===''||formData['PASSWORD']===undefined){
        console.log('here')

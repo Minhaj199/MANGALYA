@@ -1,17 +1,17 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./Login.css";
-import axios from "axios";
+
 import { request } from "../../utils/axiosUtils";
 
 import { LoginValidatorAdmin } from "../../Validators/LoginValidatorForAdmin"; 
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 
  export interface AdminInterface{
   email:string
   password:string
 }
 export const Login: React.FC = () => {
- const nevigate=useNavigate()
+  const navigate=useNavigate()
   const [adminForm,setAdminForm]=useState<AdminInterface>({email:'',password:''})
   interface warning{
     username:string
@@ -24,6 +24,7 @@ interface LoginType{
   username?:string;
   adminVerified?:string,
   password?:string
+  token:string
 
 }
 
@@ -41,11 +42,14 @@ interface LoginType{
           }else if (Object.keys(response).includes('password')){
             
             setWarning(prev => ({ ...prev, password:response.password||'', username:'' })); 
-            console.log(warnnig)
+            
           }else if (Object.keys(response).includes('adminVerified')){
-            if(response?.adminVerified){
-              console.log(response)
-              nevigate('/admin/manageUser')
+            if(response?.adminVerified&&response.token){
+              localStorage.setItem('adminToken',response.token)
+              console.log(localStorage.getItem('adminToken'))
+              navigate('/admin/manageUser')
+            }else{
+              alert('validation faild try again')
             }
             
           }
@@ -89,7 +93,7 @@ interface LoginType{
               />
             </div>
           </div>
-          <p className="text-red-600  w-52 h-12">{warnnig?.username?warnnig.username:''}</p>
+          <p className="text-red-600  w-52 h-12 font-serif ">{warnnig?.username?warnnig.username:''}</p>
           <div className="w-3/4 h-12 bg-black flex">
             <div className="h-full w-2/12 bg-red_FA0000  flex justify-center items-center">
               <img className="w-2/4 h-2/4" src="./lock.png" alt="" />
@@ -104,7 +108,7 @@ interface LoginType{
               />
             </div>
           </div>
-          <p className="text-red-600  w-52 h-12 ">{warnnig?.password?warnnig.password:''}</p>
+          <p className="text-red-600  w-52 h-12 font-serif ">{warnnig?.password?warnnig.password:''}</p>
         </div>
         <div className="w-full h-1/5  flex justify-center items-center">
             <button onClick={handleSubmit} className="w-2/5 h-10 bg-white font-inter font-bold  border-2 border-dark_red rounded-full text-dark_red">LOGIN</button>

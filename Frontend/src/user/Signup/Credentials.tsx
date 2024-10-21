@@ -38,26 +38,27 @@ export const Credentials:React.FC<InputArrayProbs> = ({inputFields}) => {
   const navigate=useNavigate()
   async function submintCredential(){
   
-      if(credential_validation(credentialData,setWarnning)){
-        const signupFirst={
-          'SECOND NAME':credentialData['SECOND NAME'],
-        'DATE OF BIRTH':credentialData['DATE OF BIRTH'],
-        'STATE THAT YOU LIVE':credentialData['STATE THAT YOU LIVE'],
-        'YOUR GENDER':credentialData['YOUR GENDER'],
-        'GENDER OF PARTNER':credentialData['GENDER OF PARTNER'],
-        'EMAIL':credentialData['EMAIL'],
-        'PASSWORD':credentialData['PASSWORD'],
-        'FIRST NAME':credentialData['FIRST NAME']
-      }
-      setLoding(true)
-      const Response=await request({url:'/user/otpCreation',method:'post',data:{email:credentialData.EMAIL}})
-      try {
+      if(await credential_validation(credentialData,setWarnning)){
+        alert('validated')
+          const signupFirst={
+            'SECOND NAME':credentialData['SECOND NAME'],
+          'DATE OF BIRTH':credentialData['DATE OF BIRTH'],
+          'STATE THAT YOU LIVE':credentialData['STATE THAT YOU LIVE'],
+          'YOUR GENDER':credentialData['YOUR GENDER'],
+          'GENDER OF PARTNER':credentialData['GENDER OF PARTNER'],
+          'EMAIL':credentialData['EMAIL'],
+          'PASSWORD':credentialData['PASSWORD'],
+          'FIRST NAME':credentialData['FIRST NAME']
+        }
+        setLoding(true)
+        const Response=await request({url:'/user/otpCreation',method:'post',data:{email:credentialData.EMAIL}})
+        try {
       if(Response&&typeof Response==='object'&&Object.values(Response).includes('Email send successfull')){
          setCredentialData({})
          navigate("/otpVerification")
         
         }else{
-          alert(Response)
+          alert()
      }
       
     } catch (error) {

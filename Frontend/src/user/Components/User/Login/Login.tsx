@@ -1,4 +1,4 @@
-import axios from "axios"
+
 import { Forgot_Props } from "../Forgot/Forgot_first"
 import { useState } from "react"
 import { LoginValidator } from "../../../../Validators/LoginValidator"
@@ -6,6 +6,7 @@ import { LoginValidator } from "../../../../Validators/LoginValidator"
 
 import React from "react"
 import { useNavigate } from "react-router-dom"
+import { request } from "../../../../utils/axiosUtils"
 interface userLoginProp extends Forgot_Props{
     loginTogle:string
 }
@@ -29,21 +30,20 @@ export const Login:React.FC<userLoginProp> = ({changeToggle,loginTogle}) => {
   try {
     const isValid:boolean=LoginValidator({...userData},setWarnning)
     if(isValid){
-    const response=await axios({
-       url:'http://localhost:8000/user/login',
-       method:'post',
-       data:userData
-     });
-    console.log(response.data)
-     if(response.data.message==='user not found'){
-      setWarnning(prev=>({...prev,email:response.data.message,password:null}))
-     }
-     else if(response.data.message==='password not matched'){
-      setWarnning(prev=>({...prev,password:response.data.message,email:null}))
-     }
-     else if(response.data.message==='password matched'){
-      alert('user Logged')
-     }
+    const response:any=await request({url:'/user/login',method:'post',data:userData})
+    console.log(response)
+    if(response?.message){
+
+      if(response.message==='user not found'){
+       setWarnning(prev=>({...prev,email:response.message,password:null}))
+      }
+      else if(response.message==='password not matched'){
+       setWarnning(prev=>({...prev,password:response.message,email:null}))
+      }
+      else if(response.message==='password matched'){
+       alert('user Logged')
+      }
+    }
     }
   } catch (error) {
    }

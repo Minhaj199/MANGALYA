@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext } from "react";
 import { Login } from "./admin/Login/Login";
 import { Layout } from "./admin/Layout/Layout";
 import { Landing } from "./user/Landing/Landing";
@@ -6,6 +6,9 @@ import { UserTable } from "./admin/Components/Tables/UserTable/Table";
 import { Routes, Route } from "react-router-dom";
 import { OTPVerification } from "./user/otp verification/OTPVerification";
 import { SignupContext } from "./GlobalContext/signupData"; 
+import { ProtectRouteAdmin } from "./utils/RouteManagement";
+import { UnProtectRouteAdmin } from "./utils/RouteManagement";
+
 
 import { Credentials } from "./user/Signup/Credentials";
 
@@ -30,7 +33,7 @@ const App: React.FC = () => {
     if(!context){
       throw new Error('user  data is empty in opt verification')
     }
-    const {signupFirstData}=context
+    // const {signupFirstData}=context
 
   const inputFields=[
     {linkingName:'firstName',inputType:'text',inputName:'FIRST NAME'},
@@ -40,18 +43,25 @@ const App: React.FC = () => {
     {linkingName:'Gender',inputType:'dropDown',option:['female','male'] ,inputName:"YOUR GENDER"},
     {linkingName:'partner',inputType:'dropDown',option:['male','female'], inputName:"GENDER OF PARTNER"},
     {linkingName:'email',inputType:'email',inputName:"EMAIL"},
-    {linkingName:'password',inputType:'text',inputName:"PASSWORD"},
-    {linkingName:'cPassword',inputType:'text',inputName:"CONFIRM PASSWORD"},
+    {linkingName:'password',inputType:'password',inputName:"PASSWORD"},
+    {linkingName:'cPassword',inputType:'password',inputName:"CONFIRM PASSWORD"},
   ]
   return (
     <Routes>
+     <Route element={<UnProtectRouteAdmin/>}>
+
       <Route path="/login" element={<Login />} />
+     </Route>
+     {/* <Route path="/login" element={<Login />} /> */}
+      <Route  element={<ProtectRouteAdmin />} >
+      
       <Route path="/admin" element={<Layout />}>
         <Route path="manageUser" element={<UserTable />} />
       </Route>
+      </Route>
       <Route path="/" element={<Landing />} />
       <Route path="/signUp" element={<Credentials inputFields={inputFields} />} />
-      <Route path="/otpVerification" element={<OTPVerification email={'minhaj@gmail.com'} />} />
+      <Route path="/otpVerification" element={<OTPVerification  />} />
     </Routes>
   );
 };

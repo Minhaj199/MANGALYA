@@ -1,22 +1,43 @@
-import axios,{AxiosRequestConfig,AxiosResponse} from "axios";
+import axios, { AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from "axios";
 
-const client=axios.create({baseURL:'http://localhost:8000'})
 
-export const request=async<T>(options:AxiosRequestConfig):Promise<T>=>{
- const token=localStorage.getItem('token')
- if(token){
-    client.defaults.headers.common['Authorization']=token
- }
- const onSuccess=(response:AxiosResponse<T>):T=>response.data;
- const onErro=(error:any):never=>{
-    throw new Error(error.reponse?.data.message||error.message)
- }
- try {
-    const reponse=await client(options)
-    return onSuccess(reponse)
- } catch (error) {
-    return onErro(error)    
- }
+const client = axios.create({ baseURL: 'http://localhost:8000' });
 
+
+client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  let adminToken = localStorage.getItem('adminToken');
  
-}
+
+   
+  if (adminToken) {
+   config.headers['AuthorizationForUser'] = adminToken;
+  }
+
+  let userToken = localStorage.getItem('userToken');
+  if (userToken) {
+   alert('hiiiiiiiii')
+    config.headers['AuthorizationForAdmin'] = adminToken;
+  }
+
+  return config;
+}, (error) => {
+
+  return Promise.reject(error);
+});
+
+
+client.interceptors.response.use(
+  (response: AxiosResponse) => response.data,
+  (error) => {
+    return Promise.reject(new Error(error.response?.data?.message || error.message));
+  }
+);
+
+
+export const request = async <T>(options: AxiosRequestConfig): Promise<T> => {
+  try {
+    return await client(options);
+  } catch (error) {
+    throw error;
+  }
+};
