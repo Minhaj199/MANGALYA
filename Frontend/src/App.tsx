@@ -7,8 +7,9 @@ import { Routes,Route} from "react-router-dom";
 import { LoginLanding } from "./user/LoginLanding/LogLanding";
 import { SignupContext } from "./GlobalContext/signupData"; 
 import { OTPVerification } from "./user/otp verification/OTPVerification";
-import { ProtectRouteAdmin } from "./utils/RouteManagement";
-import { UnProtectRouteAdmin } from "./utils/RouteManagement";
+import { ProtectRouteAdmin, UnProtectRouteUser,UnProtectRouteAdmin,ProtectRouteUser } from "./utils/RouteManagement";
+
+
 
 
 
@@ -54,17 +55,21 @@ const App: React.FC = () => {
 
       <Route path="/login" element={<Login />} />
      </Route>
-     {/* <Route path="/login" element={<Login />} /> */}
       <Route  element={<ProtectRouteAdmin />} >
       
       <Route path="/admin" element={<Layout />}>
         <Route path="manageUser" element={<UserTable />} />
       </Route>
       </Route>
+
+      <Route element={<UnProtectRouteUser/>}>
       <Route path="/" element={<Landing />} />
       <Route path="/signUp" element={<Credentials inputFields={inputFields} />} />
-      <Route path="/otpVerification" element={<OTPVerification  />} />
+      <Route path="/otpVerification" element={<OTPVerification  />}/>
+      </Route>
+      <Route element={<ProtectRouteUser/>}>
       <Route path="/loginLanding" element={<LoginLanding/>} />
+      </Route>
     </Routes>
   );
 };

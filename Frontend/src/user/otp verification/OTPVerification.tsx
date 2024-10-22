@@ -45,6 +45,8 @@ export const OTPVerification:React.FC = () => {
           const resonse:any=await request({url:'/user/firstBatchData',method:'post',data:signupFirstData})
           if(resonse?.message&&resonse.message==="sign up completed"){
             setSignupFirst({"FIRST NAME":'',"SECOND NAME":'',"DATE OF BIRTH":'',"GENDER OF PARTNER":'',"STATE THAT YOU LIVE":'',"YOUR GENDER":'','EMAIL':'','PASSWORD':''})
+            alert(resonse.token)
+            localStorage.setItem('userToken',resonse.token)
             navigate('/loginLanding')
           }
         }else if(Response?.message==='OTP not valid'){

@@ -15,7 +15,7 @@ export const signup=async (req:Request,res:Response)=>{
     
     try {
         const user=await authService.signupFirstBatch(req.body)
-        res.status(201).json({message:'sign up completed',user}) 
+        res.status(201).json({message:'sign up completed',user:user?.user,token:user?.token}) 
     } catch (error:any) {
         console.log(error)
         if(error){
@@ -72,7 +72,7 @@ export const login=async(req:Request,res:Response)=>{
 export const fetechProfileData=async(req:Request,res:Response)=>{
     try {
        
-        const data =await UserModel.aggregate([{$project:{name:'$PesonalInfo.firstName'}}])
+        const data =await UserModel.aggregate([{$project:{name:'$PesonalInfo.firstName'}},{$limit:5}])
         const processedData=data.map((el,index)=>({
             ...el,
             no:index+1

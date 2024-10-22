@@ -53,8 +53,15 @@ export class AuthService{
             expiry:new Date()
         }
         try {
+            const response =await this.userRepository.create(user)
+            if(response){
+                const key=process.env.JWT_SECRET_USER||'123'
+                const id=JSON.stringify(response._id)||'123'
+                const token=this.jwtGenerator.createToken({id:id,role:'user'},key,{expiresIn:'1 hour'})
+                return {user,token}
+            } 
             
-            return await this.userRepository.create(user)
+             
         } catch (error:any) {
             throw new Error(error.message)
         }
