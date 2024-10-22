@@ -20,7 +20,7 @@ export class MongoUserRepsitories implements UserRepository{
     }
     async findByEmail(email: string): Promise<UserWithID|null> {
         
-        const user=await UserModel.findOne({email}).lean()
+        const user=await UserModel.findOne({email,block:false}).lean()
         
         return user as UserWithID|null
     }

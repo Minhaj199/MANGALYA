@@ -121,7 +121,7 @@ export class AuthService{
             const otp=await generateOTP()
             const isCreated=await this.otpRepsistory.create({otp,email})
             const subject='Password Reseting'
-            await emailService.sendEmail(email,subject,`Welcome to Mangalya. Your Signup OTP for Authentication is <h1>${otp}<h1/>`)
+            await emailService.sendEmail(email,subject,`Welcome to Mangalya. Your password reset OTP for Authentication is <h1>${otp}<h1/>`)
             return  true
             
         } catch (error) {

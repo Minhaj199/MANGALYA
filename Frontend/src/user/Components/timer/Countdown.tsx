@@ -28,12 +28,12 @@ export const Countdown:React.FC<TimerProbs> = ({expiryTimeStamp,from,email}) => 
                     
                 }
             }else{
-                alert('in navigate')
+                
                 navigate('/signup')
             }
         }else{
             
-            alert('else')
+    
             restart(new Date(Date.now()+120000))
             if(signupFirstData.EMAIL){
                 try{

@@ -41,11 +41,11 @@ export const OTPVerification:React.FC = () => {
       
       if(Response){
         if(Response?.message==='OTP valid'){
-          alert('OTP is valid')
+          
           const resonse:any=await request({url:'/user/firstBatchData',method:'post',data:signupFirstData})
           if(resonse?.message&&resonse.message==="sign up completed"){
             setSignupFirst({"FIRST NAME":'',"SECOND NAME":'',"DATE OF BIRTH":'',"GENDER OF PARTNER":'',"STATE THAT YOU LIVE":'',"YOUR GENDER":'','EMAIL':'','PASSWORD':''})
-            alert(resonse.token)
+           
             localStorage.setItem('userToken',resonse.token)
             navigate('/loginLanding')
           }
@@ -62,7 +62,7 @@ export const OTPVerification:React.FC = () => {
     }
     
    }else{
-    setWarning('please 6 charectors')
+    setWarning('please insert 6 charectors')
    }
   }
  

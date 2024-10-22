@@ -24,15 +24,13 @@ export const UserTable:React.FC = () => {
     if(confirm(`Do you want to ${status} ${name}`)){
       const updateStatus=(status==='block')?true:false
       const response:any= await request({url:'/admin/block&Unblock',method:'patch',data:{updateStatus:updateStatus,id}})
-      console.log(response)
       if(response.message==='validation Faild'){
-        alert(response.message)
+        
         navigate('/login')
       }
       if(response?.message){
         setMockData(el=>el.map(user=>(user._id===id)?{...user,block:updateStatus}:user))
         console.log(data)
-        alert(`${name} blocked`)
         
       } 
     }

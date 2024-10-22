@@ -40,7 +40,6 @@ export const Credentials:React.FC<InputArrayProbs> = ({inputFields}) => {
     t.preventDefault()
   
       if(await credential_validation(credentialData,setWarnning)){
-        alert('validated')
           const signupFirst={
             'SECOND NAME':credentialData['SECOND NAME'],
           'DATE OF BIRTH':credentialData['DATE OF BIRTH'],
@@ -59,7 +58,7 @@ export const Credentials:React.FC<InputArrayProbs> = ({inputFields}) => {
          navigate("/otpVerification")
         
         }else{
-          alert()
+          
      }
       
     } catch (error) {

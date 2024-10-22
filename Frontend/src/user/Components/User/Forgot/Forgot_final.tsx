@@ -75,7 +75,7 @@ export const Forgot_Final:React.FC<Forgot_Props> = ({changeToggle}) => {
     value={password}
     placeholder="PASSWORD"
     onChange={(t)=>setPassword(t.target.value)}
-      type="text"
+      type="password"
       className="block  mt-5  bg-transparent border w-42 border-input_dark sm:w-64 h-10 text-gray-300 pl-8"
     />
     <div className="w-3/5 p-3 h-12 font-inter text-gray-200 ">
@@ -85,7 +85,7 @@ export const Forgot_Final:React.FC<Forgot_Props> = ({changeToggle}) => {
     placeholder="COMFIRM PASSWORD"
     value={confirm}
     onChange={(t)=>confirmSetPassword(t.target.value)}
-      type="text"
+      type="password"
       className="block   bg-transparent border w-42 border-input_dark sm:w-64 h-10 text-gray-300 pl-8"
     />
     <div className="w-3/5 p-3 h-12 font-inter text-gray-200 ">
