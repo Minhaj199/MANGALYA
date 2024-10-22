@@ -3,6 +3,7 @@ import { AuthService } from "../../application/user/auth/authService";
 import { MongoUserRepsitories,MongoOtpRepository, } from "../../Infrastructure/repositories/mongoRepositories"; 
 import { EmailService } from "../../application/emailService";
 import { generateOTP } from "../../Infrastructure/otpGenerator";
+import { UserModel } from "../../Infrastructure/db/userModel";
 
 
 const emailService=new EmailService()
@@ -58,16 +59,27 @@ export const otpCreation=async(req:Request,res:Response)=>{
 }
 export const login=async(req:Request,res:Response)=>{
     const {email,password}=req.body
-   
+    
     try {
         const response=await authService.login(email,password)
-        if(!response?.user){
-            throw new Error('user not fount')
-        }
-        const {user,token}=response
-        res.json({message:'password matched',user,token})
+        
+        const {token}=response
+        res.json({message:'password matched',token})
     } catch (error:any) {
         res.json({message:error.message})
+    }
+}
+export const fetechProfileData=async(req:Request,res:Response)=>{
+    try {
+       
+        const data =await UserModel.aggregate([{$project:{name:'$PesonalInfo.firstName'}}])
+        const processedData=data.map((el,index)=>({
+            ...el,
+            no:index+1
+        }))
+        res.json(processedData)
+    } catch (error) {
+        console.log(error)
     }
 }
 export const forgotCheckValidate=async(req:Request,res:Response):Promise<void>=>{

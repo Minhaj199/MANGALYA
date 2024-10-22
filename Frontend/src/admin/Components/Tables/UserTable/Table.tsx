@@ -66,8 +66,8 @@ export const UserTable:React.FC = () => {
   const data=useMemo(()=>filterData??[],[filterData])
  
   
-    const { getTableProps, getTableBodyProps, headerGroups,rows, prepareRow } = useTable({ columns, data },usePagination);
-  
+    const { getTableProps, getTableBodyProps, headerGroups,page, nextPage,setPageSize,previousPage,prepareRow,canNextPage,canPreviousPage,pageOptions,state } = useTable({ columns, data },usePagination);
+    const {pageIndex,pageSize}=state
     return (
       <>
         
@@ -91,7 +91,7 @@ export const UserTable:React.FC = () => {
               ))}
             </TableHead>
             <TableBody {...getTableBodyProps()} className='bg-red-400'>
-              {rows.map((row,rowIndex) => {
+              {page.map((row,rowIndex) => {
                 prepareRow(row);
                 return (
                   <TableRow {...row.getRowProps()} key={rowIndex} className='text-start'>
@@ -116,8 +116,9 @@ export const UserTable:React.FC = () => {
         </Paper>
           </div>
           <div className="w-full h-1/5 flex justify-center items-center">
-            <button  className="bg-dark_red text-white rounded-full h-14 w-14" >{'<<'}</button>
-            <button className="bg-dark_red text-white rounded-full h-14 w-14 ml-1 font-bold ">{'>>'}</button>
+          <span className='mr-5'>page{' '} <strong>{pageIndex+1} of {pageOptions.length}</strong>{' '}</span>
+            <button  onClick={()=>previousPage()} disabled={!canPreviousPage} className="bg-dark_red text-white rounded-full h-14 w-14" >{'<<'}</button>
+            <button onClick={()=>nextPage()} disabled={!canNextPage} className="bg-dark_red text-white rounded-full h-14 w-14 ml-1 font-bold ">{'>>'}</button>
           </div>
         </div>
            </> 

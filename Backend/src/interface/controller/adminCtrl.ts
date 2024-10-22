@@ -31,7 +31,7 @@ export const login=(req:Request,res:Response)=>{
 export const fetechData=async(req:Request,res:Response)=>{
     try {
        
-        const data =await UserModel.aggregate([{$project:{username:'$PesonalInfo.firstName',email:1,match:1,subscriber:1,expiry:1,block:1}}])
+        const data =await UserModel.aggregate([{$sort:{_id:-1}},{$project:{username:'$PesonalInfo.firstName',email:1,match:1,subscriber:1,expiry:1,block:1}},])
         const processedData=data.map((el,index)=>({
             ...el,
             expiry:el.expiry.toDateString(),
@@ -43,6 +43,7 @@ export const fetechData=async(req:Request,res:Response)=>{
         console.log(error)
     }
 }
+
 export const userBlockAndUnblock=async(req:Request,res:Response)=>{
     try {
        
@@ -55,32 +56,32 @@ export const userBlockAndUnblock=async(req:Request,res:Response)=>{
         console.log(error)
     }
 }
-export const tokenAuthenticated=(req:Request,res:Response)=>{
-    if(!req.headers['authorizationforuser']){
-         res.json({auth:false,message:'authetication failed'})
-    }
-    const token=req.headers['authorizationforuser']
-    if(token&&typeof token==='string'){
-        const decode=jwtAdapter.verifyTock(token,'admin')
-        if(typeof decode==='string'){
-             res.json({auth:false,message:'authetication failed'})    
-        }
-        const isValid=decode as jwtInterface
-        const currentTime = Math.floor(Date.now() / 1000);
-                if(isValid&&isValid.id==='123'&&isValid.role==='admin'){
-                    if(isValid.exp&&isValid.exp>currentTime){                       
-                        res.json({id:isValid.id,role:isValid.role,auth:true,message:'auth success'})
-                    }else{
-                        res.json({auth:false,message:'authetication failed'})
-                    }
-                }
-                else{
-                    res.json({auth:false,message:'authetication failed'})
-                }
-    }else{
-         res.json({auth:false,message:'authetication failed'})
-    }
-}
+// export const tokenAuthenticated=(req:Request,res:Response)=>{
+//     if(!req.headers['authorizationforuser']){
+//          res.json({auth:false,message:'authetication failed'})
+//     }
+//     const token=req.headers['authorizationforuser']
+//     if(token&&typeof token==='string'){
+//         const decode=jwtAdapter.verifyTock(token,'admin')
+//         if(typeof decode==='string'){
+//              res.json({auth:false,message:'authetication failed'})    
+//         }
+//         const isValid=decode as jwtInterface
+//         const currentTime = Math.floor(Date.now() / 1000);
+//                 if(isValid&&isValid.id==='123'&&isValid.role==='admin'){
+//                     if(isValid.exp&&isValid.exp>currentTime){                       
+//                         res.json({id:isValid.id,role:isValid.role,auth:true,message:'auth success'})
+//                     }else{
+//                         res.json({auth:false,message:'authetication failed'})
+//                     }
+//                 }
+//                 else{
+//                     res.json({auth:false,message:'authetication failed'})
+//                 }
+//     }else{
+//          res.json({auth:false,message:'authetication failed'})
+//     }
+// }
 
 
 

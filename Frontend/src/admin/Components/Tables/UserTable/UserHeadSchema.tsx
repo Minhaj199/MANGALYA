@@ -23,7 +23,7 @@ export const  Columns: Column<TableDataType>[] = [
     },
     {
       Header: 'expiry',
-      accessor: 'expiry'  
+      accessor: 'expiry',
     }
   ];
   

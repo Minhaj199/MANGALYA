@@ -3,8 +3,10 @@ import "./Landing.css";
 import { Footer } from "../Components/User/Footer/Footer";
 import { useState } from "react";
 import { Forgot_first } from "../Components/User/Forgot/Forgot_first";
-import { Forgot_second } from "../Components/User/Forgot/Forgot_second";
+import { Forgot_second } from "../Components/User/Forgot/Forgot_second copy"; 
+import { Forgot_Final } from "../Components/User/Forgot/Forgot_final";
 import { Login } from "../Components/User/Login/Login";
+
 import { Search } from "../Components/User/Search/Search";
 
 export const Landing = () => {
@@ -29,6 +31,9 @@ export const Landing = () => {
             >
               <p className="text-white font-italian ">LOGIN</p>
             </div>
+            {/* <div className="w-16 h-16 bg-slate-700 mr-8 rounded-full">
+              <img src="/profile.png" alt="" />
+            </div> */}
           </div>
           <div className="w-screen h-2/4 flex justify-center  items-end">
             <h1 className="font-italian relative text-2xl  text-white sm:text-4xl">
@@ -50,6 +55,7 @@ export const Landing = () => {
         />
         {loginTogle === "3" ? <Forgot_first changeToggle={changeTogle} /> : ""}
         {loginTogle === "4" ? <Forgot_second changeToggle={changeTogle} /> : ""}
+        {loginTogle === "5" ? <Forgot_Final changeToggle={changeTogle} /> : ""}
       </div>
       <div className="w-screen h-svh bg-green-950">
         

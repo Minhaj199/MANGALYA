@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import React, { useContext, useState } from "react";
 import { credential_validation } from "../../Validators/signupValidator";
 // import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -36,7 +36,8 @@ export const Credentials:React.FC<InputArrayProbs> = ({inputFields}) => {
   const [warnning,setWarnning]=useState<CredentialInterface>({})
   const [loding,setLoding]=useState<boolean>(false)
   const navigate=useNavigate()
-  async function submintCredential(){
+  async function submintCredential(t:any){
+    t.preventDefault()
   
       if(await credential_validation(credentialData,setWarnning)){
         alert('validated')
@@ -66,6 +67,7 @@ export const Credentials:React.FC<InputArrayProbs> = ({inputFields}) => {
     } 
       setSignupFirst(signupFirst) 
     }
+    console.log(credentialData)
     
   }
  
@@ -93,7 +95,7 @@ export const Credentials:React.FC<InputArrayProbs> = ({inputFields}) => {
                 
             </div>
         <div className="w-full h-12   flex justify-center items-center">
-            <button onClick={submintCredential} className="bg-dark_red w-1/3 h-10 rounded-2xl mb-5 mt-3">Next</button>
+            <button onClick={(t)=>submintCredential(t)} className="bg-dark_red w-1/3 h-10 rounded-2xl mb-5 mt-3">Next</button>
         </div>
         
       </div>}

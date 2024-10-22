@@ -3,11 +3,13 @@ import { Login } from "./admin/Login/Login";
 import { Layout } from "./admin/Layout/Layout";
 import { Landing } from "./user/Landing/Landing";
 import { UserTable } from "./admin/Components/Tables/UserTable/Table";
-import { Routes, Route } from "react-router-dom";
-import { OTPVerification } from "./user/otp verification/OTPVerification";
+import { Routes,Route} from "react-router-dom";
+import { LoginLanding } from "./user/LoginLanding/LogLanding";
 import { SignupContext } from "./GlobalContext/signupData"; 
+import { OTPVerification } from "./user/otp verification/OTPVerification";
 import { ProtectRouteAdmin } from "./utils/RouteManagement";
 import { UnProtectRouteAdmin } from "./utils/RouteManagement";
+
 
 
 import { Credentials } from "./user/Signup/Credentials";
@@ -62,6 +64,7 @@ const App: React.FC = () => {
       <Route path="/" element={<Landing />} />
       <Route path="/signUp" element={<Credentials inputFields={inputFields} />} />
       <Route path="/otpVerification" element={<OTPVerification  />} />
+      <Route path="/loginLanding" element={<LoginLanding/>} />
     </Routes>
   );
 };

@@ -74,7 +74,7 @@ export class AuthService{
                    
                     const jwt_key:string=process.env.JWT_SECRET_USER||''
                    const token=this.jwtGenerator.createToken({id:JSON.stringify(user._id) ,role:'user'},jwt_key,{expiresIn:'1 hour'})
-                    return {user,token}
+                    return {token}
                 }else{
                     throw new Error('password not matched')
                     
@@ -124,6 +124,7 @@ export class AuthService{
     }
     async otpValidation(otp:string,email:string){
         try {
+
           const response=await this.otpRepsistory.otpValidation(otp,email)
         
           if(response){

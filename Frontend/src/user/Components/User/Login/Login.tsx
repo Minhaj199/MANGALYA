@@ -41,7 +41,10 @@ export const Login:React.FC<userLoginProp> = ({changeToggle,loginTogle}) => {
        setWarnning(prev=>({...prev,password:response.message,email:null}))
       }
       else if(response.message==='password matched'){
+        localStorage.setItem('userToken',response.token)
+        changeToggle('1')
        alert('user Logged')
+       navigate('/loginLanding')
       }
     }
     }

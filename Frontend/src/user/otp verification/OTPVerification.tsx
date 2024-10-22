@@ -26,12 +26,14 @@ export const OTPVerification:React.FC = () => {
   const [warning,setWarning]=useState<string>()
   const [expiryTimeStamp]=useState<Date>(new Date(Date.now()+120000))
   const [loading,setLoading]=useState<boolean>(false)
+
   async function handleReset(){
     if(otp.length===6){
      
       setWarning('')
       try {
         if(!signupFirstData.EMAIL){
+          
          navigate('/signup')
         }  
         setLoading(true)
@@ -43,7 +45,7 @@ export const OTPVerification:React.FC = () => {
           const resonse:any=await request({url:'/user/firstBatchData',method:'post',data:signupFirstData})
           if(resonse?.message&&resonse.message==="sign up completed"){
             setSignupFirst({"FIRST NAME":'',"SECOND NAME":'',"DATE OF BIRTH":'',"GENDER OF PARTNER":'',"STATE THAT YOU LIVE":'',"YOUR GENDER":'','EMAIL':'','PASSWORD':''})
-            navigate('/')
+            navigate('/loginLanding')
           }
         }else if(Response?.message==='OTP not valid'){
           setLoading(false)
@@ -79,7 +81,7 @@ export const OTPVerification:React.FC = () => {
       <div className="flex-col h-3/6 w-full  flex justify-center items-center">
        <input type="text" max={6} value={otp} onChange={(t)=>setOpt(t.target.value)}  className="h-16 bg-slate-300 w-1/3 font-black  font-mono text-2xl  text-center" />
        <p className="font-sans font-semibold cursor-pointer text-white mt-1">{warning?warning:warning}</p>      
-       <Countdown expiryTimeStamp={expiryTimeStamp}/>    
+       <Countdown expiryTimeStamp={expiryTimeStamp} from="signup"/>    
       </div>
       <button className="bg-white py-3 px-6 rounded-full font-bold text-neutral-900 font-inter" onClick={handleReset}>SUBMIT</button>
       </div>

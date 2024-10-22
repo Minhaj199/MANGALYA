@@ -1,7 +1,7 @@
 
 
-let timer=new Date()
-console.log(timer)
+let m='minhaj'
+let i=encodeURI(m)
 
-console.log(timer.setSeconds(timer.getSeconds()+120))
 
+console.log(i)

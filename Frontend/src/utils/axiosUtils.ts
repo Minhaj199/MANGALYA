@@ -15,8 +15,8 @@ client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 
   let userToken = localStorage.getItem('userToken');
   if (userToken) {
-   alert('hiiiiiiiii')
-    config.headers['AuthorizationForAdmin'] = adminToken;
+    alert('at axios util')
+    config.headers['AuthForUser'] = userToken;
   }
 
   return config;

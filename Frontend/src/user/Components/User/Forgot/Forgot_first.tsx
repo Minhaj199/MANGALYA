@@ -1,5 +1,9 @@
-import axios from "axios"
-import React,{Dispatch,SetStateAction, useState} from "react"
+
+import React,{Dispatch,SetStateAction, useContext, useState} from "react"
+import { request } from "../../../../utils/axiosUtils"
+import { Loading } from "../../Loading/Loading"
+
+import { EmailForFogot } from "../../../../GlobalContext/signupData"
 
 function validateEmail(email:string){
   const emailRegex=/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
@@ -16,20 +20,28 @@ export interface Forgot_Props{
 export const Forgot_first:React.FC<Forgot_Props> = ({changeToggle}) => {
   const [email,setEmail]=useState<string>('')
   const [warnning,setWarning]=useState<string>('')
+  const [isLoading,setLoading]=useState(false)
+  const contest=useContext(EmailForFogot)
+  if(!contest){
+    throw new Error('no contex')
+  }
+  const {setforgotEmail}=contest
   async function handle_validate():Promise<void>{
-   if(validateEmail(email)){
+    if(validateEmail(email)){
     try {
-      const response=await axios({
-        url:'http://localhost:8000/user/forgotEmail',
-        method:'post',
-        data:{email}
-      })
-      console.log(response.data)
       
-      if(response.data?.email){
+      const encodedUri=encodeURI(`/user/forgotEmail?email=${email}`)
+      setLoading(true)
+      const response:{email:string}|null=await request({url:encodedUri,method:'get'})
+      console.log(response)
+    setLoading(false)
+      if(response?.email){
+        setforgotEmail(response.email)
         changeToggle('4')
+
       }
-      if(!response.data){
+      
+      if(!response){
         setWarning('Email not found')
       }
     } catch (error) {
@@ -41,8 +53,12 @@ export const Forgot_first:React.FC<Forgot_Props> = ({changeToggle}) => {
    }
   }
   return (
-    <div className="flex items-center flex-col h-1/2 w-60 sm:w-1/3 sm:h-[350px] relative sm:top-32 sm:left-96 top-28 left-14   bg-[rgba(0,0,0,0.7)]">
-          <p className="font-aborato text-white text-xl mt-11">
+    isLoading?<Loading/>:
+    <div className="flex items-center flex-col h-3/5 w-60 sm:w-1/3 sm:h-[350px] relative sm:top-32 sm:left-96 top-28 left-14   bg-[rgba(0,0,0,0.7)]">
+         <div  className=" w-full h-10 flex justify-end items-center pr-4 ">
+          <p className=" text-white cursor-pointer" onClick={()=>changeToggle('2')}>X</p>
+         </div>
+          <p className="font-aborato text-white text-xl mt-8">
             FORGOT PASSWORD
           </p>
           <label className="font-aborato pt-10 pb-5 text-white" htmlFor="">
