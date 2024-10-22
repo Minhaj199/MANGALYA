@@ -30,7 +30,6 @@ export const UserTable:React.FC = () => {
       }
       if(response?.message){
         setMockData(el=>el.map(user=>(user._id===id)?{...user,block:updateStatus}:user))
-        console.log(data)
         
       } 
     }

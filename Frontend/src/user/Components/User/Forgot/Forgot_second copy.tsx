@@ -33,11 +33,14 @@ export const Forgot_second:React.FC<Forgot_Props> = ({changeToggle}) => {
         }
         resonse().then((value:unknown)=>{
           let result=value as {message:string}|false
-          console.log(result&&result.message&&result.message==="OTP valid")
+         console.log(result)
           setLoading(false)
+         
+           
           if(result&&result.message&&result.message==="OTP valid"){
           changeToggle('5')
-          
+          }else if(result&&result.message&&result.message==="OTP not valid"){
+            alert(result.message)
           }
         }).catch(result=>{
           setLoading(false)

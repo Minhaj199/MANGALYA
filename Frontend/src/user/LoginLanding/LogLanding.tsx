@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { request } from '../../utils/axiosUtils'
 import { useNavigate } from 'react-router-dom'
+import { handleAlert } from '../../utils/sweeAlert'
 type profileType={id:string,name:string,no:number}
 
 export const LoginLanding = () => {
@@ -16,6 +17,7 @@ export const LoginLanding = () => {
     },[])
     function handleLogout(){
         localStorage.removeItem('userToken')
+        handleAlert('warning','user loged out')
         navigate('/')
     }
   return (

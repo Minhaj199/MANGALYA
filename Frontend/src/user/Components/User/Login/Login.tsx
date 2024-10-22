@@ -2,11 +2,13 @@
 import { Forgot_Props } from "../Forgot/Forgot_first"
 import { useState } from "react"
 import { LoginValidator } from "../../../../Validators/LoginValidator"
+import Swal from "sweetalert2"
 
 
 import React from "react"
 import { useNavigate } from "react-router-dom"
 import { request } from "../../../../utils/axiosUtils"
+import { handleAlert } from "../../../../utils/sweeAlert"
 interface userLoginProp extends Forgot_Props{
     loginTogle:string
 }
@@ -16,6 +18,13 @@ export interface userForm {
 }
  
 export const Login:React.FC<userLoginProp> = ({changeToggle,loginTogle}) => {
+  const handleSweetAlert=()=>{
+    Swal.fire({
+      title: "The Internet?",
+      text: "That thing is still around?",
+      icon: "question"
+    });
+  }
   const navigate=useNavigate()
   type probs={
     email:string|null
@@ -32,7 +41,7 @@ export const Login:React.FC<userLoginProp> = ({changeToggle,loginTogle}) => {
     if(isValid){
     const response:any=await request({url:'/user/login',method:'post',data:userData})
     console.log(response)
-    if(response?.message){
+    if(response?.message&&response.name){
 
       if(response.message==='user not found'){
        setWarnning(prev=>({...prev,email:response.message,password:null}))
@@ -43,8 +52,11 @@ export const Login:React.FC<userLoginProp> = ({changeToggle,loginTogle}) => {
       else if(response.message==='password matched'){
         localStorage.setItem('userToken',response.token)
         changeToggle('1')
-       alert('user Logged')
-       navigate('/loginLanding')
+       handleAlert('success',`welcome ${response.name}`)
+       setTimeout(()=>{
+
+         navigate('/loginLanding')
+       },2000)
       }
     }
     }

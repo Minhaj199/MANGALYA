@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import React, { useContext, useRef } from 'react'
 import { useTimer } from 'react-timer-hook'
 import { SignupContext } from '../../../GlobalContext/signupData'
 import { useNavigate } from 'react-router-dom'
@@ -15,11 +15,13 @@ export const Countdown:React.FC<TimerProbs> = ({expiryTimeStamp,from,email}) => 
     if(!context){
         throw new Error
     }
+    // const timeRef=useRef(expiryTimeStamp)
+
     const {signupFirstData}=context
     const { seconds, minutes,restart}=useTimer({expiryTimestamp:expiryTimeStamp})
     async function handleRestart(from:string){
         if(from==='forgot'){
-            alert('in forgot if')
+           
             restart(new Date(Date.now()+120000))
             if(email){
                 try{

@@ -4,6 +4,7 @@ import { EmailForFogot } from "../../../../GlobalContext/signupData"
 import { useNavigate } from "react-router-dom"
 import { request } from "../../../../utils/axiosUtils"
 import { Loading } from "../../Loading/Loading"
+import { alertWithOk, handleAlert } from "../../../../utils/sweeAlert"
 
 export const Forgot_Final:React.FC<Forgot_Props> = ({changeToggle}) => {
   const navigate=useNavigate()
@@ -45,7 +46,7 @@ export const Forgot_Final:React.FC<Forgot_Props> = ({changeToggle}) => {
           console.log(result&&result.message&&result.message==="password changed")
           setLoading(false)
           if(result&&result.message&&result.message==="password changed"){
-            alert('changed')
+            alertWithOk('Password Reset','Password changed,please try again',"info")
           changeToggle('2')
           
           }

@@ -5,6 +5,7 @@ import { request } from "../../utils/axiosUtils";
 
 import { LoginValidatorAdmin } from "../../Validators/LoginValidatorForAdmin"; 
 import { Navigate, useNavigate } from "react-router-dom";
+import { handleAlert } from "../../utils/sweeAlert";
 
  export interface AdminInterface{
   email:string
@@ -45,6 +46,7 @@ interface LoginType{
             
           }else if (Object.keys(response).includes('adminVerified')){
             if(response?.adminVerified&&response.token){
+              handleAlert("success",'welcome admin')
               localStorage.setItem('adminToken',response.token)
               console.log(localStorage.getItem('adminToken'))
               navigate('/admin/manageUser')

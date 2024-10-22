@@ -5,6 +5,7 @@ import { SignupContext } from "../../GlobalContext/signupData";
 import { Countdown } from "../Components/timer/Countdown";
 import { request } from "../../utils/axiosUtils";
 import { Loading } from "../Components/Loading/Loading";
+import { alertWithOk } from "../../utils/sweeAlert";
 
 
 
@@ -47,6 +48,7 @@ export const OTPVerification:React.FC = () => {
             setSignupFirst({"FIRST NAME":'',"SECOND NAME":'',"DATE OF BIRTH":'',"GENDER OF PARTNER":'',"STATE THAT YOU LIVE":'',"YOUR GENDER":'','EMAIL':'','PASSWORD':''})
            
             localStorage.setItem('userToken',resonse.token)
+            alertWithOk('Signup completed','Best of luck with you journy',"success")
             navigate('/loginLanding')
           }
         }else if(Response?.message==='OTP not valid'){
