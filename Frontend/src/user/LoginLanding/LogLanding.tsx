@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { request } from '../../utils/axiosUtils'
 import { useNavigate } from 'react-router-dom'
-import { handleAlert } from '../../utils/sweeAlert'
+import { handleAlert } from '../../utils/alert/sweeAlert'
 type profileType={id:string,name:string,no:number}
 
 export const LoginLanding = () => {

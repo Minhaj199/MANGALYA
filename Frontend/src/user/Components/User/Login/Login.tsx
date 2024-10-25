@@ -8,7 +8,7 @@ import Swal from "sweetalert2"
 import React from "react"
 import { useNavigate } from "react-router-dom"
 import { request } from "../../../../utils/axiosUtils"
-import { handleAlert } from "../../../../utils/sweeAlert"
+import { alertWithOk, handleAlert } from "../../../../utils/alert/sweeAlert"
 interface userLoginProp extends Forgot_Props{
     loginTogle:string
 }
@@ -40,10 +40,13 @@ export const Login:React.FC<userLoginProp> = ({changeToggle,loginTogle}) => {
     const isValid:boolean=LoginValidator({...userData},setWarnning)
     if(isValid){
     const response:any=await request({url:'/user/login',method:'post',data:userData})
-    console.log(response)
+    
+    handleAlert("error",response.message,)
+    setWarnning(prev=>({...prev,password:null,email:null}))
     if(response?.message&&response.name){
 
       if(response.message==='user not found'){
+        alert('hii')
        setWarnning(prev=>({...prev,email:response.message,password:null}))
       }
       else if(response.message==='password not matched'){

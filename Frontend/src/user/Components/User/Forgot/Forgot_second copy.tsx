@@ -4,6 +4,7 @@ import { Countdown } from "../../timer/Countdown"
 import { EmailForFogot } from "../../../../GlobalContext/signupData"
 import { useNavigate } from "react-router-dom"
 import { request } from "../../../../utils/axiosUtils"
+import { alertWithOk } from "../../../../utils/alert/sweeAlert"
 
 export const Forgot_second:React.FC<Forgot_Props> = ({changeToggle}) => {
   const navigate=useNavigate()
@@ -40,7 +41,7 @@ export const Forgot_second:React.FC<Forgot_Props> = ({changeToggle}) => {
           if(result&&result.message&&result.message==="OTP valid"){
           changeToggle('5')
           }else if(result&&result.message&&result.message==="OTP not valid"){
-            alert(result.message)
+            alertWithOk('Password Reset',result.message,'warning')
           }
         }).catch(result=>{
           setLoading(false)

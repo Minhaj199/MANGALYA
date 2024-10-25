@@ -5,12 +5,9 @@ const client = axios.create({ baseURL: 'http://localhost:8000' });
 
 
 client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  let adminToken = localStorage.getItem('adminToken');
- 
-
-   
+  let adminToken = localStorage.getItem('adminToken');  
   if (adminToken) {
-   config.headers['AuthorizationForUser'] = adminToken;
+   config.headers['AuthorizationForAdmin'] = adminToken;
   }
 
   let userToken = localStorage.getItem('userToken');

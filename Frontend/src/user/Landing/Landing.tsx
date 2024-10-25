@@ -31,9 +31,7 @@ export const Landing = () => {
             >
               <p className="text-white font-italian ">LOGIN</p>
             </div>
-            {/* <div className="w-16 h-16 bg-slate-700 mr-8 rounded-full">
-              <img src="/profile.png" alt="" />
-            </div> */}
+            
           </div>
           <div className="w-screen h-2/4 flex justify-center  items-end">
             <h1 className="font-italian relative text-2xl  text-white sm:text-4xl">

@@ -5,7 +5,7 @@ import { SignupContext } from "../../GlobalContext/signupData";
 import { Countdown } from "../Components/timer/Countdown";
 import { request } from "../../utils/axiosUtils";
 import { Loading } from "../Components/Loading/Loading";
-import { alertWithOk } from "../../utils/sweeAlert";
+import { alertWithOk } from "../../utils/alert/sweeAlert";
 
 
 

@@ -7,6 +7,7 @@ import { TableDataType } from './userTable';
 
 import { request } from '../../../../utils/axiosUtils';
 import { useNavigate } from 'react-router-dom';
+import { promptSweet } from '../../../../utils/alert/sweeAlert';
 
 export interface UserListInterface{
   triggerPagination:()=>void
@@ -20,19 +21,22 @@ export const UserTable:React.FC = () => {
   }
 
   const [MockData,setMockData]=useState<TableDataType[]>([]) 
-  async function blockUser(id:string,name:string,status:string){
-    if(confirm(`Do you want to ${status} ${name}`)){
-      const updateStatus=(status==='block')?true:false
-      const response:any= await request({url:'/admin/block&Unblock',method:'patch',data:{updateStatus:updateStatus,id}})
-      if(response.message==='validation Faild'){
-        
-        navigate('/login')
-      }
-      if(response?.message){
-        setMockData(el=>el.map(user=>(user._id===id)?{...user,block:updateStatus}:user))
-        
-      } 
+   function blockUser(id:string,name:string,status:string){
+    async  function Handler(){ 
+        const updateStatus=(status==='block')?true:false
+        const response:any= await request({url:'/admin/block&Unblock',method:'patch',data:{updateStatus:updateStatus,id}})
+        if(response.message==='validation Faild'){
+          
+          navigate('/login')
+        }
+        if(response?.message){
+          setMockData(el=>el.map(user=>(user._id===id)?{...user,block:updateStatus}:user))
+          
+        } 
     }
+    const text=`Do you want to ${status} ${name} ?`
+    const completed=`Your ${status}ing is completed`
+    promptSweet(()=>Handler(),text,completed)
   }
   const [searchWord,setSearchWord]=useState<string>('')
   useEffect(()=>{

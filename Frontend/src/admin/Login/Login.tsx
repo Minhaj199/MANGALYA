@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, {  useState } from "react";
 import "./Login.css";
 
 import { request } from "../../utils/axiosUtils";
 
 import { LoginValidatorAdmin } from "../../Validators/LoginValidatorForAdmin"; 
-import { Navigate, useNavigate } from "react-router-dom";
-import { handleAlert } from "../../utils/sweeAlert";
+import {  useNavigate } from "react-router-dom";
+import { handleAlert } from "../../utils/alert/sweeAlert";
 
  export interface AdminInterface{
   email:string
@@ -48,7 +48,7 @@ interface LoginType{
             if(response?.adminVerified&&response.token){
               handleAlert("success",'welcome admin')
               localStorage.setItem('adminToken',response.token)
-              console.log(localStorage.getItem('adminToken'))
+             
               navigate('/admin/manageUser')
             }else{
               alert('validation faild try again')

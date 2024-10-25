@@ -4,7 +4,7 @@ import { EmailForFogot } from "../../../../GlobalContext/signupData"
 import { useNavigate } from "react-router-dom"
 import { request } from "../../../../utils/axiosUtils"
 import { Loading } from "../../Loading/Loading"
-import { alertWithOk, handleAlert } from "../../../../utils/sweeAlert"
+import { alertWithOk, handleAlert } from "../../../../utils/alert/sweeAlert"
 
 export const Forgot_Final:React.FC<Forgot_Props> = ({changeToggle}) => {
   const navigate=useNavigate()

@@ -1,5 +1,7 @@
 import Swal from "sweetalert2";
 import { SweetAlertIcon } from "sweetalert2";
+import './alert.css'
+
 
 export const handleAlert=(icon:SweetAlertIcon='info',title:string='Your work has been saved')=>{
     Swal.fire({
@@ -9,8 +11,8 @@ export const handleAlert=(icon:SweetAlertIcon='info',title:string='Your work has
         timer: 2000
       });
 }
-
-export const promptSweet=()=>{
+ 
+export const promptSweet=async (handler:()=>Promise<void>,text:string,completed:string)=>{
     const swalWithBootstrapButtons = Swal.mixin({
         customClass: {
           confirmButton: "btn btn-success",
@@ -20,33 +22,33 @@ export const promptSweet=()=>{
       });
       swalWithBootstrapButtons.fire({
         title: "Are you sure?",
-        text: "You won't be able to revert this!",
+        text: text,
         icon: "warning",
         showCancelButton: true,
-        confirmButtonText: "Yes, delete it!",
-        cancelButtonText: "No, cancel!",
+        confirmButtonText: "Yes",
+        cancelButtonText: "No",
         reverseButtons: true
       }).then((result) => {
         if (result.isConfirmed) {
           swalWithBootstrapButtons.fire({
-            title: "Deleted!",
-            text: "Your file has been deleted.",
+            title: `Action completed`,
+            text: completed,
             icon: "success"
           });
-          return true
+          
+          handler()
         } else if (
-          /* Read more about handling dismissals below */
           result.dismiss === Swal.DismissReason.cancel
-        
+          
         ) {
           swalWithBootstrapButtons.fire({
             title: "Cancelled",
-            text: "Your imaginary file is safe :)",
+            text: "Operation canceled",
             icon: "error"
           });
+         
         }
       });
-      return false
 }
 
 export function alertWithOk(title:string,text:string,icon:SweetAlertIcon){
