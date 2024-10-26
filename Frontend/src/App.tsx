@@ -33,6 +33,7 @@ const districtsOfKerala = [
 ];
 const App: React.FC = () => {
     const context=useContext(SignupContext)
+   
     if(!context){
       throw new Error('user  data is empty in opt verification')
     }

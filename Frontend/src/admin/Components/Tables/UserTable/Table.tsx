@@ -72,38 +72,39 @@ export const UserTable:React.FC = () => {
     return (
       <>
         
-        <div className="h-full w-10/12 flex flex-col items-center">
-          <div className="w-full h-1/5  mt-20 flex justify-center items-center">
-          <div className="w-[95%] h-5/6 bg-dark_red rounded-lg flex justify-end items-center pr-7">
-          <input type="search" value={searchWord} onChange={handleSearch} className="cursor-text bg-white mr-3 h-8 pl-6 text-dark_red placeholder:text-dark_red placeholder:font-bold outline-none " placeholder="Search Here....."/>
+        <div className="h-full w-10/12  flex flex-col items-center">
+          <div className="w-full h-1/5   flex justify-center items-center">
+          <div className="w-[95%] h-5/6 drop-shadow-lg bg-white rounded-lg flex justify-between items-center ">
+          <p className=' ml-5 font-extrabold  font-inter'>USER MANAGEMENT</p>
+          <input type="search"  value={searchWord} onChange={handleSearch} className="cursor-text bg-white mr-3 h-8 pl-6 text-black border border-black placeholder:text-xs placeholder:text-black placeholder:font-italian placeholder:font-bold outline-none " placeholder="Search Here....."/>
          
           </div>
           </div>
-          <div className="w-[95%] h-3/5 overflow-auto no-scrollbar ">
+          <div className="w-[95%] h-3/5 mt-10 overflow-auto no-scrollbar ">
           <Paper>
-          <Table  {...getTableProps()} className='border-2 border-dark_red bg-dark_red'>
+          <Table   {...getTableProps()} className='border-2 border-dark_red bg-dark_red'>
             <TableHead className='bg-dark_red bottom-2 border-white'>
               {headerGroups.map((headerGroup,index) => (
-                <TableRow {...headerGroup.getHeaderGroupProps()} key={index}>
+                <TableRow  {...headerGroup.getHeaderGroupProps()} key={index}>
                   {headerGroup.headers.map(column => (
-                    <TableCell {...column.getHeaderProps()} key={column.id}>{column.render('Header')}</TableCell>
+                    <TableCell  {...column.getHeaderProps()} key={column.id}>{column.render('Header')}</TableCell>
                   ))}
                 </TableRow>
               ))}
             </TableHead>
-            <TableBody {...getTableBodyProps()} className='bg-red-400'>
+            <TableBody {...getTableBodyProps()} className='bg-gray-200 '>
               {page.map((row,rowIndex) => {
                 prepareRow(row);
                 return (
-                  <TableRow {...row.getRowProps()} key={rowIndex} className='text-start'>
+                  <TableRow {...row.getRowProps()} key={rowIndex} className='text-start hover:bg-slate-400 '>
                     {row.cells.map(cell => (
-                      <TableCell  {...cell.getCellProps()} >
+                      <TableCell className='text-lg'  {...cell.getCellProps()} >
                         {cell.render('Cell')}</TableCell>
                     ))}
-                    <TableCell>
+                    {/* <TableCell>
                       <img onClick={()=>handleClick(row.original._id)} className='w-10 h-10 cursor-pointer' src="/info.png" alt="" />
                       
-                      </TableCell>
+                      </TableCell> */}
                       <TableCell>
                       
                       

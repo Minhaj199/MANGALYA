@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from "axios";
 
 
-const client = axios.create({ baseURL: 'http://localhost:8000' });
+const client = axios.create({ baseURL:import.meta.env.VITE_BACKENT_URL  });
 
 
 client.interceptors.request.use((config: InternalAxiosRequestConfig) => {

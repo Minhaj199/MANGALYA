@@ -11,7 +11,8 @@ export default {
         italian:['Italiana','sans-serif'],
         aborato:['Aboreto','sans-serif'],
         Lumanosimo:['Lumanosimo','sans-serif'],
-        roboto:['Roboto','sans-serif']
+        roboto:['Roboto','sans-serif'],
+        popin:['Poppins','sans-serif']
       },
       colors:{
         'dark_red':'#990000',
@@ -20,7 +21,8 @@ export default {
         'aash':'#BAA3A3',
         'input_dark':'#700303',
         'red_Active':'#E82A2A',
-        'otp_red':'#3E1111'
+        'otp_red':'#3E1111',
+        'admin_panel_Blue':'#2b5bee'
       }
     },
   },
