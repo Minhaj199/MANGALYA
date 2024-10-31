@@ -1,73 +1,199 @@
-import React, { useEffect, useState } from 'react'
-import { request } from '../../utils/axiosUtils'
-import { useNavigate } from 'react-router-dom'
-import { handleAlert } from '../../utils/alert/sweeAlert'
-type profileType={id:string,name:string,no:number}
+import { useEffect, useState } from "react";
+import { request } from "../../utils/axiosUtils";
 
-export const LoginLanding = () => {
-    const navigate=useNavigate()
-    const [profils,setProfiles]=useState<profileType[]>()
-    useEffect(()=>{
-       async function fetch(){
-        const response:profileType[]=await request({url:'/user/fetchProfile'})
-        const res=response??[]
-        setProfiles(res)
-       }
-       fetch()
-    },[])
-    function handleLogout(){
-        localStorage.removeItem('userToken')
-        handleAlert('warning','user loged out')
-        navigate('/')
+
+import "./LogLanding.css";
+import { Navbar } from "../Components/User/navbar/Navbar";
+import { Footer } from "../Components/User/Footer/Footer";
+type profileType = { _id: string;interest:string[];photo:string;lookingFor:string; name: string; no: number,secondName:string,state
+:string,age:number,gender:string
+};
+
+
+
+export const LoginLanding = ({active}:{active:string}) => {
+ 
+  const userId=localStorage.getItem('id')
+  console.log(userId)
+const handleMatch=async(id:string)=>{
+  try {
+    
+    const response:boolean= await request({url:'/user/addMatch',method:'post',data:{matchId:id,userId:userId}})
+   
+    console.log(response)
+    if(response===true){
+      setProfiles(el=>(el?.filter((element)=>element._id!==id)))
     }
-  return (
-    <div className='h-[1500px] w-screen bg-gray-400'>
-        <nav className='w-full fixed top-0 left-0 right-0 h-24 flex bg-dark_red'>
-            <div className='w-1/6 h-full flex items-center'>
-                        <img
-              className="md:w-18 md:h-16   cursor-pointer"
-              src="/png/logo-no-background.png "
-              alt=""
-            />
-          
-            </div>
-            <div className='lg:w-4/6 h-full md:w-3/6  flex py-9 pl-10   '>
-            <ul className=' flex'>
-                <li className='pl-4 text-white font-inter'>Profiles</li>
-                <li className='pl-4 text-white font-inter'>Suggesetions</li>
-                <li className='pl-4 text-white font-inter'>Search</li>
-                <li className='pl-4 text-white font-inter'>Inbox</li>
-            </ul>
-            </div>
-            <div className='w-1/6 h-full  justify-evenly flex items-center md:flex-row flex-col'>
-            <p className='font-aborato font-extrabold text-white cursor-pointer' onClick={handleLogout}>LOG OUT</p>
-            <div className='w-20 h-20 rounded-[50%]'>
-                <img src="/profile.png" alt="" />
-            </div>
-            </div>
-            <div></div>
-        </nav>
-        <div className='w-screen h-full mt-24  flex'>
-            <div className='w-3/12 h-[50%] bg-red-500'></div>
-            <div className='w-[75%] h-full overflow-scroll  '>
-            {profils?.map((el)=>{
-    return(
-      
-    <div className='w-[80%] h-[12%] bg-white mx-14 my-16 flex' key={el.no}>
-        <div className='w-[30%] h-full bg-gray-950'>
-            <img className='h-full w-full' src="/pexels-mostafasanadd-868113.jpg" alt="" />
-        </div>
-        <div className='w-[70%] h-full  p-10'>
-            <h1 className='text-3xl'>{el?.name}</h1>
-        </div>
-    </div>
-
-    )
-})}
-            </div>
-           
-        </div>
-    </div>
-  )
+  } catch (error) {
+    
+  }
 }
+  const [profils, setProfiles] = useState<profileType[]>();
+  useEffect(()=>{
+      if(profils?.length&&profils.length>1){
+          setTotalPage(Math.ceil(  profils.length?profils?.length/5:1))
+      }
+  },[profils])
+  useEffect(() => {
+    async function fetch() { 
+      const preferedGender=localStorage.getItem('partner')
+       const gender=localStorage.getItem('gender')
+       const id=localStorage.getItem('id')
+      const response: profileType[] = await request({
+        url: `/user/fetchProfile?preferedGender=${preferedGender}&gender=${gender}&id=${id}`,
+      })
+      const res = response ?? [];
+      setProfiles(res);
+    }
+    fetch();
+}, []);
 
+const [totalPage,setTotalPage]=useState(0)
+
+const itemPerPage=5
+const [currentPage,setCurrenPage]=useState(1)
+
+const   currentData=profils?.slice(
+    (currentPage-1)*itemPerPage,
+    currentPage*itemPerPage
+)
+
+const handlePreviouse=()=>{
+    if(currentPage>1)setCurrenPage(el=>el-1)
+        window.scrollTo({top:0,behavior:'smooth'})
+}
+const handleNext=()=>{
+   
+    if(currentPage<totalPage)setCurrenPage(el=>el+1)
+     window.scrollTo({top:0,behavior:'smooth'})   
+    }
+    console.log(currentData)
+  return (
+    <div className="h-[1800px] w-screen bg-gray-400">
+      <Navbar active={active}/>
+      <div className="w-screen h-full mt-24  flex">
+        <div className="sm:w-[25%] w-[40%] h-[50%] mt-11   ">
+       
+          <div className="w-full h-[30%]  flex justify-center items-center">
+            <div className="w-[95%] h-[85%] bg-dark_red  rounded-3xl ">
+              <div className="w-full h-[30%] flex justify-center items-center">
+                {" "}
+                <p className="font-aborato font-black text-2xl text-gray-200 ">
+                  Gold
+                </p>
+              </div>
+              <div className="w-full h-[40%] flex items-center pl-3   ">
+                <p className="font-medium text-white">Expiry:20/12/2024</p>
+              </div>
+              <div className="w-full h-[30%]  flex justify-center items-center">
+                <div className="w-44 h-9 bg-slate-300 flex justify-center items-center">
+                  <p>connection left :30/60</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="w-full h-[70%] rounded-full flex justify-center items-center ">
+            <div className="w-[95%] h-[100%] bg-dark_red rounded-3xl   ">
+              <div className="w-full h-[20%] flex justify-center  ">
+                {" "}
+                <p className="font-mono font-black text-2xl text-gray-200 mt-2 ">
+                  REQUEST
+                </p>
+              </div>
+              <div
+                id="request"
+                className="w-full h-[80%]   bg-dark_red "
+              >
+                <div className="w-full h-16 mt-3 bg-[#e37171] flex">
+                  <div className="w-[70%] h-full  py-2 px-2 flex ">
+                    <div className="w-12 h-12 bg-slate-500 rounded-full"></div>
+                    <p className="font-popin px-6 py-2">Mila</p>
+                  </div>
+                  <div className="w-[30%] h-full flex justify-center items-center">
+                    <div className="w-5 h-5 mr-2">
+                      <img
+                        src="/checked.png"
+                        className="w-full h-full "
+                        alt=""
+                      />
+                    </div>
+                    <div className="w-5 h-5 mr-2">
+                      <img src="/remove.png" className="w-full h-full" alt="" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="sm:w-[75%] w-[60%] h-full   ">
+          {currentData?.map((el) => {
+            return (
+              <div
+                className="w-[90%] sm:w-[80%] sm:h-[15%] h-[8%] bg-white sm:mx-14 mx-6 my-16 flex"
+                key={el.no}
+              >
+                <div className="w-[30%] h-full flex justify-center items-center">
+                  <div className="w-[90%] h-[90%] ">
+                   <img
+                      className="h-full w-full "
+                      src={el.photo?el.photo: "/pexels-mostafasanadd-868113.jpg"}
+                      alt=""
+                    />
+                  </div>
+                </div>
+                <div className="w-[70%] h-full flex  items-center  ">
+                  <div className="w-[98%] border border-gray-400  items-center flex-col h-[90%] bg-white flex justify-between">
+                    <div className="w-4/5 h-[18%] border-b  border-gray-300 flex justify-center items-center ">
+                      <p className="font-inter">{el.name} {el.secondName}</p>
+                    </div>
+                    <div className="w-full h-[64%]   flex justify-center items-center  ">
+                      <div className="w-1/2 h-[99%] border-l  border-gray-300 ">
+                      <div className="w-full h-[23%] flex items-center text-gray-600 justify-between px-2 mt-1 ">
+                        <p className="sm:text-base text-[10px]">Looking for: </p>
+                        <p className="sm:text-base text-[10px]">{el.lookingFor}</p>
+                      </div>
+                      <div className="w-full h-[23%] flex items-center text-gray-600 justify-between px-2 mt-1 ">
+                        <p className="sm:text-base text-[10px]">Age </p>
+                        <p className="sm:text-base text-[10px]">{el.age}</p>
+                      </div>
+                      <div className="w-full h-[23%] flex items-center text-gray-600 justify-between px-2 mt-1 ">
+                        <p className="sm:text-base text-[10px]">Gender</p>
+                        <p className="sm:text-base text-[10px]">{el.gender}</p>
+                      </div>
+                      <div className="w-full h-[23%] flex items-center text-gray-600 justify-between px-2 mt-1 ">
+                        <p className="sm:text-base text-[10px]">state </p>
+                        <p className="sm:text-base text-[10px]">{el.state}</p>
+                      </div>
+                      </div>
+                      <div className="w-1/2 h-[99%] border-l border-gray-300 ">
+                      {el.interest.length?<p className="pl-2 text-gray-600 sm:text-base text-[11px]">Interest</p>:<></>}
+                      <ul className="sm:px-2 px-1 sm:pt-3 text-gray-600 grid grid-cols-2">
+                       {el.interest.map((element,index)=>( <li className="sm:pt-2 pt-1 sm:text-base text-[10px]" key={index}>{element}</li>))}
+                       
+                       
+                      </ul>
+                      </div>
+                    </div>
+                    <div className="w-full h-[18%]   flex justify-end items-center  ">
+                      <img onClick={()=>handleMatch(el._id)} src="/check.png" className="sm:w-7 sm:h-7 w-4 h-4  mr-3 cursor-pointer" alt="" />
+                    </div>
+                    
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+           <div className="w-[80%] h-14 flex justify-center text-center">
+            <p className="mt-4 mr-1"><span className="font-bold">{currentPage}</span> of {totalPage} </p>
+           <button onClick={()=>handlePreviouse()} disabled={currentPage === 1}  className="bg-dark_red text-white rounded-full h-14 w-14" >{'<<'}</button>
+           <button onClick={()=>handleNext()} disabled={currentPage === totalPage}  className="bg-dark_red text-white rounded-full h-14 w-14 ml-1 font-bold ">{'>>'}</button>
+           </div>
+        </div>
+        
+      </div>
+      <Footer/>
+     
+    </div>
+  );
+};

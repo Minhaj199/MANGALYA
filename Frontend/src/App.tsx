@@ -65,11 +65,12 @@ const App: React.FC = () => {
 
       <Route element={<UnProtectRouteUser/>}>
       <Route path="/" element={<Landing />} />
-      <Route path="/signUp" element={<Credentials inputFields={inputFields} />} />
+      <Route path="/signUp" element={<Credentials inputFields={inputFields} toggle={1} />} />
+      <Route path="/photoAdding" element={<Credentials inputFields={inputFields} toggle={2} />} />
       <Route path="/otpVerification" element={<OTPVerification  />}/>
       </Route>
       <Route element={<ProtectRouteUser/>}>
-      <Route path="/loginLanding" element={<LoginLanding/>} />
+      <Route path="/loginLanding" element={<LoginLanding active={'profile'}/>} />
       </Route>
     </Routes>
   );

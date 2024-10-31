@@ -46,9 +46,9 @@ export const fetechData=async(req:Request,res:Response)=>{
 
 export const userBlockAndUnblock=async(req:Request,res:Response)=>{
     try {
-       
+      
        const response= await UserModel.findByIdAndUpdate(req.body.id,{$set:{block:req.body.updateStatus}})
-       
+       console.log('hiii',51)
        if(response){
             res.json({message:'updated'})
         }

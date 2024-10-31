@@ -12,8 +12,9 @@ export type signupFirst={
         'PASSWORD':string;
         'FIRST NAME':string;
     }        
+            
 interface SignupContextType{
-    signupFirstData:signupFirst;
+    signupFirstData:signupFirst
     setSignupFirst:React.Dispatch<React.SetStateAction<signupFirst>> 
 }
 interface EmailForGotContextType{

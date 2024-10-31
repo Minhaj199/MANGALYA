@@ -10,20 +10,22 @@ import {Types} from 'mongoose'
 //     expiry:Date
 // }
 export  interface User{
-    PesonalInfo:{
+    PersonalInfo:{
         firstName:string,
         secondName:string,
         state:string,
         gender:string,
         dateOfBirth:Date
+        image?:string
+        interest?:string[]
     }
-    parnerData:{
+    partnerData:{
         gender:string
     }
     email:string,
     password:string,
     block:boolean,
-    match:number,
+    match:string[],
     subscriber:string
     expiry:Date
 }

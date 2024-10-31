@@ -15,7 +15,8 @@ export class JWTAdapter{
                 const decode=jwt.verify(token,process.env.JWT_SECRET_ADMIN||'123')
                 return decode
             }else if(from==='user'){
-
+                const decode=jwt.verify(token,process.env.JWT_SECRET_USER||'123')
+                return decode
             }
 
             

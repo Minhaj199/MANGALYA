@@ -18,7 +18,7 @@ export class EmailService implements IEmailService{
         });
     }
 
-    async sendEmail(to: string, subject: string, body: string): Promise<void> {
+    async sendEmail(to: string, subject: string, body: string): Promise<void> {  
         const mailOptions = {
             from: this.userName,
             to,
@@ -27,8 +27,8 @@ export class EmailService implements IEmailService{
         };
 
         try {
-            await this.transporter.sendMail(mailOptions);
-           
+          const result=  await this.transporter.sendMail(mailOptions);
+           console.log(result)
         } catch (error) {
             console.error('Error sending email:', error);
             throw new Error('Failed to send email');

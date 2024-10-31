@@ -1,6 +1,6 @@
 
 import { Forgot_Props } from "../Forgot/Forgot_first"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { LoginValidator } from "../../../../Validators/LoginValidator"
 import Swal from "sweetalert2"
 
@@ -8,7 +8,7 @@ import Swal from "sweetalert2"
 import React from "react"
 import { useNavigate } from "react-router-dom"
 import { request } from "../../../../utils/axiosUtils"
-import { alertWithOk, handleAlert } from "../../../../utils/alert/sweeAlert"
+import { handleAlert } from "../../../../utils/alert/sweeAlert"
 interface userLoginProp extends Forgot_Props{
     loginTogle:string
 }
@@ -18,13 +18,8 @@ export interface userForm {
 }
  
 export const Login:React.FC<userLoginProp> = ({changeToggle,loginTogle}) => {
-  const handleSweetAlert=()=>{
-    Swal.fire({
-      title: "The Internet?",
-      text: "That thing is still around?",
-      icon: "question"
-    });
-  }
+ const ref=useRef<HTMLInputElement>(null)
+ 
   const navigate=useNavigate()
   type probs={
     email:string|null
@@ -46,7 +41,7 @@ export const Login:React.FC<userLoginProp> = ({changeToggle,loginTogle}) => {
     if(response?.message&&response.name){
 
       if(response.message==='user not found'){
-        alert('hii')
+       
        setWarnning(prev=>({...prev,email:response.message,password:null}))
       }
       else if(response.message==='password not matched'){
@@ -54,6 +49,15 @@ export const Login:React.FC<userLoginProp> = ({changeToggle,loginTogle}) => {
       }
       else if(response.message==='password matched'){
         localStorage.setItem('userToken',response.token)
+        localStorage.setItem('id',response.id)
+        console.log(response.id)
+        
+        localStorage.setItem('partner',response.partner)
+        localStorage.setItem('gender',response.gender)
+        if(response.photo){
+          localStorage.setItem('photo',response.photo)
+        }
+        
         changeToggle('1')
        handleAlert('success',`welcome ${response.name}`)
        setTimeout(()=>{
@@ -96,6 +100,7 @@ export const Login:React.FC<userLoginProp> = ({changeToggle,loginTogle}) => {
               EMAIL ID
             </label>
             <input
+            
             onChange={(t)=>setUserData(prev=>({...prev,email:t.target.value}))}
             
               type="email"

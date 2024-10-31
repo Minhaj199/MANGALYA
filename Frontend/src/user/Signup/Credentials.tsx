@@ -7,6 +7,8 @@ import { Inputs } from "../Components/User/signupInputs/Inputs";
 import { SignupContext } from "../../GlobalContext/signupData";
 import { request } from "../../utils/axiosUtils";
 import { Loading } from "../Components/Loading/Loading";
+import { PhotAndInt } from "./PhotoAndInterest.tsx/PhotAndInt";
+import { handleAlert } from "../../utils/alert/sweeAlert";
 
 
 
@@ -21,23 +23,35 @@ export interface InputArrayProbs {
     inputName: string;
     option?:string[]
   }[];
+  toggle:number
 }
-export const Credentials:React.FC<InputArrayProbs> = ({inputFields}) => {
+export type PhotoAndInterest={
+  photo?:File|null,
+  interest?:string[]
+}
+export const Credentials:React.FC<InputArrayProbs> = ({inputFields,toggle}) => {
   const context =useContext(SignupContext)
+  const [inputToggle,setIputToggle]=useState<number>(toggle)
+  const [photoAndInter,setPhotAndInter]=useState<PhotoAndInterest>({photo:null,interest:[]})
   
+
+
     if(!context){
       throw new Error('no contex')
     }
     
-  const {setSignupFirst}=context
-  
+  const {setSignupFirst,signupFirstData}=context
+  const basic='flex justify-center items-center w-screen md:h-svh sm:h-auto  h-auto sm:pt-0 pt-12  bg-cover bg-center'
+  const photo='flex justify-center items-center w-screen md:h-lvh sm:h-lvh  h-lvh sm:pt-0 pt-12  bg-cover bg-center'
     
   const [credentialData,setCredentialData]=useState<CredentialInterface>({})
   const [warnning,setWarnning]=useState<CredentialInterface>({})
   const [loding,setLoding]=useState<boolean>(false)
   const navigate=useNavigate()
-  async function submintCredential(t:any){
-    t.preventDefault()
+  async function submintCredential(){
+    if(inputToggle===1){
+
+    
   
       if(await credential_validation(credentialData,setWarnning)){
           const signupFirst={
@@ -66,20 +80,63 @@ export const Credentials:React.FC<InputArrayProbs> = ({inputFields}) => {
     } 
       setSignupFirst(signupFirst) 
     }
-    console.log(credentialData)
+  }else if(inputToggle===2){
+   
+    
+try {
+  if(photoAndInter.photo||photoAndInter.interest?.length&&photoAndInter.interest?.length>0){
+    setLoding(true)
+    const formData=new FormData()
+    
+    formData.append('email',signupFirstData['EMAIL'])
+    if(photoAndInter.photo){
+      const photo=photoAndInter.photo||''    
+      formData.append('file',photo)
+    }
+    if(photoAndInter.interest){
+      formData.append('interest',JSON.stringify(photoAndInter.interest||['']))
+    }
+    type Response={
+      url:boolean,
+      responseFromAddinInterest:boolean
+    }
+   const response:Response=await request({url:'/user/uploadProfile',method:'post',data:formData,headers:{'Content-Type': 'multipart/form-data'}})
+   if(response){
+    setSignupFirst({"FIRST NAME":'',"SECOND NAME":'',"DATE OF BIRTH":'',"GENDER OF PARTNER":'',"STATE THAT YOU LIVE":'',"YOUR GENDER":'','EMAIL':'','PASSWORD':''})
+    if(response.responseFromAddinInterest||response.url){
+      
+      handleAlert('success','Data Added')
+      setTimeout(() => {
+   
+        navigate('/')
+      },3000);
+    }else{
+      navigate('/')
+    }
+   }
+   
+  }
+  
+  
+} catch (error) {
+  alert('some error in photo and interest')
+}
+   
+  }
+   
     
   }
  
   
   return (
-    <div id="container2" className=" flex justify-center items-center w-screen md:h-svh sm:h-auto  h-auto sm:pt-0 pt-12  bg-cover bg-center">
+    <div id="container2" className={(inputToggle===1)?basic:photo}>
       <div className="w-full h-20 fixed top-0 right-0 left-0 p-5 ">
         <p className="font-Lumanosimo text-white text-sm sm:text-base cursor-pointer" onClick={()=>navigate('/')}>BACK</p>
       </div>
         
         {loding?
       <Loading/>
-        : <div className="w-3/5 sm:w-4/5 sm:h-auto bg-[rgba(99,25,25,0.5)] rounded-2xl">
+        : <div className="w-3/5 sm:w-4/5 h-auto sm:h-auto bg-[rgba(99,25,25,0.5)] rounded-2xl">
             <div className="w-full h-20 flex justify-center items-center">
             <div className="h-20 w-20 sm:h-full sm:w-[90px]   rounded-full relative sm:top-2">
                 <img src="/createProfile.png" className="w-full h-full" alt="" />
@@ -87,14 +144,20 @@ export const Credentials:React.FC<InputArrayProbs> = ({inputFields}) => {
             </div>
             <div className="w-full h-auto sm:h-auto md:h-[425px]  flex flex-col items-center ">
                 <p className="font-aborato text-[10px] sm:text-xl text-white pt-3 sm:pt-8 pb-7">JOIN OUR FAMILY  </p>
+                {inputToggle===1&&
                 <div className="h-auto w-5/6 flext grid sm:grid-cols-2 sm:gap-x-6 md:grid-cols-3 grid-cols-1 gap-y-5 ">
-                 <Inputs inputFields={inputFields}setCredentialData={setCredentialData} setWarnning={setWarnning} CredentailData={credentialData} Warning={warnning}/>
-               
-                </div>
+                <Inputs inputFields={inputFields}setCredentialData={setCredentialData} setWarnning={setWarnning} CredentailData={credentialData} Warning={warnning}/>
+              
+               </div>
+                }
+                {inputToggle===2&&
+                <PhotAndInt probState={photoAndInter} probSetter={setPhotAndInter}></PhotAndInt>
+                }
+                
                 
             </div>
         <div className="w-full h-12   flex justify-center items-center">
-            <button onClick={(t)=>submintCredential(t)} className="bg-dark_red w-1/3 h-10 rounded-2xl mb-5 mt-3">Next</button>
+            <button onClick={submintCredential} className="bg-dark_red w-1/3 h-10 rounded-2xl mb-5 mt-3">Next</button>
         </div>
         
       </div>}

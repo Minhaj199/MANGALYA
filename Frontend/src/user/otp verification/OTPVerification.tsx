@@ -6,15 +6,14 @@ import { Countdown } from "../Components/timer/Countdown";
 import { request } from "../../utils/axiosUtils";
 import { Loading } from "../Components/Loading/Loading";
 import { alertWithOk } from "../../utils/alert/sweeAlert";
+import { promptSweet } from "../../utils/alert/sweeAlert";
 
 
 
 export interface CredentialInterface{
   [key:string]:string
 }
-// interface Email{
-//   email:string
-// }
+
 
 export const OTPVerification:React.FC = () => {
   const navigate=useNavigate()
@@ -34,7 +33,6 @@ export const OTPVerification:React.FC = () => {
       setWarning('')
       try {
         if(!signupFirstData.EMAIL){
-          
          navigate('/signup')
         }  
         setLoading(true)
@@ -45,15 +43,24 @@ export const OTPVerification:React.FC = () => {
           
           const resonse:any=await request({url:'/user/firstBatchData',method:'post',data:signupFirstData})
           if(resonse?.message&&resonse.message==="sign up completed"){
-            setSignupFirst({"FIRST NAME":'',"SECOND NAME":'',"DATE OF BIRTH":'',"GENDER OF PARTNER":'',"STATE THAT YOU LIVE":'',"YOUR GENDER":'','EMAIL':'','PASSWORD':''})
-           
-            localStorage.setItem('userToken',resonse.token)
-            alertWithOk('Signup completed','Best of luck with you journy',"success")
-            navigate('/loginLanding')
+            promptSweet(routeToPhoto,'Do you want to continue adding details ?','Basic account creation completed',secondFunction)
+            async function routeToPhoto(){
+              navigate('/photoAdding')
+            }
+          async function secondFunction(){
+              console.log(resonse)
+              localStorage.setItem('partner',resonse?.user.partnerData.gender)
+              localStorage.setItem('gender',resonse?.user.PersonalInfo.gender)
+              localStorage.setItem('userToken',resonse.token)
+              localStorage.setItem('id',resonse?.id)
+              setSignupFirst({"FIRST NAME":'',"SECOND NAME":'',"DATE OF BIRTH":'',"GENDER OF PARTNER":'',"STATE THAT YOU LIVE":'',"YOUR GENDER":'','EMAIL':'','PASSWORD':''})
+              alertWithOk('Signup completed','Best of luck with you journy',"success")
+              navigate('/loginLanding')
+            }
           }
         }else if(Response?.message==='OTP not valid'){
           setLoading(false)
-          alert('not valid')
+          alertWithOk('OTP Validation','Your OTP is not valid',"success")
           setWarning(Response?.message)
         }
       }else{

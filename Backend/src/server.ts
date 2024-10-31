@@ -5,17 +5,20 @@ import dotenv from 'dotenv'
 import userRoutes from './interface/routes/userRoutes'
 import adminRoutes from './interface/routes/adminRoute'
 import cors from 'cors'
+import fileUpload from 'express-fileupload'
+
 
 const app=express()
 const corsOpetion={
     origin:['http://localhost:5173']
 }
 
+
 dotenv.config();
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }));
 app.use(cors(corsOpetion))
-
+// app.use(fileUpload())
 
 app.use('/user',userRoutes)
 app.use('/admin',adminRoutes)

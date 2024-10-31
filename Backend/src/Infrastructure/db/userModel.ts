@@ -1,24 +1,26 @@
 
 
-import mongoose,{Schema,Document} from "mongoose";
+import mongoose,{Schema,Document,ObjectId} from "mongoose";
 import {User} from "../../domain/entity/userEntity";
 export interface IUserModel extends User,Document{}
 
 const userSchema=new Schema<IUserModel>({
-    PesonalInfo:{
+    PersonalInfo:{
         firstName:String,
         secondName:String,
         state:String,
         gender:String,
-        dateOfBirth:Date
+        dateOfBirth:Date,
+        image:String,
+        interest:[String]
     },
-    parnerData:{
+    partnerData:{
         gender:String
     },
     email:{type:String,unique:true},
     password:String,
     block:Boolean,
-    match:Number,
+    match:[{type:Schema.Types.ObjectId,ref:'User'}],
     subscriber:String,
     expiry:Date
 

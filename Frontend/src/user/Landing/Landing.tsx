@@ -45,10 +45,7 @@ export const Landing = () => {
           </div>
         </div>
         <Login
-      
-          
           changeToggle={changeTogle}
-          
           loginTogle={loginTogle}
         />
         {loginTogle === "3" ? <Forgot_first changeToggle={changeTogle} /> : ""}
@@ -58,7 +55,6 @@ export const Landing = () => {
       <div className="w-screen h-svh bg-green-950">
         
     <Search />
-
       </div>
       <Footer />
     </div>

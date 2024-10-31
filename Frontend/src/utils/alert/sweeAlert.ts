@@ -12,7 +12,7 @@ export const handleAlert=(icon:SweetAlertIcon='info',title:string='Your work has
       });
 }
  
-export const promptSweet=async (handler:()=>Promise<void>,text:string,completed:string)=>{
+export const promptSweet=async (handler:()=>Promise<void> ,text:string,completed:string,secondFunction?:()=>Promise<void>)=>{
     const swalWithBootstrapButtons = Swal.mixin({
         customClass: {
           confirmButton: "btn btn-success",
@@ -41,12 +41,16 @@ export const promptSweet=async (handler:()=>Promise<void>,text:string,completed:
           result.dismiss === Swal.DismissReason.cancel
           
         ) {
+          if(secondFunction){
+           secondFunction()
+           return
+          }
+
           swalWithBootstrapButtons.fire({
             title: "Cancelled",
             text: "Operation canceled",
             icon: "error"
           });
-         
         }
       });
 }

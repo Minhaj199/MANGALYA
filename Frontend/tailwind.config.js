@@ -12,7 +12,8 @@ export default {
         aborato:['Aboreto','sans-serif'],
         Lumanosimo:['Lumanosimo','sans-serif'],
         roboto:['Roboto','sans-serif'],
-        popin:['Poppins','sans-serif']
+        popin:['Poppins','sans-serif'],
+        antiqua:['Inknut','sans-serif']
       },
       colors:{
         'dark_red':'#990000',
