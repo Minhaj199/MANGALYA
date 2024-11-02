@@ -5,6 +5,8 @@ import { request } from "../../utils/axiosUtils";
 import "./LogLanding.css";
 import { Navbar } from "../Components/User/navbar/Navbar";
 import { Footer } from "../Components/User/Footer/Footer";
+import { alertWithOk, handleAlert } from "../../utils/alert/sweeAlert";
+
 type profileType = { _id: string;interest:string[];photo:string;lookingFor:string; name: string; no: number,secondName:string,state
 :string,age:number,gender:string
 };
@@ -12,15 +14,49 @@ type profileType = { _id: string;interest:string[];photo:string;lookingFor:strin
 
 
 export const LoginLanding = ({active}:{active:string}) => {
- 
+  useEffect(()=>{
+
+  })
+  const [requestProfile,setRequest]=useState<profileType[]>([{_id:'',age:0,gender:'',interest:[],lookingFor:'',name:'',no:0,photo:'',secondName:'',state:''}])
+  const acceptRequest=async (id:string)=>{ 
+    try {
+      const response=await request({url:'/user/manageReqRes',method:'patch',data:{id:id,action:'accept',userId:localStorage.getItem('id')}})
+      
+      if(typeof response==='object'){
+        handleAlert("success",'Request accepted')
+        setRequest(el=>el.filter((el)=>el._id!==id))
+      }else{
+        throw new Error('error on requeset')
+      }
+
+    } catch (error:any) {
+      alertWithOk('Plan insertion',error||'Error occured','error')
+    }
+  }
+  const rejectRequest=async(id:string)=>{
+    try {
+      const response=await request({url:'/user/manageReqRes',method:'patch',data:{id:id,action:'reject',userId:localStorage.getItem('id')}})
+      
+      if(typeof response==='object'){
+        handleAlert("warning",'Request rejected')
+        setRequest(el=>el.filter((el)=>el._id!==id))
+      }else{
+        throw new Error('error on requeset')
+      }
+
+    } catch (error:any) {
+      alertWithOk('Plan insertion',error||'Error occured','error')
+    }
+  }
+  
   const userId=localStorage.getItem('id')
-  console.log(userId)
+
 const handleMatch=async(id:string)=>{
   try {
     
     const response:boolean= await request({url:'/user/addMatch',method:'post',data:{matchId:id,userId:userId}})
    
-    console.log(response)
+    
     if(response===true){
       setProfiles(el=>(el?.filter((element)=>element._id!==id)))
     }
@@ -34,6 +70,7 @@ const handleMatch=async(id:string)=>{
           setTotalPage(Math.ceil(  profils.length?profils?.length/5:1))
       }
   },[profils])
+  
   useEffect(() => {
     async function fetch() { 
       const preferedGender=localStorage.getItem('partner')
@@ -42,9 +79,14 @@ const handleMatch=async(id:string)=>{
       const response: profileType[] = await request({
         url: `/user/fetchProfile?preferedGender=${preferedGender}&gender=${gender}&id=${id}`,
       })
-      const res = response ?? [];
-      setProfiles(res);
+      const res:any = response  ??{profile:[],request:[]} ;
+     
+      if(res[0]?.profile)
+      setProfiles(res[0].profile);
+    if(res[0]?.request)
+      setRequest(res[0]?.request)
     }
+    
     fetch();
 }, []);
 
@@ -59,15 +101,15 @@ const   currentData=profils?.slice(
 )
 
 const handlePreviouse=()=>{
+  window.scrollTo({top:0,behavior:'smooth'})
     if(currentPage>1)setCurrenPage(el=>el-1)
-        window.scrollTo({top:0,behavior:'smooth'})
 }
 const handleNext=()=>{
    
+  window.scrollTo({top:0,behavior:'smooth'})   
     if(currentPage<totalPage)setCurrenPage(el=>el+1)
-     window.scrollTo({top:0,behavior:'smooth'})   
     }
-    console.log(currentData)
+ 
   return (
     <div className="h-[1800px] w-screen bg-gray-400">
       <Navbar active={active}/>
@@ -104,24 +146,33 @@ const handleNext=()=>{
                 id="request"
                 className="w-full h-[80%]   bg-dark_red "
               >
-                <div className="w-full h-16 mt-3 bg-[#e37171] flex">
+                {requestProfile?.map((el,index)=>{
+
+                  return(
+                    <div className="w-full h-16 mt-3 bg-[#e37171] flex" key={index}>
                   <div className="w-[70%] h-full  py-2 px-2 flex ">
-                    <div className="w-12 h-12 bg-slate-500 rounded-full"></div>
-                    <p className="font-popin px-6 py-2">Mila</p>
+                    <div className="w-12 h-12 bg-slate-500 rounded-full">
+                      <img src={el.photo?el.photo:'/adminLogin_.png'} className="w-full h-full rounded-full" alt="" />
+                    </div>
+                    <p className="font-popin px-6 py-2">{el.name} {el.secondName}</p>
                   </div>
                   <div className="w-[30%] h-full flex justify-center items-center">
                     <div className="w-5 h-5 mr-2">
-                      <img
+                      <img 
+                      onClick={()=>acceptRequest(el._id)}
                         src="/checked.png"
-                        className="w-full h-full "
+                        className="w-full cursor-pointer h-full "
                         alt=""
                       />
                     </div>
-                    <div className="w-5 h-5 mr-2">
-                      <img src="/remove.png" className="w-full h-full" alt="" />
+                    <div className="w-5 h-5 cursor-pointer mr-2">
+                      <img onClick={()=>rejectRequest(el._id)} src="/remove.png" className="w-full h-full" alt="" />
                     </div>
                   </div>
                 </div>
+                  )
+                })}
+                
               </div>
             </div>
           </div>

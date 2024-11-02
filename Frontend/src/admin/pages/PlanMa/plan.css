@@ -1,0 +1,13 @@
+#name{
+    border-bottom: 1px solid;
+    border-color: darkred;
+}
+#name:focus{
+    border-bottom: 2px solid;
+    border-color: darkred;
+}
+
+#amount{
+    border-bottom: 1px solid;
+    border-color: darkred;
+}

@@ -20,7 +20,7 @@ const userSchema=new Schema<IUserModel>({
     email:{type:String,unique:true},
     password:String,
     block:Boolean,
-    match:[{type:Schema.Types.ObjectId,ref:'User'}],
+    match:[{_id:Schema.Types.ObjectId,status:{type:String,default:'pending'} ,typeOfRequest:String}],
     subscriber:String,
     expiry:Date
 

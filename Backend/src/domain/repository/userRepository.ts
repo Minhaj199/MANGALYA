@@ -8,4 +8,5 @@ export interface UserRepository{
     addPhoto(photo:string,email:string):Promise<boolean>
     addInterest(interst:string[],email:string):Promise<boolean>
     addMatch(userId:string,matchedId:string,):Promise<boolean>
+    manageReqRes(requesterId:string,userId:string,action:string):Promise<boolean>
 }

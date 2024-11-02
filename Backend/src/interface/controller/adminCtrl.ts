@@ -3,8 +3,12 @@ import { AdminAuth } from "../../application/admin/auth/authService";
 import { UserModel } from "../../Infrastructure/db/userModel";
 import { JWTAdapter } from "../../Infrastructure/jwt";
 import { jwtInterface } from "../middlewares/jwtAdmin";
+import { MongodbPlanRepository } from "../../Infrastructure/repositories/mongoRepositories";
+import { SubscriptionPlan } from "../../domain/entity/PlanEntity";
+
 const adminAuthentication=new AdminAuth()
-const jwtAdapter=new JWTAdapter()
+const planRepo=new MongodbPlanRepository()
+
 export const login=(req:Request,res:Response)=>{
 
     try {
@@ -48,12 +52,25 @@ export const userBlockAndUnblock=async(req:Request,res:Response)=>{
     try {
       
        const response= await UserModel.findByIdAndUpdate(req.body.id,{$set:{block:req.body.updateStatus}})
-       console.log('hiii',51)
+      
        if(response){
             res.json({message:'updated'})
         }
     } catch (error) {
         console.log(error)
+    }
+}
+export const addPlan=async(req:Request,res:Response)=>{
+    try {
+      
+        const plan:SubscriptionPlan={name:req.body.datas.name,features:req.body.handleFeatureState,
+            amount:req.body.datas.amount,connection:req.body.datas.connect,duration:parseInt(req.body.datas.duration)}
+            
+          const response=await planRepo.create(plan)
+          res.json({status:response})
+    } catch (error:any) {
+       
+        res.json(error.message)
     }
 }
 // export const tokenAuthenticated=(req:Request,res:Response)=>{

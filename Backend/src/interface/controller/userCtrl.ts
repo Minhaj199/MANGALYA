@@ -1,6 +1,6 @@
 import { Response,Request, response, json } from "express";
 import { AuthService } from "../../application/user/auth/authService"; 
-import { MongoUserRepsitories,MongoOtpRepository, } from "../../Infrastructure/repositories/mongoRepositories"; 
+import { MongoUserRepsitories,MongoOtpRepository} from "../../Infrastructure/repositories/mongoRepositories"; 
 import { EmailService } from "../../application/emailService";
 import { UserModel } from "../../Infrastructure/db/userModel";
 import { Cloudinary } from "../../Infrastructure/cloudinary";
@@ -8,7 +8,8 @@ import { getAge } from "../../application/ageCalculator";
 import { fetchDateForUserSelection } from "../../application/types/userTypes";
 import { getId } from "../../Infrastructure/getIdFromJwt";
 import { User, UserWithID } from "../../domain/entity/userEntity";
-
+import { Types } from "mongoose";
+import { profileTypeFetch } from "../../application/types/userTypes";
 
 const emailService=new EmailService()
 const userRepository=new MongoUserRepsitories()
@@ -72,34 +73,53 @@ export const login=async(req:Request,res:Response)=>{
     }
 }
 export const fetechProfileData=async(req:Request,res:Response)=>{
-    console.log(req.query)
+ 
     const Gender=req.query.preferedGender||'female'
     
     try {
-       
-        const data:fetchDateForUserSelection =await UserModel.aggregate([{$match:{$and:[{'PersonalInfo.gender':Gender},{'partnerData.gender':req.query.gender}]}}, {$project:{name:'$PersonalInfo.firstName',
-            lookingFor:'$partnerData.gender',secondName:'$PersonalInfo.secondName',
-            state:'$PersonalInfo.state',gender:'$PersonalInfo.gender',
-            dateOfBirth:'$PersonalInfo.dateOfBirth',interest:'$PersonalInfo.interest',
-            photo:'$PersonalInfo.image',match:'$match'}}])
-            type UserWithIDArray=UserWithID[]
-        //     const matched:UserWithIDArray=await UserModel.find({_id:req.query.id},{match:1}).populate('match')as unknown as UserWithIDArray
-        // let datas=data
         
-        // console.log(datas)
-        // console.log(datas.length)
-        // console.log(data.length)
-
-        const processedData=data.map((el,index)=>{
+        if(req.query.id&&typeof req.query.id==='string'){
+        
+            const idd=new Types.ObjectId(req.query.id)
+          
+                        let datas:{profile:profileTypeFetch,request:profileTypeFetch}[]=await UserModel.aggregate([{
+                $facet:{
+                    profile:[{$match:{$and:[{'PersonalInfo.gender':Gender},{'partnerData.gender':req.query.gender},{match:{$not:{$elemMatch:{_id:idd}}}}]}},{$project:{name:'$PersonalInfo.firstName',
+                        lookingFor:'$partnerData.gender',secondName:'$PersonalInfo.secondName',
+                        state:'$PersonalInfo.state',gender:'$PersonalInfo.gender',
+                        dateOfBirth:'$PersonalInfo.dateOfBirth',interest:'$PersonalInfo.interest',
+                        photo:'$PersonalInfo.image',match:'$match'}},{$sort:{_id:-1}}],
+                    request:[{$match:{_id:idd}},{$unwind:'$match'},{$match:{'match.status':'pending','match.typeOfRequest':'recieved'}},
+                        {$lookup:{from:'users',localField:'match._id',foreignField:'_id',as:'matchedUser'}},{$unwind:'$matchedUser'},{$project:{_id:0,matchedUser:1}},
+                    {$project:{_id:'$matchedUser._id',name:'$matchedUser.PersonalInfo.firstName',
+                    lookingFor:'$matchedUser.partnerData.gender',secondName:'$matchedUser.PersonalInfo.secondName',
+                    state:'$matchedUser.PersonalInfo.state',gender:'$matchedUser.PersonalInfo.gender',
+                    dateOfBirth:'$matchedUser.PersonalInfo.dateOfBirth',interest:'$matchedUser.PersonalInfo.interest',
+                    photo:'$matchedUser.PersonalInfo.image'}},{$sort:{_id:-1}}]
+                }
+            }])
             
-            return ({
-                ...el,
-                no:index+1,
-                age:getAge(el.dateOfBirth)
-            }) 
-        })
+            
+            
+            
+            if(datas[0].profile){
+
+                 datas[0].profile=datas[0].profile.map((el,index)=>{
+                
+                    return ({
+                        ...el,
+                        no:index+1,
+                        age:getAge(el.dateOfBirth)
+                    }) 
+                })
+            }
+            res.json(datas)
+        }else{
+            throw new Error('id not found')
+        }
+            
+       
         
-        res.json(processedData)
     } catch (error) {
         console.log(error)
     }
@@ -133,10 +153,7 @@ export const forgotCheckValidate=async(req:Request,res:Response):Promise<void>=>
 export const forgotCheckValidateSigunp=async(req:Request,res:Response):Promise<void>=>{
   
     try {
-       
-
-          
-            
+ 
             const {email}=req.body
            
             const isValid=await authService.ForgetValidateEmail(email)
@@ -206,8 +223,28 @@ export const secondBatch=async(req:Request,res:Response):Promise<void>=>{
      
 }
 export const addMatch=async(req:Request,res:Response):Promise<void>=>{
-    console.log(req.body)
+   
+    try {
+        
         const response=await userRepository.addMatch(req.body.userId,req.body.matchId)
-        console.log(response)  
+         
         res.json(response) 
+    } catch (error) {
+        res.json(error)
+    }
+}
+export const  manageReqRes=async(req:Request,res:Response):Promise<void>=>{
+   
+    try {
+        const response=await userRepository.manageReqRes(req.body.id,req.body.userId,req.body.action)
+        if(response){
+
+            res.json({message:'changed'})
+        }else{
+            throw new Error('error on request management')
+        }
+    } catch (error:any) {
+        res.json(error.message)
+    }
+    
 }

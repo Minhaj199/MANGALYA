@@ -8,7 +8,7 @@ import { LoginLanding } from "./user/LoginLanding/LogLanding";
 import { SignupContext } from "./GlobalContext/signupData"; 
 import { OTPVerification } from "./user/otp verification/OTPVerification";
 import { ProtectRouteAdmin, UnProtectRouteUser,UnProtectRouteAdmin,ProtectRouteUser } from "./utils/RouteManagement";
-
+import { PlanMgt } from "./admin/pages/PlanManagement/PlanMgt";
 
 
 
@@ -56,13 +56,16 @@ const App: React.FC = () => {
 
       <Route path="/login" element={<Login />} />
      </Route>
-      <Route  element={<ProtectRouteAdmin />} >
+      {/* <Route  element={<ProtectRouteAdmin />} >
       
       <Route path="/admin" element={<Layout />}>
         <Route path="manageUser" element={<UserTable />} />
       </Route>
+      </Route> */}
+      <Route path="/ad" element={<Layout />}>
+        <Route path="Plan" element={<PlanMgt />} />
       </Route>
-
+    
       <Route element={<UnProtectRouteUser/>}>
       <Route path="/" element={<Landing />} />
       <Route path="/signUp" element={<Credentials inputFields={inputFields} toggle={1} />} />
