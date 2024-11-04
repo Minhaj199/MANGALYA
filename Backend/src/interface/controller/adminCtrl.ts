@@ -35,13 +35,14 @@ export const login=(req:Request,res:Response)=>{
 export const fetechData=async(req:Request,res:Response)=>{
     try {
        
-        const data =await UserModel.aggregate([{$sort:{_id:-1}},{$project:{username:'$PesonalInfo.firstName',email:1,match:1,subscriber:1,expiry:1,block:1}},])
+        const data =await UserModel.aggregate([{$sort:{_id:-1}},{$project:{username:'$PersonalInfo.firstName',email:1,match:1,subscriber:1,expiry:1,block:1}}])
         const processedData=data.map((el,index)=>({
             ...el,
             expiry:el.expiry.toDateString(),
             
             no:index+1
         }))
+       console.log(processedData)
         res.json(processedData)
     } catch (error) {
         console.log(error)
@@ -64,13 +65,47 @@ export const addPlan=async(req:Request,res:Response)=>{
     try {
       
         const plan:SubscriptionPlan={name:req.body.datas.name,features:req.body.handleFeatureState,
-            amount:req.body.datas.amount,connection:req.body.datas.connect,duration:parseInt(req.body.datas.duration)}
+            amount:req.body.datas.amount,connect:req.body.datas.connect,duration:parseInt(req.body.datas.duration)}
             
           const response=await planRepo.create(plan)
           res.json({status:response})
     } catch (error:any) {
        
         res.json(error.message)
+    }
+}
+export const fetechPlanData=async (req:Request,res:Response)=>{
+    try {
+        
+        const plans=await planRepo.getAllPlans()
+        res.json(plans) 
+    } catch (error:any) {
+        res.json(error.message)
+        
+    }
+}
+export const editPlan=async(req:Request,res:Response)=>{
+    try {
+        
+        const response=await planRepo.editPlan(req.body)
+        res.json({response})
+    } catch (error:any) {
+        res.json({message:error.message})
+    }
+
+}
+export const softDlt=async(req:Request,res:Response)=>{
+    console.log(req.body)
+    try {
+        if(req.body.id){
+            
+            const response=await planRepo.softDlt(req.body.id)
+            res.json({response:response})
+        }else{
+            throw new Error('id not found')
+        }
+    } catch (error:any) {
+        res.json({message:error.message})
     }
 }
 // export const tokenAuthenticated=(req:Request,res:Response)=>{

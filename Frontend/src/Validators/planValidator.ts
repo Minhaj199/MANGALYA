@@ -1,6 +1,7 @@
 import { Dispatch,SetStateAction } from "react";
-import { PlanData, planMgtWarningType } from "../admin/pages/PlanManagement/PlanMgt";
+import { PlanData, planMgtWarningType } from "../admin/pages/AddPlan/AddPlan";
 import { alertWithOk } from "../utils/alert/sweeAlert";
+import { PlanType } from "../admin/pages/PlanMa/PlanMgt";
 
 export type PlanDataForValidation={
     name:string;
@@ -8,8 +9,9 @@ export type PlanDataForValidation={
     connect:number|string;
     duration:string
 }
-export function PlanValidator(planData:PlanData,setWarning:Dispatch<SetStateAction<planMgtWarningType>>,handleFeatureState:string[]):boolean{
+export function PlanValidator(planData:PlanData|PlanType,setWarning:Dispatch<SetStateAction<planMgtWarningType>>,handleFeatureState:string[]):boolean{
    let state=true
+   console.log(planData.duration)
     const planDatas=planData as PlanDataForValidation
     if(planData.name.trim()===''){
         setWarning(el=>({...el,name:'Blank not allowed'}))
@@ -21,7 +23,7 @@ export function PlanValidator(planData:PlanData,setWarning:Dispatch<SetStateActi
     else{
         setWarning(el=>({...el,name:''}))
     }
-    if(planDatas.amount===''||typeof planData.amount==='number'&&planData.amount===0){
+    if(NaN||planDatas.amount===''||typeof planData.amount==='number'&&planData.amount===0){
         
         setWarning(el=>({...el,amount:'insert Amt'}))
         state= false
@@ -36,14 +38,14 @@ export function PlanValidator(planData:PlanData,setWarning:Dispatch<SetStateActi
     if(planData.connect<=0||''){
         setWarning(el=>({...el,connect:'!insert number'}))
         state= false
-    }else if(planData.amount>1000){
+    }else if(planData.connect>1000){
         setWarning(el=>({...el,connect:'!more than 1000'}))   
         state= false
     }
     else{
         setWarning(el=>({...el,connect:''}))
     }
-    if(planData.duration===''){
+    if(planData.duration===0){
         setWarning(el=>({...el,duration:'!Blank'}))
         state=false
     }else{

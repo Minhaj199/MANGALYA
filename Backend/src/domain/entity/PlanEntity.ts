@@ -4,7 +4,7 @@ name:string
 duration:number
 features:string[]
 amount:string
-connection:string
+connect:string
 }
 
 export interface SubscriptionPlanDocument extends SubscriptionPlan{

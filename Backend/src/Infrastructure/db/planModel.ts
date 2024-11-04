@@ -9,7 +9,7 @@ const planSchema=new Schema<subscriptionPlanModel>({
     duration:Number,
     features:[String],
     amount:Number,
-    connection:Number,
+    connect:Number,
     delete:{type:Boolean,default:false}
 })
 

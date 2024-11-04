@@ -14,7 +14,6 @@ export function getId(token:string){
         }  
         
     } catch (error:any) {
-        console.log(18)
         throw new Error(error)
     }
     

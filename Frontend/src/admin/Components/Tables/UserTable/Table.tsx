@@ -25,6 +25,7 @@ export const UserTable:React.FC = () => {
     async  function Handler(){ 
         const updateStatus=(status==='block')?true:false
         const response:any= await request({url:'/admin/block&Unblock',method:'patch',data:{updateStatus:updateStatus,id}})
+        
         if(response.message==='validation Faild'){
           
           navigate('/login')
@@ -43,6 +44,7 @@ export const UserTable:React.FC = () => {
    async function fetchData (){
     try {
       const MockDataFromDb:any=await request({url:`/admin/fetchData`,method:'get'})
+      console.log(MockDataFromDb)
       if(MockDataFromDb?.message==='validation Faild'){
         alert(MockDataFromDb.message)
         navigate('/login')
@@ -61,6 +63,7 @@ export const UserTable:React.FC = () => {
     setSearchWord(e.target.value)
   }
   const filterData=useMemo(()=>{
+    
     return MockData.filter(user=>user.username.toLocaleLowerCase().includes(searchWord.toLocaleLowerCase()))
   },[searchWord,MockData])
   const columns=useMemo(()=>Columns,[])

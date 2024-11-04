@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { login,fetechData,userBlockAndUnblock,addPlan} from "../controller/adminCtrl";
+import { login,fetechData,userBlockAndUnblock,addPlan, fetechPlanData,editPlan,softDlt} from "../controller/adminCtrl";
 import { adminJwtAuthenticator } from "../middlewares/jwtAdmin";
 const router=Router()
 
@@ -8,9 +8,12 @@ router.post('/login',login)
 
 //fetch data to user table
 router.get('/fetchData',adminJwtAuthenticator,fetechData)
+router.get('/fetchPlanData',fetechPlanData)
 
 router.patch('/block&Unblock',adminJwtAuthenticator,userBlockAndUnblock)
 router.post('/insertPlan',addPlan)
+router.put('/editPlan',editPlan)
+router.patch('/removePlan',softDlt)
 
 
 export default router 

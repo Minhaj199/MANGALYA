@@ -164,4 +164,43 @@ export class MongodbPlanRepository implements SubscriptionPlanRepo{
        }
 
     }
+    async getAllPlans(): Promise<SubscriptionPlanDocument[]|[]> {
+        try {
+            
+            const response:SubscriptionPlanDocument[]|[]=await planModel.find({delete:false})
+            
+            return response
+        } catch (error:any) {
+            throw new Error(error)
+        }
+
+    }
+    async editPlan(data: SubscriptionPlanDocument): Promise<true> {
+        try {
+            if(typeof data._id==='string'){
+                
+                const response=await planModel.updateOne({_id:data._id},{$set:data})
+                if(response){
+
+                    return true
+                }
+            }
+            throw new Error('Error on id')
+            
+        } catch (error:any) {
+            throw new Error(error.message||'error on edit')
+        }
+    }
+    async softDlt(id: string): Promise<true> {
+        try {
+            const response =await planModel.updateOne({_id:id},{$set:{delete:true}})
+            if(response){
+
+                return true
+            }
+            throw new Error('Error on remove plan')
+        } catch (error:any) {
+            throw new Error(error.message||'error on remove plan')
+        }
+    }
 }

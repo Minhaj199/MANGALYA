@@ -4,6 +4,7 @@ import './planMgt.css'
 import { PlanValidator } from '../../../Validators/planValidator'
 import { alertWithOk, handleAlert } from '../../../utils/alert/sweeAlert'
 import { request } from '../../../utils/axiosUtils'
+import { useNavigate } from 'react-router-dom'
 export type planMgtWarningType={
 
     name:string
@@ -20,6 +21,7 @@ export type PlanData={
 
 
 export const PlanMgt = () => {
+    const navigate=useNavigate()
     const [warning,setWarning]=useState<planMgtWarningType>({amount:'',connect:'',duration:'',name:''})
     const [datas,setDatas]=useState<PlanData>({amount:0,connect:0,name:'',duration:''})
     const months=Array.from({length:36},(_,index)=>index+1)
@@ -45,7 +47,7 @@ export const PlanMgt = () => {
                 else if(typeof response==='object'){
                     
                     handleAlert('success','Plan Added')
-                    
+                    navigate('/admin/Plan')
                 }
                 
             } catch (error:any) {
@@ -59,7 +61,7 @@ export const PlanMgt = () => {
   return (
     <div className='w-full h-full bg-slate-300'>
         <div className='w-full h-14 px-6 py-4 '>
-            <p className='font-bold text-dark_red' >{'BACK'}</p>
+            <p onClick={()=>navigate('/admin/Plan')} className='font-bold text-dark_red cursor-pointer' >{'BACK'}</p>
         </div>
         <div className='w-full h-[90%]  flex justify-center items-center'>
             <div className='sm:w-[40%] w-[80%] sm:h-[95%] h-[90%] rounded-3xl bg-white px-10 items-center flex flex-col'>

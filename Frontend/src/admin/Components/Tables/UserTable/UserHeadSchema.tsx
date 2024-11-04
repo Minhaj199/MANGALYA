@@ -13,10 +13,7 @@ export const  Columns: Column<TableDataType>[] = [
       Header: 'email',
       accessor: 'email'  
     },
-    {
-      Header: 'matches',
-      accessor: 'match'  
-    },
+    
     {
       Header: 'subscribed',
       accessor: 'subscriber'  

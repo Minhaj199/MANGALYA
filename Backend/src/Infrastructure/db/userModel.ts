@@ -6,7 +6,7 @@ export interface IUserModel extends User,Document{}
 
 const userSchema=new Schema<IUserModel>({
     PersonalInfo:{
-        firstName:String,
+        firstName:{type:String,unique:true},
         secondName:String,
         state:String,
         gender:String,

@@ -1,14 +1,15 @@
 import React, { useContext } from "react";
 import { Login } from "./admin/Login/Login";
 import { Layout } from "./admin/Layout/Layout";
-import { Landing } from "./user/Landing/Landing";
-import { UserTable } from "./admin/Components/Tables/UserTable/Table";
 import { Routes,Route} from "react-router-dom";
-import { LoginLanding } from "./user/LoginLanding/LogLanding";
+import { Landing } from "./user/Landing/Landing";
 import { SignupContext } from "./GlobalContext/signupData"; 
+import { LoginLanding } from "./user/LoginLanding/LogLanding";
+import { UserTable } from "./admin/Components/Tables/UserTable/Table";
 import { OTPVerification } from "./user/otp verification/OTPVerification";
+import { PlanDetails } from "./admin/pages/PlanMa/PlanMgt";
 import { ProtectRouteAdmin, UnProtectRouteUser,UnProtectRouteAdmin,ProtectRouteUser } from "./utils/RouteManagement";
-import { PlanMgt } from "./admin/pages/PlanManagement/PlanMgt";
+import { PlanMgt  } from "./admin/pages/AddPlan/AddPlan";
 
 
 
@@ -54,16 +55,16 @@ const App: React.FC = () => {
     <Routes>
      <Route element={<UnProtectRouteAdmin/>}>
 
+     
       <Route path="/login" element={<Login />} />
      </Route>
-      {/* <Route  element={<ProtectRouteAdmin />} >
+      <Route  element={<ProtectRouteAdmin />} >
       
       <Route path="/admin" element={<Layout />}>
         <Route path="manageUser" element={<UserTable />} />
+       <Route path="addPlan" element={<PlanMgt />} />
+        <Route path="Plan" element={<PlanDetails />} />
       </Route>
-      </Route> */}
-      <Route path="/ad" element={<Layout />}>
-        <Route path="Plan" element={<PlanMgt />} />
       </Route>
     
       <Route element={<UnProtectRouteUser/>}>

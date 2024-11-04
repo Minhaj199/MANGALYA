@@ -1,7 +1,11 @@
 
+// active collor -bg-[#1a1aff]
+
+
 import { Outlet } from "react-router-dom"
 import { useNavigate } from "react-router-dom"
 export const Layout = () => {
+
   const navigate=useNavigate()
   function handleLogOut(){
     localStorage.removeItem('adminToken')
@@ -24,10 +28,10 @@ export const Layout = () => {
          <div className='cursor-pointer hover:bg-blue-900 w-full h-16   flex justify-center items-center text-white'>
             <p className='text-[10px] sm:text-[16px] md:text-[12px] font-inter font-extrabold'>DASHBOARD</p>
          </div>
-         <div className='cursor-pointer hover:bg-blue-900 w-full h-16  mt-1 flex justify-center items-center text-white  bg-[#1a1aff]'>
+         <div onClick={()=>navigate('/admin/manageUser')} className='cursor-pointer hover:bg-blue-900 w-full h-16  mt-1 flex justify-center items-center text-white  '>
          <p className='text-[10px] sm:text-[16px] md:text-[12px] font-inter font-extrabold'>USER</p>
          </div>
-         <div className='cursor-pointer hover:bg-blue-900 w-full h-16  mt-1 flex justify-center items-center text-white'>
+         <div onClick={()=>navigate('/admin/Plan')} className='cursor-pointer hover:bg-blue-900 w-full h-16  mt-1 flex justify-center items-center text-white'>
          <p className='text-[10px] sm:text-[16px] md:text-[12px] font-inter font-extrabold'>PLAN</p>
          </div>
          <div className='cursor-pointer hover:bg-blue-900 w-full h-16  mt-1 flex justify-center items-center text-white'>
