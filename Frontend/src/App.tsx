@@ -10,6 +10,7 @@ import { OTPVerification } from "./user/otp verification/OTPVerification";
 import { PlanDetails } from "./admin/pages/PlanMa/PlanMgt";
 import { ProtectRouteAdmin, UnProtectRouteUser,UnProtectRouteAdmin,ProtectRouteUser } from "./utils/RouteManagement";
 import { PlanMgt  } from "./admin/pages/AddPlan/AddPlan";
+import PlanPurchase from "./user/plan/Plan"; 
 
 
 
@@ -69,6 +70,7 @@ const App: React.FC = () => {
     
       <Route element={<UnProtectRouteUser/>}>
       <Route path="/" element={<Landing />} />
+      <Route path="/PlanP" element={<PlanPurchase />} />
       <Route path="/signUp" element={<Credentials inputFields={inputFields} toggle={1} />} />
       <Route path="/photoAdding" element={<Credentials inputFields={inputFields} toggle={2} />} />
       <Route path="/otpVerification" element={<OTPVerification  />}/>
