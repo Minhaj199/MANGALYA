@@ -1,6 +1,6 @@
 import { Response,Request, response, json } from "express";
 import { AuthService } from "../../application/user/auth/authService"; 
-import { MongoUserRepsitories,MongoOtpRepository} from "../../Infrastructure/repositories/mongoRepositories"; 
+import { MongoUserRepsitories,MongoOtpRepository, MongodbPlanRepository} from "../../Infrastructure/repositories/mongoRepositories"; 
 import { EmailService } from "../../application/emailService";
 import { UserModel } from "../../Infrastructure/db/userModel";
 import { Cloudinary } from "../../Infrastructure/cloudinary";
@@ -12,6 +12,7 @@ import { Types } from "mongoose";
 import { profileTypeFetch } from "../../application/types/userTypes";
 
 const emailService=new EmailService()
+const planRepo=new MongodbPlanRepository
 const userRepository=new MongoUserRepsitories()
 const otpRepsitory=new MongoOtpRepository()
 const authService=new AuthService(userRepository,otpRepsitory)
@@ -247,4 +248,14 @@ export const  manageReqRes=async(req:Request,res:Response):Promise<void>=>{
         res.json(error.message)
     }
     
+}
+export const fetchPlanData=async (req:Request,res:Response):Promise<void>=>{
+    try {
+        console.log('hiii')
+        const data=await planRepo.getAllPlans()
+        res.json(data)
+    } catch (error:any) {
+        res.json({message:error.message})
+    }
+
 }

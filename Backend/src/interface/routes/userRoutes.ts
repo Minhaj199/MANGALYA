@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { secondBatch,forgotCheckValidateSigunp,signup,login,forgotCheckValidate ,
     otpCreation,otpValidation,changePassword,
-    fetechProfileData
+    fetechProfileData,fetchPlanData
     ,addMatch,manageReqRes} from "../controller/userCtrl";
 import { userJwtAuthenticator } from "../middlewares/jwtUser";
 import { upload } from "../../Infrastructure/multer";
@@ -19,6 +19,7 @@ router.patch('/manageReqRes',manageReqRes)
 router.post('/forgotEmail',forgotCheckValidateSigunp)
 router.post('/uploadProfile',upload.single('file'),secondBatch)
 router.get('/fetchProfile',userJwtAuthenticator,fetechProfileData)
+router.get('/fetchPlanData',fetchPlanData)
 
 
 
