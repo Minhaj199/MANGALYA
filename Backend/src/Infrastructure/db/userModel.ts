@@ -1,6 +1,6 @@
 
 
-import mongoose,{Schema,Document,ObjectId} from "mongoose";
+import mongoose,{Schema,Document,ObjectId, Types} from "mongoose";
 import {User} from "../../domain/entity/userEntity";
 export interface IUserModel extends User,Document{}
 
@@ -22,6 +22,7 @@ const userSchema=new Schema<IUserModel>({
     block:Boolean,
     match:[{_id:Schema.Types.ObjectId,status:{type:String,default:'pending'} ,typeOfRequest:String}],
     subscriber:String,
+  
     expiry:Date
 
 })

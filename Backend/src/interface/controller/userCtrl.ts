@@ -10,6 +10,7 @@ import { getId } from "../../Infrastructure/getIdFromJwt";
 import { User, UserWithID } from "../../domain/entity/userEntity";
 import { Types } from "mongoose";
 import { profileTypeFetch } from "../../application/types/userTypes";
+import { MongoPurchasedPlan } from "../../Infrastructure/repositories/mongoRepositories";
 
 const emailService=new EmailService()
 const planRepo=new MongodbPlanRepository
@@ -17,6 +18,7 @@ const userRepository=new MongoUserRepsitories()
 const otpRepsitory=new MongoOtpRepository()
 const authService=new AuthService(userRepository,otpRepsitory)
 const cloudinary= new Cloudinary()
+const orderRepo=new MongoPurchasedPlan()
 
 export const signup=async (req:Request,res:Response)=>{
     try {
@@ -251,11 +253,19 @@ export const  manageReqRes=async(req:Request,res:Response):Promise<void>=>{
 }
 export const fetchPlanData=async (req:Request,res:Response):Promise<void>=>{
     try {
-        console.log('hiii')
+        
         const data=await planRepo.getAllPlans()
         res.json(data)
     } catch (error:any) {
         res.json({message:error.message})
     }
 
+}
+export const purchasePlan=async (req:Request,res:Response):Promise<void>=>{
+    try {
+        console.log(req.body)
+        const response=await  orderRepo.createOrder(req.body.id,req.body.planData)
+    } catch (error) {
+        
+    }
 }

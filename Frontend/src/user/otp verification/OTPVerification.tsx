@@ -45,22 +45,23 @@ export const OTPVerification:React.FC = () => {
           if(resonse?.message&&resonse.message==="sign up completed"){
             promptSweet(routeToPhoto,'Do you want to continue adding details ?','Basic account creation completed',secondFunction)
             async function routeToPhoto(){
+              localStorage.setItem('id',resonse?.id)
               navigate('/photoAdding')
             }
           async function secondFunction(){
               console.log(resonse)
-              localStorage.setItem('partner',resonse?.user.partnerData.gender)
-              localStorage.setItem('gender',resonse?.user.PersonalInfo.gender)
-              localStorage.setItem('userToken',resonse.token)
+              // localStorage.setItem('partner',resonse?.user.partnerData.gender)
+              // localStorage.setItem('gender',resonse?.user.PersonalInfo.gender)
+              // localStorage.setItem('userToken',resonse.token)
               localStorage.setItem('id',resonse?.id)
               setSignupFirst({"FIRST NAME":'',"SECOND NAME":'',"DATE OF BIRTH":'',"GENDER OF PARTNER":'',"STATE THAT YOU LIVE":'',"YOUR GENDER":'','EMAIL':'','PASSWORD':''})
               alertWithOk('Signup completed','Best of luck with you journy',"success")
-              navigate('/loginLanding')
+              navigate('/PlanDetails')
             }
           }
         }else if(Response?.message==='OTP not valid'){
           setLoading(false)
-          alertWithOk('OTP Validation','Your OTP is not valid',"success")
+          alertWithOk('OTP Validation','Your OTP is not valid',"warning")
           setWarning(Response?.message)
         }
       }else{

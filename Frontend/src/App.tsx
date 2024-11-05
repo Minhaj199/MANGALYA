@@ -15,6 +15,7 @@ import PlanPurchase from "./user/plan/Plan";
 
 
 
+
 import { Credentials } from "./user/Signup/Credentials";
 
 const districtsOfKerala = [
@@ -70,7 +71,7 @@ const App: React.FC = () => {
     
       <Route element={<UnProtectRouteUser/>}>
       <Route path="/" element={<Landing />} />
-      <Route path="/PlanP" element={<PlanPurchase />} />
+      <Route path="/PlanDetails" element={<PlanPurchase />} />
       <Route path="/signUp" element={<Credentials inputFields={inputFields} toggle={1} />} />
       <Route path="/photoAdding" element={<Credentials inputFields={inputFields} toggle={2} />} />
       <Route path="/otpVerification" element={<OTPVerification  />}/>

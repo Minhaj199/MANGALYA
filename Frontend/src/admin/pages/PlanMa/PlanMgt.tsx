@@ -258,7 +258,8 @@ export const PlanDetails = () => {
           <h1 className="font-bold text-2xl text-dark_red mt-2 mb-5">
             DETAILS
           </h1>
-          <div className="w-[100%] h-[7%]  border-b border-dark_red   justify-between mb-10">
+          <div className="w-[100%] h-[11%]  border-b border-dark_red    justify-between mb-10">
+          <label className="text-dark_red font-bold">NAME</label>
             <p className="hover:font-medium">{currentData?.name}</p>
             
           </div>
@@ -269,7 +270,7 @@ export const PlanDetails = () => {
               <p className="mt-1 hover:font-medium ">{currentData?.amount}</p>
             </div>
             <div className="w-[30%] h-14 border-b border-dark_red  ">
-              <label className="text-dark_red font-bold">connect</label>
+              <label className="text-dark_red font-bold">CONNECT</label>
               <p className="mt-1 hover:font-medium ">{currentData?.connect}</p>
             </div>
             <div className="w-[33%] h-14 border-b border-dark_red ">

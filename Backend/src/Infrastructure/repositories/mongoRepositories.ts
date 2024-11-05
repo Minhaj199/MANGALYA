@@ -10,6 +10,8 @@ import { ObjectId } from "mongodb";
 import { SubscriptionPlan, SubscriptionPlanDocument } from "../../domain/entity/PlanEntity";
 import { planModel } from "../db/planModel";
 import { Types } from "mongoose";
+import { PlanOrder, planOrderModel } from "../db/planOrder";
+import { subscriptionPlanModel } from "../db/planModel";
 
 
 
@@ -201,6 +203,29 @@ export class MongodbPlanRepository implements SubscriptionPlanRepo{
             throw new Error('Error on remove plan')
         } catch (error:any) {
             throw new Error(error.message||'error on remove plan')
+        }
+    }
+}
+
+export class MongoPurchasedPlan{
+    async createOrder(userid:string,planData:subscriptionPlanModel):Promise<true>{
+        
+        const data:PlanOrder={
+            userID:new ObjectId(userid),
+            amount:planData.amount,
+            connect:planData.connect,
+            duration:planData.duration,
+            features:planData.features,
+            nameOfPlan:planData.name
+        }
+        try {
+            
+             const response=await planOrderModel.create(data)
+             console.log(response)
+            return true
+        } catch (error:any) {
+            console.log(error)
+            throw new Error(error.message)
         }
     }
 }

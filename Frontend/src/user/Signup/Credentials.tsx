@@ -108,7 +108,7 @@ try {
       handleAlert('success','Data Added')
       setTimeout(() => {
    
-        navigate('/')
+        navigate('/PlanDetails')
       },3000);
     }else{
       navigate('/')
