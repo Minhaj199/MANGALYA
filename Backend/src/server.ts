@@ -6,6 +6,8 @@ import userRoutes from './interface/routes/userRoutes'
 import adminRoutes from './interface/routes/adminRoute'
 import cors from 'cors'
 import fileUpload from 'express-fileupload'
+import { seedInterestData } from './application/InterestSeed'
+import { featureSeed } from './application/featureSeed'
 
 
 const app=express()
@@ -23,15 +25,20 @@ app.use(cors(corsOpetion))
 app.use('/user',userRoutes)
 app.use('/admin',adminRoutes)
 
-
 const mongo_string:string|undefined=process.env.CONNECTIN_STRING
 
 try {
-mongoose.connect((typeof mongo_string==='string')?mongo_string:' ').then(()=>console.log('db connected'))
-
+    mongoose.connect((typeof mongo_string==='string')?mongo_string:' ').then(()=>console.log('db connected'))
+    
 } catch (error) {
     console.log(error)    
 }
 
 const PORT:number=parseInt(process.env.PORT||'3000');
 app.listen(PORT,()=>console.log(`server is running now ${PORT}`))
+
+async function createInterest(){
+  await seedInterestData()
+  await featureSeed()
+}
+createInterest()

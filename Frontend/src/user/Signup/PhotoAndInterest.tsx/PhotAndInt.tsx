@@ -1,6 +1,7 @@
 
 import React, {  useRef, useState,SetStateAction,Dispatch, useEffect } from 'react'
 import { PhotoAndInterest } from '../Credentials'
+import { request } from '../../../utils/axiosUtils';
 
 interface PhotAndIntInterface{
     probState:PhotoAndInterest;
@@ -14,15 +15,33 @@ export const PhotAndInt:React.FC<PhotAndIntInterface> = ({probState,probSetter})
     useEffect(()=>{
         probSetter(el=>({...el,interest:selected}))
     },[selected,image])
-   
-    const interestCategory:ReadonlyArray<string>=['sports','music','food']
-    const [handleChange,setHandleChang]=useState<string[]>([])
-    const  interest:{'sports':string[],'music':string[],food:string[]}={
-        'sports':['Football','Cricket','Hocky'],
-        'music':['Hollywood','Bollywood','Molywood'],
-        'food':['Biryani','Sadya']
-
-    }as const
+        type interestType={'sports':string[],'music':string[],'food':string[]}
+    const interestCategory:ReadonlyArray<string>=['']
+    const [handleChange,setHandleChang]=useState<string[]>([''])
+    
+    const [interest,setInterest]=useState<interestType>({
+        sports:[''],
+        music:[''],
+        food:['']
+    })
+    useEffect(()=>{
+       async function fetectInterst(){
+        try {
+            const response:{Data:interestType,message:string}=await request({url:'/user/getInterest'})
+            console.log(response)
+            if(response.message&&typeof response.message==='string'){
+                throw new Error(response.message||'Error occured interest getting')
+            }
+            if(response.Data){
+                setInterest(response.Data)
+            }  
+        } catch (error) {
+            
+        }
+           
+               }
+        fetectInterst()
+    },[])
     const fileInputRef=useRef<HTMLInputElement>(null)
     function handleClick(){
         if(fileInputRef.current){
@@ -38,15 +57,15 @@ export const PhotAndInt:React.FC<PhotAndIntInterface> = ({probState,probSetter})
     }
    }
    function handleCategoryInterest (t:React.ChangeEvent<HTMLSelectElement>){
-    console.log(t.target.value)
+    
        if(t.target.value){
-        console.log(29)
+       
         if(t.target){
-            console.log(31)
+            
             const key=t.target.value
-            console.log(key)
+          
             if(key==='sports'||key==='music'||key==='food'){
-                console.log(34)
+               
                 setHandleChang(interest[key])
                 
                 
@@ -76,7 +95,9 @@ export const PhotAndInt:React.FC<PhotAndIntInterface> = ({probState,probSetter})
     )
     interestCount.current--
 }
-
+    useEffect(()=>{
+        console.log(Object.keys(interest) )
+    },[interest])
     function resetPhoto(){
     probSetter(el=>({...el,photo:null}))
     
@@ -99,8 +120,8 @@ export const PhotAndInt:React.FC<PhotAndIntInterface> = ({probState,probSetter})
         
             <select name="" id="" onChange={(t)=>handleCategoryInterest(t)} className='w-[30%]   h-9 outline-none'>
                 <option value="">Interst Category</option>
-                {interestCategory.map((el,index)=>{
-                    return <option key={index} value={el}>{el}</option>
+                {Object.keys(interest).map((key,index)=>{
+                    return <option key={index} value={key}>{key}</option>
                 })}  
             </select>
     }
@@ -120,9 +141,7 @@ export const PhotAndInt:React.FC<PhotAndIntInterface> = ({probState,probSetter})
                 return <div key={index} className='flex justify-between items-center w-full h-8 bg-slate-200 mt-1'><p>{index+1}:{el}</p>
                 <img src="/remove.png" className='w-4 h-4 mr-1 cursor-pointer' onClick={()=>handleRemove(el)} alt="" />
                 </div>
-            })}
-             
-            
+            })}      
         </div>
         {/* <input type="text" className='bg-red-300' />
         <input type="text" />

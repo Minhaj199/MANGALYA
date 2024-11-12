@@ -74,23 +74,21 @@ export const UserTable:React.FC = () => {
     const {pageIndex,pageSize}=state
     return (
       <>
-        
         <div className="h-full w-10/12  flex flex-col items-center">
           <div className="w-full h-1/5   flex justify-center items-center">
-          <div className="w-[95%] h-5/6 drop-shadow-lg bg-white rounded-lg flex justify-between items-center ">
-          <p className=' ml-5 font-extrabold  font-inter'>USER MANAGEMENT</p>
-          <input type="search"  value={searchWord} onChange={handleSearch} className="cursor-text bg-white mr-3 h-8 pl-6 text-black border border-black placeholder:text-xs placeholder:text-black placeholder:font-italian placeholder:font-bold outline-none " placeholder="Search Here....."/>
-         
+            <div className="w-[95%] h-5/6 drop-shadow-lg bg-white rounded-lg flex justify-between items-center ">
+            <p className=' ml-5 font-extrabold sm:text-base text-xs  font-inter text-dark-blue'>USER MANAGEMENT</p>
+            <input type="search"  value={searchWord} onChange={handleSearch} className="cursor-text bg-white mr-3 h-8 w-20 sm:w-48 pl-2  text-[#2552cc] border border-theme-blue placeholder:text-xs placeholder:text-blue-400 placeholder:font-italian placeholder:font-bold sm:placeholder:text-sm  outline-none " placeholder="Search Here....."/>
           </div>
           </div>
           <div className="w-[95%] h-3/5 mt-10 overflow-auto no-scrollbar ">
           <Paper>
-          <Table   {...getTableProps()} className='border-2 border-dark_red bg-dark_red'>
-            <TableHead className='bg-dark_red bottom-2 border-white'>
+          <Table   {...getTableProps()} className='border-2 border-dark-blue bg-dark-blue'>
+            <TableHead  className='bg-dark-blue bottom-2  '>
               {headerGroups.map((headerGroup,index) => (
-                <TableRow  {...headerGroup.getHeaderGroupProps()} key={index}>
+                <TableRow   {...headerGroup.getHeaderGroupProps()}  key={index}>
                   {headerGroup.headers.map(column => (
-                    <TableCell  {...column.getHeaderProps()} key={column.id}>{column.render('Header')}</TableCell>
+                    <TableCell style={{color:'white'}}    {...column.getHeaderProps()} key={column.id}>{column.render('Header')}</TableCell>
                   ))}
                 </TableRow>
               ))}
@@ -121,9 +119,9 @@ export const UserTable:React.FC = () => {
         </Paper>
           </div>
           <div className="w-full h-1/5 flex justify-center items-center">
-          <span className='mr-5'>page{' '} <strong>{pageIndex+1} of {pageOptions.length}</strong>{' '}</span>
-            <button  onClick={()=>previousPage()} disabled={!canPreviousPage} className="bg-dark_red text-white rounded-full h-14 w-14" >{'<<'}</button>
-            <button onClick={()=>nextPage()} disabled={!canNextPage} className="bg-dark_red text-white rounded-full h-14 w-14 ml-1 font-bold ">{'>>'}</button>
+          <span className='mr-5 sm:mb-0 mb-3'>page{' '} <strong>{pageIndex+1} of {pageOptions.length}</strong>{' '}</span>
+            <button  onClick={()=>previousPage()} disabled={!canPreviousPage} className="bg-dark-blue text-white rounded-full sm:h-14 sm:w-14 h-8 w-8 sm:mb-0 mb-5" >{'<<'}</button>
+            <button onClick={()=>nextPage()} disabled={!canNextPage} className="bg-dark-blue text-white rounded-full sm:h-14 sm:w-14 h-8 w-8 ml-1 sm:mb-0 mb-5  font-bold ">{'>>'}</button>
           </div>
         </div>
            </> 

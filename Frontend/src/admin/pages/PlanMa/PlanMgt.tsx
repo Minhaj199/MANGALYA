@@ -2,305 +2,528 @@ import React, { useEffect, useState } from "react";
 import "./plan.css";
 import { request } from "../../../utils/axiosUtils";
 import { useNavigate } from "react-router-dom";
-import {  alertWithOk, handleAlert, promptSweet } from "../../../utils/alert/sweeAlert";
+import {
+  alertWithOk,
+  handleAlert,
+  promptSweet,
+} from "../../../utils/alert/sweeAlert";
 
 import { planMgtWarningType } from "../AddPlan/AddPlan";
 import { PlanValidator } from "../../../Validators/planValidator";
 
-export type PlanType={
-  _id:string,
-  name:string,
-  delete:boolean
-  duration:number
-  features:string[]
-  amount:number
-  connect:number
-}
+export type PlanType = {
+  _id: string;
+  name: string;
+  delete: boolean;
+  duration: number;
+  features: string[];
+  amount: number;
+  connect: number;
+};
 
 export const PlanDetails = () => {
-  const [warning,setWarning]=useState<planMgtWarningType>({amount:'',connect:'',duration:'',name:''})
-  const navigate=useNavigate()
-  const [editData,setEditData]=useState<PlanType>({_id:'',amount:0,connect:0,delete:true,duration:0,features:[''],name:'NO PLANS'})
+  const [featureData,setFeatureData]=useState<string[]>([''])
+    
+    useEffect(()=>{
+       async function fetchFeature(){
+            const response:{features:string[]}=await request({url:'/admin/fetchFeature'})
+            setFeatureData(response.features)
+            console.log(response)
+        }
+        fetchFeature()
+    },[]) 
+  const [warning, setWarning] = useState<planMgtWarningType>({
+    amount: "",
+    connect: "",
+    duration: "",
+    name: "",
+  });
+  const navigate = useNavigate();
+  const [editData, setEditData] = useState<PlanType>({
+    _id: "",
+    amount: 0,
+    connect: 0,
+    delete: true,
+    duration: 0,
+    features: [""],
+    name: "NO PLANS",
+  });
   const months = Array.from({ length: 36 }, (_, index) => index + 1);
-  const [toggle,setToggle]=useState<boolean>(true)
-  const [datas,setData]=useState<PlanType[]>([{_id:'',amount:0,connect:0,delete:true,duration:0,features:[''],name:'NO PLANS'}])  
-  const [currentData,setCurrentData]=useState<PlanType>()
-  
+  const [toggle, setToggle] = useState<boolean>(true);
+  const [datas, setData] = useState<PlanType[]>([
+    {
+      _id: "",
+      amount: 0,
+      connect: 0,
+      delete: true,
+      duration: 0,
+      features: [""],
+      name: "NO PLANS",
+    },
+  ]);
+  const [currentData, setCurrentData] = useState<PlanType>({ _id: "",
+    amount: 0,
+    connect: 0,
+    delete: true,
+    duration: 0,
+    features: [""],
+    name: "no plan"});
 
+  let dataDB: PlanType[];
+  useEffect(() => {
+    async function fetchPlanData() {
+      dataDB = await request({ url: "/admin/fetchPlanData" });
+      setData(dataDB);
+    }
+    fetchPlanData();
+  }, []);
+  useEffect(() => {
+    if (datas) {
+      setCurrentData(datas[0]);
+    }
+  }, [datas]);
 
-  let dataDB:PlanType[];
-  useEffect(()=>{
-    async function fetchPlanData(){
-      dataDB=await request({url:'/admin/fetchPlanData'})
-      setData(dataDB)
+  useEffect(() => {
+    if (!toggle && currentData) {
+      setEditData(currentData);
+    } else if (toggle) {
+      setEditData({
+        _id: "",
+        amount: 0,
+        connect: 0,
+        delete: false,
+        duration: 0,
+        features: [""],
+        name: "",
+      });
     }
-    fetchPlanData()
-  },[])
-  useEffect(()=>{
-    if(datas){
-      setCurrentData(datas[0])
-    }  
-  },[datas])
-  useEffect(()=>{
-    if(!toggle&&currentData){
-      setEditData(currentData)
-    }else if(toggle){
-      setEditData({_id:'',amount:0,connect:0,delete:false,duration:0,features:[''],name:''})
-    }
-  },[toggle])
-  function handleInserData(el:string){
-    if(datas){
-     const singleData=datas.filter(elem=>elem._id===el)
-      if(singleData.length&&singleData){
-        setCurrentData(singleData[0])
+  }, [toggle]);
+  function handleInserData(el: string) {
+    if (datas) {
+      const singleData = datas.filter((elem) => elem._id === el);
+      if (singleData.length && singleData) {
+        setCurrentData(singleData[0]);
       }
-    }else{
-     
+    } else {
     }
   }
-  async function handleRemovePlan(id:string,name:string){
-    await promptSweet(deletePlan,`Do you want to remove ${name} plan ?`,`plan ${name} removed`,)
-    async function deletePlan(){
-
+  async function handleRemovePlan(id: string, name: string) {
+    await promptSweet(
+      deletePlan,
+      `Do you want to remove ${name} plan ?`,
+      `plan ${name} removed`
+    );
+    async function deletePlan() {
       try {
-        
-        const response:{response:boolean,message:string}=await request({url:'/admin/removePlan',method:'patch',data:{id:id}}) 
-        if(response.response){
-            setData(el=>el.filter(elem=>elem._id!==id))
-            if(currentData?._id===id){
-              setCurrentData(datas[0])
-            }
-            handleAlert("success",'Plan removed')
-          }else{
-            throw new Error(response.message)
+        const response: { response: boolean; message: string } = await request({
+          url: "/admin/removePlan",
+          method: "patch",
+          data: { id: id },
+        });
+        if (response.response) {
+          setData((el) => el.filter((elem) => elem._id !== id));
+          if (currentData?._id === id) {
+            setCurrentData(datas[0]);
           }
-        console.log(response)
-      } catch (error:any) {
-        alertWithOk('Plan Remove',error.message||'Error occured on deleting',"error")
+          handleAlert("success", "Plan removed");
+        } else {
+          throw new Error(response.message);
+        }
+        console.log(response);
+      } catch (error: any) {
+        alertWithOk(
+          "Plan Remove",
+          error.message || "Error occured on deleting",
+          "error"
+        );
       }
-    }    
-  }
-  function manageBtwAddEdit(action:'Edit'|'Details',id:unknown){
-    
-    if(typeof id==='string'){
-      if(action==="Edit"){
-        
-        setToggle(false)
-      }
-    }else{
-    handleAlert("error",'Error occured')  
     }
   }
-  function handleClose(el:string){
-    setEditData(datas=>{
-      
-      return {...datas,features:datas.features.filter(element=>element!==el)}
-    })
-  }
-  function changeOnfeature(e:React.ChangeEvent<HTMLSelectElement>){
-    
-    if(!editData.features.includes(e.target.value)){
-      setEditData(el=>({...el,features:[...el.features,e.target.value]}))
+  function manageBtwAddEdit(action: "Edit" | "Details", id: unknown) {
+    if (typeof id === "string") {
+      if (action === "Edit") {
+        if (datas) {
+          const singleData = datas.filter((elem) => elem._id === id);
+          if (singleData.length && singleData) {
+            setCurrentData(singleData[0]);
+          }
+        } else {
+        }
+        setToggle(false);
+      }
+    } else {
+      handleAlert("error", "Error occured");
     }
   }
- async function handleSubmission(){
-        
-   if( PlanValidator(editData,setWarning,editData.features)){
-    try {
-      
-      const response:{response:true,message:string} =await request({url:'/admin/editPlan',method:'put',data:editData})
-      console.log(response)
-      if(response.response){
-        setData((el)=>el.map(element=>(element._id===editData._id)?editData:element))
-        setCurrentData(editData)
-        setEditData({_id:'',amount:0,connect:0,delete:true,duration:0,features:[''],name:'NO PLANS'})
-        setToggle(true)
-        alertWithOk('Plan Edit','Plan edited successfully',"success")
-      }else{
-        throw new Error(response.message)
+  function handleClose(el: string) {
+    setEditData((datas) => {
+      return {
+        ...datas,
+        features: datas.features.filter((element) => element !== el),
+      };
+    });
+  }
+  function changeOnfeature(e: React.ChangeEvent<HTMLSelectElement>) {
+    if (!editData.features.includes(e.target.value)) {
+      setEditData((el) => ({
+        ...el,
+        features: [...el.features, e.target.value],
+      }));
+    }
+  }
+  async function handleSubmission() {
+    if (PlanValidator(editData, setWarning, editData.features)) {
+      try {
+        const response: { response: true; message: string } = await request({
+          url: "/admin/editPlan",
+          method: "put",
+          data: editData,
+        });
+        console.log(response);
+        if (response.response) {
+          setData((el) =>
+            el.map((element) =>
+              element._id === editData._id ? editData : element
+            )
+          );
+          setCurrentData(editData);
+          setEditData({
+            _id: "",
+            amount: 0,
+            connect: 0,
+            delete: true,
+            duration: 0,
+            features: [""],
+            name: "NO PLANS",
+          });
+          setToggle(true);
+          alertWithOk("Plan Edit", "Plan edited successfully", "success");
+        } else {
+          throw new Error(response.message);
+        }
+      } catch (error: any) {
+        alertWithOk(
+          "Plan Edit",
+          error.message || "Error occured on editing",
+          "error"
+        );
       }
-    } catch (error:any) {
-      alertWithOk('Plan Edit',error.message||'Error occured on editing',"error")
-    } 
     }
   }
   return (
-    <div className="w-full h-full bg-slate-300">
-      {!toggle&&<div className="w-52 h-10 font-bold flex justify-center items-end">
-        <p onClick={()=>setToggle(true)} className=" text-input_dark cursor-pointer">BACK</p>
-      </div>}
+    <div className="w-screen h-full  overflow-hidden ">
       
-      {toggle&&<div className="w-full h-[25%]  flex justify-center items-center">
-    <div className="w-[80%]  h-[95%] border border-dark_red bg-white overflow-y-auto flex">
-     {datas?.map((el,index)=>{
-      return(
-        <div onClick={()=>handleInserData(el._id)} key={index} className="w-44 mx-6 my-2 rounded-lg  h-[90%] bg-black flex flex-col hover:bg-[#1c1b1b] active cursor-pointer">
-        <div onClick={()=>handleRemovePlan(el._id,el.name)} className="w-[90%] h-[20%] ml-1   text-end font-bold text-white">
-          X
-        </div>
-        <div className="w-[100%] h-[80%] text-white flex justify-center items-center font-inter font-semibold">
-          {el.name}
-        </div>
-      </div>
-      )
-     })}
-      
-      
-    </div>
-    <div onClick={()=>navigate('/admin/addPlan')}   className="w-[17%] h-[95%] ml-2 bg-white border border-dark_red cursor-pointer  flex justify-center items-center ">
-      <p className=" font-bold  text-dark_red  ">ADD</p>
-    </div>
-  </div>}
-  
-    <div className={!toggle?"w-full h-[95%]  flex justify-center items-center":"w-full h-[75%]  flex justify-center items-center"}>
-        <div className="sm:w-[40%] w-[80%] sm:h-[90%] h-[90%] rounded-3xl border  border-dark_red hover:border-b-2 bg-white px-10 items-center flex flex-col">
-          {!toggle&&currentData&&
-          <div className=" h-full w-full justify-center flex flex-col items-center">
-          <h1 className="font-bold text-2xl text-dark_red mt-2 mb-5">
-            EDIT
-          </h1>
-          <div className="w-[100%] h-[15%]     justify-between mb-2">
-            <label
-              htmlFor=""
-              className="block font-inter font-bold text-dark_red"
-            >
-              NAME
-            </label>
 
-            <input
-            id="name"
-            value={editData.name}
-            onChange={(t)=>setEditData(el=>({...el,name:t.target.value}))}
-              type="text"
-              className=" w-[90%] border-b border-b-dark_red  outline-none"
-            />
-          
-            {/* <input type="text" className='border border-black focus:border-blue-500 'placeholder='type hear' /> */}
-            <p className="mt-1">{warning.name?warning.name:''}</p>
-          </div>
-          <div className="w-[100%] h-[20%]  mb-2 flex justify-between">
-            <div className="w-[33%] h-full ">
-              <label className="text-dark_red font-bold">AMOUNT</label>
-              <input
-              onChange={(t)=>setEditData(el=>({...el,amount:parseInt(t.target.value)||0}))}
-                id="amount"
-                value={editData.amount}
-                
-                type="number"
-                className="mt-1 w-[60%] outline-none"
-                min={1}
-                max={10000}
-              />
-              <p className="mt-1">{warning.amount?warning.amount:''}</p>
+      
+        <div className="w-full h-[25%]  flex justify-center items-center">
+          {/* <div className="w-[80%]  h-[95%] border  bg-white overflow-y-auto flex"> */}
+          {/* {datas?.map((el,index)=>{
+            return(
+              <div onClick={()=>handleInserData(el._id)} key={index} className="w-44 mx-6 my-2 rounded-lg  h-[90%] bg-black flex flex-col hover:bg-[#1c1b1b] active cursor-pointer">
+              <div onClick={()=>handleRemovePlan(el._id,el.name)} className="w-[90%] h-[20%] ml-1   text-end font-bold text-white">
+                X
+              </div>
+              <div className="w-[100%] h-[80%] text-white flex justify-center items-center font-inter font-semibold">
+                {el.name}
+              </div>
             </div>
-            <div className="w-[33%] h-full ">
-              <label className="text-dark_red font-bold">connect</label>
-              <input
-              value={editData.connect}
-              onChange={(t)=>setEditData(el=>({...el,connect:parseInt(t.target.value)||0}))}
-                id="amount"
-                type="number"
-                className="mt-1 w-[80%] outline-none"
-                min={1}
-                max={10000}
-              />
-              <p className="mt-1 ">{warning.connect?warning.connect:''}</p>
-            </div>
-            <div className="w-[33%] h-full">
-              <label className="text-dark_red font-bold">DURATION</label>
-              {/* <input id='amount' type="number" className='mt-1 w-[60%] outline-none'min={1} max={10000} /> */}
-              <select
-              value={editData.duration}
-              onChange={(t)=>setEditData(el=>({...el,duration:parseInt(t.target.value)||0}))}
-                className="h-8 outline-none border-b border-dark_red"
-                name=""
-                id=""
-              >
-                <option value="">Month</option>
-                {months.map((el, index) => (
-                  <option key={index} value={el}>
-                    {el} month
-                  </option>
-                ))}
-              </select>
-              <p className="mt-1">{warning.duration?warning.duration:''}</p>
-            </div>
+            )
+          })} */}
+
+          {/* </div> */}
+          {!toggle && (
+        <div className="w-24 bg-white  h-20 font-bold flex justify-center items-end">
+          <p
+            onClick={() => setToggle(true)}
+            className=" text-dark-blue cursor-pointer"
+          >
+            BACK
+          </p>
+        </div>
+      )}
+
+          <div className="w-[90%] h-5/6 drop-shadow-lg bg-white rounded-lg flex justify-between items-center">
+            <p className=" ml-5 font-extrabold sm:text-base text-xs  font-inter text-dark-blue">
+              PLAN MANAGEMENT
+            </p>
+            <button
+            onClick={()=>navigate('/admin/addPlan')}
+              type="button"
+              className="text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-300 dark:focus:ring-cyan-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
+            >
+              ADD PLAN
+            </button>
           </div>
-          <div className='w-full h-10  mb-2'>
-                    <select onChange={(t)=>changeOnfeature(t)}  className='w-[40%] outline-none rounded-xl sm:h-[80%] h-[50%] sm:text-base text-xs bg-dark_red text-white' name="features" id="">
-                        <option value="">Features</option>
-                        <option value="Video call">VIDEO CALL</option>
-                        <option value="Umlimited message">UNLIMITED MESSAGE</option>
-                        <option value="Suggestion">SUGGESTION BY US</option>
-                        <option value="Priority">GET PRIORIY</option>
-                    </select>
-                </div>
-                <div className='w-[100%] h-[30%] bg-gray-400'>
-                {editData.features.map((el,index)=>(
-                        <div key={index} className='w-full h-[20%] mt-2 bg-dark_red  flex'>
-                       
-                        <div className='w-[90%] h-full flex  items-center text-white px-2 '>
-                            
-                            <p >{index+1}.<span className='pl-2'>{el}</span></p>
-                        </div>
-                        <div onClick={()=>handleClose(el)}  className='w-[10%] h-full text-center cursor-pointer text-white font-black'>
-                            X
-                        </div>
-                    </div>    
-                        ))}
-                    
-                </div>
-          <button onClick={handleSubmission} className="bg-gray-600 mt-2 px-8 py-2 rounded-lg font-medium text-white hover:bg-input_dark">SUBMIT</button>
-          </div>
-          }
-          {toggle&&
-          <div className=" h-full w-full justify-center flex flex-col items-center">
-          <h1 className="font-bold text-2xl text-dark_red mt-2 mb-5">
-            DETAILS
-          </h1>
-          <div className="w-[100%] h-[11%]  border-b border-dark_red    justify-between mb-10">
-          <label className="text-dark_red font-bold">NAME</label>
-            <p className="hover:font-medium">{currentData?.name}</p>
+
+          {/* <div onClick={()=>navigate('/admin/addPlan')}   className="w-[17%] h-[95%] ml-2 bg-white border border-dark_red cursor-pointer  flex justify-center items-center ">
+            <p className=" font-bold  text-dark_red  ">ADD</p>
+          </div> */}
+        </div>
+     
+
+      {toggle&& <div  className="w-[100%]  h-[70%]   ">
+        <div className="w-full h-[15%]   flex justify-center items-start">
+          <p className="font-inter font-extrabold  text-theme-blue sm:text-2xl">
+            AVAILABLE PLAN
+          </p>
+        </div>
+        <div className="w-full h-[85%] flex justify-start p-1  overflow-x-auto  no-scrollbar">
+          <div className="flex space-x-4 ">
             
-          </div>
-          <div className="w-[100%] h-[20%]  mb-2 flex justify-between">
-            <div className="w-[30%] h-14  border-b border-dark_red  ">
-              <label className="text-dark_red font-bold">AMOUNT</label>
-              
-              <p className="mt-1 hover:font-medium ">{currentData?.amount}</p>
-            </div>
-            <div className="w-[30%] h-14 border-b border-dark_red  ">
-              <label className="text-dark_red font-bold">CONNECT</label>
-              <p className="mt-1 hover:font-medium ">{currentData?.connect}</p>
-            </div>
-            <div className="w-[33%] h-14 border-b border-dark_red ">
-              <label className="text-dark_red font-bold">DURATION</label>
-              {/* <input id='amount' type="number" className='mt-1 w-[60%] outline-none'min={1} max={10000} /> */}
-            
-              <p className="mt-1 hover:font-medium">{currentData?.duration}</p>
-            </div>
-          </div>
-          <div className="w-[100%] h-[30%] border  bg-gray-200">
-            {currentData?.features&&currentData?.features.map((el,index)=>{
+            {datas.map((el,index)=>{
               return(
-                <div key={index} className='w-full h-[20%] mt-2 bg-dark_red hover:bg-red-900  flex'>
-                       
-                <div className='w-[90%] h-full flex  items-center text-white px-2 '>
-                    
-                    <p >{index+1}.<span className='pl-2'>{el}</span></p>
+                <div
+              key={index}
+
+              className= "ml-5 sm:w-64 w-44 rounded-xl h-[95%] sm:h-[90%] hover:bg-[#000080] drop-shadow-xl  bg-dark-blue mr-2"
+            >
+              <div  className=" w-[90%] h-[10%] text-end rounded-full font-bold text-white text-lg">
+                <p onClick={()=>handleRemovePlan(el._id,el.name)}>
+                X
+                </p>
+                
+              </div>
+              <div  className=" w-[100%] rounded-xl h-[90%] font-inter     text-white text-lg">
+               <div className="flex justify-center w-full  h-[15%] ">
+                <p className="sm:text-2xl text-base font-bold">{el.name}</p>
+               </div>
+               <div className="flex justify-center w-full   h-[20%]">
+                <div className="h-full w-1/3  text-center pt-1 sm:text-base text-[9px]">
+                <span className="block sm:text-sm text-[10px]">Duration</span>
+                  {el.duration}
                 </div>
-                
-                
-            </div> 
+                <div className="h-full w-1/3  text-center pt-1 sm:text-base text-[9px]">
+                <span className="block sm:text-sm text-[10px] ">Connect</span>
+                  {el.connect}
+                </div>
+                <div className="h-full w-1/3 text-center pt-1 sm:text-base text-[9px]">
+                <span className="block sm:text-sm text-[10px]">Amount</span>
+                 {el.amount}
+                </div>
+               </div>
+               <div className="w-full sm:h-36 h-32 text-sm ">
+                <ul className="p-2 flex flex-col h-full justify-around  items-center sm:text-[15px] text-[10px]">
+                  {el.features.map((elem,indexOfFeatur)=> <li key={indexOfFeatur}>{elem}</li>)} 
+                </ul>
+               </div>
+               <div className=" w-full h-[15%] flex justify-center items-end  ">
+              <button onClick={()=> manageBtwAddEdit("Edit",el._id)} className="bg-white text-blue-600 w-16 rounded-full text-sm font-serif" >EDIT</button>
+               </div>
+              </div>
+            </div>
               )
             })}
-         
+            
+            
           </div>
-          <button onClick={()=>manageBtwAddEdit('Edit',currentData?._id)} className="border border-dark_red mt-2 py-2 px-8 font-bold rounded-3xl hover:bg-dark_red hover:text-white ">MAKE CHANGES</button>
-          </div>
-          }
         </div>
+      </div> }
+    
+    
+    
+      <div className="w-[100%] h-[75%]  flex justify-center items-center">
+      {!toggle && currentData && (
+      <div className="sm:w-[40%] bg w-[95%] sm:h-[98%]  h-[90%] rounded-3xl border border-dark-blue border-b-2 bg-white sm:px-10 px-3 items-center flex flex-col">
+   
+      <div className="h-full w-full justify-center flex flex-col items-center">
+        <h1 className="font-bold text-2xl text-theme-blue mt-2 mb-5">EDIT</h1>
+        <div className="w-[100%] h-[10%] justify-between mb-2">
+          <label htmlFor="name" className="block font-inter font-bold text-dark-blue">
+            NAME
+          </label>
+          <input
+            id="name"
+            // value={editData.name}
+            value={editData.name}
+            onChange={(t) => setEditData((el) => ({ ...el, name: t.target.value }))}
+            type="text"
+            className="w-[90%] border-b border-theme-blue outline-none text-gray-700"
+          />
+          <p className="mt-1">{warning.name || ""}</p>
+        </div>
+        <div className="w-[100%] h-[20%] mb-2 flex justify-between">
+          <div className="w-[33%] h-full">
+            <label className="text-dark-blue font-bold">AMOUNT</label>
+            <input
+              onChange={(t) => setEditData((el) => ({ ...el, amount: parseInt(t.target.value) || 0 }))}
+              id="amount"
+              value={editData.amount}
+              type="number"
+              className="mt-1 w-[60%] outline-none border-b border-theme-blue text-gray-700"
+              min={1}
+              max={10000}
+            />
+            <p className="mt-1">{warning.amount || ""}</p>
+          </div>
+          <div className="w-[33%] h-full ">
+            <label className="text-dark-blue font-bold">CONNECT</label>
+            <input
+            
+              value={editData.connect}
+              onChange={(t) => setEditData((el) => ({ ...el, connect: parseInt(t.target.value) || 0 }))}
+              type="number"
+              className="mt-1 w-[80%] outline-none border-b border-theme-blue text-gray-700"
+              min={1}
+              max={10000}
+            />
+            <p className="mt-1">{warning.connect || ""}</p>
+          </div>
+          <div className="w-[32%] h-full ">
+            <label className="text-dark-blue font-bold">DURATION</label>
+            <select
+              value={editData.duration}
+              onChange={(t) => setEditData((el) => ({ ...el, duration: parseInt(t.target.value) || 0 }))}
+              className="h-7 outline-none border-b border-theme-blue text-gray-700"
+            >
+              <option value="">Month</option>
+              {months.map((el, index) => (
+                <option key={index} value={el}>
+                  {el} month
+                </option>
+              ))}
+            </select>
+            <p className="mt-1">{warning.duration || ""}</p>
+          </div>
+        </div>
+        <div className="w-full h-10 mb-2">
+          <select
+            onChange={(t) => changeOnfeature(t)}
+            className="w-[40%] outline-none rounded-xl sm:h-[80%] h-[50%] sm:text-base text-xs bg-dark-blue text-white"
+          >
+            <option value="">Features</option>
+            {featureData.map(el=><option value={el}>{el}</option>)}
+            
+           
+          </select>
+        </div>
+        <div className="w-[100%] h-[30%] bg-gray-400">
+          {editData.features.map((el, index) => (
+            <div key={index} className="w-full h-[20%] mt-2 bg-theme-blue flex">
+              <div className="w-[90%] h-full flex items-center text-white px-2">
+                <p>
+                  {index + 1}.<span className="pl-2">{el}</span>
+                </p>
+              </div>
+              <div onClick={() => handleClose(el)} className="w-[10%] h-full text-center cursor-pointer text-white font-black">
+                X
+              </div>
+            </div>
+          ))}
+        </div>
+        <button onClick={handleSubmission} className="bg-blue-500 hover:bg-dark-blue mt-2 px-8 py-2 rounded-lg font-medium text-white ">
+          SUBMIT
+        </button>
       </div>
+   
+    
+  </div>
+   )}
+      </div>
+    
+    
+    
+    
     </div>
+//     <div className={!toggle ? "w-full h-[95%]  flex justify-center items-center" : "w-full h-[75%] flex justify-center items-center"}>
+//   <div className="sm:w-[40%] bg w-[80%] sm:h-[90%]  h-[90%] rounded-3xl border border-dark-blue hover:border-b-2 bg-white px-10 items-center flex flex-col">
+//     {!toggle && currentData && (
+//       <div className="h-full w-full justify-center flex flex-col items-center">
+//         <h1 className="font-bold text-2xl text-theme-blue mt-2 mb-5">EDIT</h1>
+//         <div className="w-[100%] h-[15%] justify-between mb-2">
+//           <label htmlFor="name" className="block font-inter font-bold text-dark-blue">
+//             NAME
+//           </label>
+//           <input
+//             id="name"
+//             // value={editData.name}
+//             value={'hiii'}
+//             onChange={(t) => setEditData((el) => ({ ...el, name: t.target.value }))}
+//             type="text"
+//             className="w-[90%] border-b border-theme-blue outline-none"
+//           />
+//           <p className="mt-1">{warning.name || ""}</p>
+//         </div>
+//         <div className="w-[100%] h-[20%] mb-2 flex justify-between">
+//           <div className="w-[33%] h-full">
+//             <label className="text-dark_red font-bold">AMOUNT</label>
+//             <input
+//               onChange={(t) => setEditData((el) => ({ ...el, amount: parseInt(t.target.value) || 0 }))}
+//               id="amount"
+//               value={editData.amount}
+//               type="number"
+//               className="mt-1 w-[60%] outline-none"
+//               min={1}
+//               max={10000}
+//             />
+//             <p className="mt-1">{warning.amount || ""}</p>
+//           </div>
+//           <div className="w-[33%] h-full">
+//             <label className="text-dark_red font-bold">CONNECT</label>
+//             <input
+//               value={editData.connect}
+//               onChange={(t) => setEditData((el) => ({ ...el, connect: parseInt(t.target.value) || 0 }))}
+//               type="number"
+//               className="mt-1 w-[80%] outline-none"
+//               min={1}
+//               max={10000}
+//             />
+//             <p className="mt-1">{warning.connect || ""}</p>
+//           </div>
+//           <div className="w-[33%] h-full">
+//             <label className="text-dark_red font-bold">DURATION</label>
+//             <select
+//               value={editData.duration}
+//               onChange={(t) => setEditData((el) => ({ ...el, duration: parseInt(t.target.value) || 0 }))}
+//               className="h-8 outline-none border-b border-dark_red"
+//             >
+//               <option value="">Month</option>
+//               {months.map((el, index) => (
+//                 <option key={index} value={el}>
+//                   {el} month
+//                 </option>
+//               ))}
+//             </select>
+//             <p className="mt-1">{warning.duration || ""}</p>
+//           </div>
+//         </div>
+//         <div className="w-full h-10 mb-2">
+//           <select
+//             onChange={(t) => changeOnfeature(t)}
+//             className="w-[40%] outline-none rounded-xl sm:h-[80%] h-[50%] sm:text-base text-xs bg-dark_red text-white"
+//           >
+//             <option value="">Features</option>
+//             <option value="Video call">VIDEO CALL</option>
+//             <option value="Unlimited message">UNLIMITED MESSAGE</option>
+//             <option value="Suggestion">SUGGESTION BY US</option>
+//             <option value="Priority">GET PRIORITY</option>
+//           </select>
+//         </div>
+//         <div className="w-[100%] h-[30%] bg-gray-400">
+//           {editData.features.map((el, index) => (
+//             <div key={index} className="w-full h-[20%] mt-2 bg-dark_red flex">
+//               <div className="w-[90%] h-full flex items-center text-white px-2">
+//                 <p>
+//                   {index + 1}.<span className="pl-2">{el}</span>
+//                 </p>
+//               </div>
+//               <div onClick={() => handleClose(el)} className="w-[10%] h-full text-center cursor-pointer text-white font-black">
+//                 X
+//               </div>
+//             </div>
+//           ))}
+//         </div>
+//         <button onClick={handleSubmission} className="bg-gray-600 mt-2 px-8 py-2 rounded-lg font-medium text-white hover:bg-input_dark">
+//           SUBMIT
+//         </button>
+//       </div>
+//     )}
+    
+//   </div>
+// </div>
+
   );
 };
+
+
+
+

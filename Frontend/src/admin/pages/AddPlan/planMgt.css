@@ -1,17 +1,13 @@
 #name{
     border-bottom: 1px solid;
-    border-color: darkred;
+    border-color: darkblue;
 }
 #name:focus{
     border-bottom: 2px solid;
-    border-color: darkred;
+    border-color: #007bff
 }
 
 #amount{
     border-bottom: 1px solid;
-    border-color: darkred;
-}
-#amount:focus{
-    border-bottom: 2px solid;
-    border-color: darkred;
+    border-color: #007bff;
 }

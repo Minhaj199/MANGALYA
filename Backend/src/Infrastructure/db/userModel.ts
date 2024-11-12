@@ -22,8 +22,9 @@ const userSchema=new Schema<IUserModel>({
     block:Boolean,
     match:[{_id:Schema.Types.ObjectId,status:{type:String,default:'pending'} ,typeOfRequest:String}],
     subscriber:String,
-  
-    expiry:Date
+    CurrentPlan:{name:String,amount:Number,connect:Number,avialbleConnect:Number,duration:Number,features:[String],Expiry:Date},
+    PlanData:[{type:Types.ObjectId,ref:'PlanOrder'}],
+    CreatedAt:Date
 
 })
 export const UserModel=mongoose.model<IUserModel>('User',userSchema)

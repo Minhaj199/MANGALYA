@@ -3,16 +3,16 @@ import { AuthService } from "../../application/user/auth/authService";
 import { MongoUserRepsitories,MongoOtpRepository, MongodbPlanRepository} from "../../Infrastructure/repositories/mongoRepositories"; 
 import { EmailService } from "../../application/emailService";
 import { UserModel } from "../../Infrastructure/db/userModel";
-import { Cloudinary } from "../../Infrastructure/cloudinary";
-import { getAge } from "../../application/ageCalculator";
-import { fetchDateForUserSelection } from "../../application/types/userTypes";
-import { getId } from "../../Infrastructure/getIdFromJwt";
-import { User, UserWithID } from "../../domain/entity/userEntity";
+import { Cloudinary } from "../Utility/cloudinary";
+import { getAge } from "../Utility/ageCalculator";
 import { Types } from "mongoose";
 import { profileTypeFetch } from "../../application/types/userTypes";
 import { MongoPurchasedPlan } from "../../Infrastructure/repositories/mongoRepositories";
+import { InterestModel } from "../../Infrastructure/db/signupInterest";
+import { PayPalService } from "../../Infrastructure/paypal/paypalService";
 
 const emailService=new EmailService()
+const paymentService=new PayPalService()
 const planRepo=new MongodbPlanRepository
 const userRepository=new MongoUserRepsitories()
 const otpRepsitory=new MongoOtpRepository()
@@ -69,8 +69,8 @@ export const login=async(req:Request,res:Response)=>{
     const {email,password}=req.body
     try {
         const response=await authService.login(email,password)
-        const {token,name,photo,partner,gender,id}=response
-        res.json({message:'password matched',token,name,photo,partner,gender,id})
+        const {token,name,photo,partner,gender,id,subscriptionStatus}=response
+        res.json({message:'password matched',token,name,photo,partner,gender,id,subscriptionStatus})
     } catch (error:any) {
         res.json({message:error.message})
     }
@@ -101,7 +101,7 @@ export const fetechProfileData=async(req:Request,res:Response)=>{
                     photo:'$matchedUser.PersonalInfo.image'}},{$sort:{_id:-1}}]
                 }
             }])
-            
+            let currntPlan=await UserModel.aggregate([{$match:{_id:new Types.ObjectId(req.query.id)}},{$project:{_id:0,CurrentPlan:1}}])
             
             
             
@@ -116,7 +116,8 @@ export const fetechProfileData=async(req:Request,res:Response)=>{
                     }) 
                 })
             }
-            res.json(datas)
+            
+            res.json({datas,currntPlan:currntPlan[0]?.CurrentPlan})
         }else{
             throw new Error('id not found')
         }
@@ -253,7 +254,6 @@ export const  manageReqRes=async(req:Request,res:Response):Promise<void>=>{
 }
 export const fetchPlanData=async (req:Request,res:Response):Promise<void>=>{
     try {
-        
         const data=await planRepo.getAllPlans()
         res.json(data)
     } catch (error:any) {
@@ -263,9 +263,38 @@ export const fetchPlanData=async (req:Request,res:Response):Promise<void>=>{
 }
 export const purchasePlan=async (req:Request,res:Response):Promise<void>=>{
     try {
-        console.log(req.body)
-        const response=await  orderRepo.createOrder(req.body.id,req.body.planData)
-    } catch (error) {
-        
+        const response2=await paymentService.createOrder(String(250))
+       console.log(response2)
+        // const response=await  orderRepo.createOrder(req.body.id,req.body.planData)
+        res.json({status:response})
+    } catch (error:any) {
+        console.log(error)
+        res.json({message:error.message})
     }
 }
+export const fetchDataForProfile=async (req:Request,res:Response):Promise<void>=>{
+    try {
+        const response=await userRepository.getUsers()
+        if(response){
+            res.json(response)
+        }else{
+            throw new Error('Error on new user data collection')
+        }
+    } catch (error:any) {
+        res.json({error:error.message})
+    }
+}
+export const fetchInterest=async (req:Request,res:Response):Promise<void>=>{
+    try {
+       const response=await InterestModel.findOne({},{_id:0,sports:1,music:1,food:1})
+       if(response){
+        res.json({Data:response})
+       }else{
+        throw new Error("Error on interst getting")
+       } 
+    } catch (error:any) {
+        res.json({message:error.message||'Error on message interest getting'})
+    }
+}
+
+

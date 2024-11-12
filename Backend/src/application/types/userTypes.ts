@@ -16,3 +16,8 @@ export type profileTypeFetch = {name:string,
     photo:string,
     _id?:string
 }[]
+export type userForLanding={
+    name:string
+    age:number
+    image:string
+}

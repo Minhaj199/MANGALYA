@@ -4,8 +4,9 @@ import { request } from "../../utils/axiosUtils";
 
 import "./LogLanding.css";
 import { Navbar } from "../Components/User/navbar/Navbar";
-import { Footer } from "../Components/User/Footer/Footer";
-import { alertWithOk, handleAlert } from "../../utils/alert/sweeAlert";
+import { alertWithOk, handleAlert,  simplePropt } from "../../utils/alert/sweeAlert";
+import { PlanData } from "../plan/Plan";
+import { useNavigate } from "react-router-dom";
 
 type profileType = { _id: string;interest:string[];photo:string;lookingFor:string; name: string; no: number,secondName:string,state
 :string,age:number,gender:string
@@ -13,10 +14,11 @@ type profileType = { _id: string;interest:string[];photo:string;lookingFor:strin
 
 
 
-export const LoginLanding = ({active}:{active:string}) => {
-  useEffect(()=>{
 
-  })
+export const LoginLanding = ({active}:{active:string}) => {
+    const navigate=useNavigate()
+    const [planData,setPlanData]=useState<PlanData|null>(null)
+    
   const [requestProfile,setRequest]=useState<profileType[]>([{_id:'',age:0,gender:'',interest:[],lookingFor:'',name:'',no:0,photo:'',secondName:'',state:''}])
   const acceptRequest=async (id:string)=>{ 
     try {
@@ -33,6 +35,7 @@ export const LoginLanding = ({active}:{active:string}) => {
       alertWithOk('Plan insertion',error||'Error occured','error')
     }
   }
+
   const rejectRequest=async(id:string)=>{
     try {
       const response=await request({url:'/user/manageReqRes',method:'patch',data:{id:id,action:'reject',userId:localStorage.getItem('id')}})
@@ -52,16 +55,29 @@ export const LoginLanding = ({active}:{active:string}) => {
   const userId=localStorage.getItem('id')
 
 const handleMatch=async(id:string)=>{
-  try {
-    
-    const response:boolean= await request({url:'/user/addMatch',method:'post',data:{matchId:id,userId:userId}})
-   
-    
-    if(response===true){
-      setProfiles(el=>(el?.filter((element)=>element._id!==id)))
+  
+  if(planData){
+    if(planData.avialbleConnect&&planData.avialbleConnect>0){
+     
+      try {    
+        const response:boolean= await request({url:'/user/addMatch',method:'post',data:{matchId:id,userId:userId}})  
+        if(response===true){
+          setPlanData(el=>{
+            if(!el)return null
+            return {...el,avialbleConnect:el.avialbleConnect?el.avialbleConnect-1:el.amount}
+          })
+          setProfiles(el=>(el?.filter((element)=>element._id!==id)))
+        }
+      } catch (error) {
+        
+      }
+    }else{
+      localStorage.setItem('subscriptionStatus','connection finished')
+      alertWithOk('Plan subscription','You connection count finished please subscribe',"info")
+      simplePropt(()=>navigate('/PlanDetails'),'Do you want purchase new Plan')
     }
-  } catch (error) {
-    
+  }else{
+    alert('Plan data not found')
   }
 }
   const [profils, setProfiles] = useState<profileType[]>();
@@ -76,17 +92,20 @@ const handleMatch=async(id:string)=>{
       const preferedGender=localStorage.getItem('partner')
        const gender=localStorage.getItem('gender')
        const id=localStorage.getItem('id')
-      const response: profileType[] = await request({
+      const response: {datas:profileType[],currntPlan:PlanData} = await request({
         url: `/user/fetchProfile?preferedGender=${preferedGender}&gender=${gender}&id=${id}`,
       })
-      const res:any = response  ??{profile:[],request:[]} ;
+  
+      const res:any = response.datas??{profile:[],request:[]} ;
      
       if(res[0]?.profile)
       setProfiles(res[0].profile);
     if(res[0]?.request)
       setRequest(res[0]?.request)
+    if(response.currntPlan&&typeof response.currntPlan==='object'&&Object.keys(response.currntPlan).length){
+      setPlanData(response.currntPlan)
     }
-    
+    }   
     fetch();
 }, []);
 
@@ -111,31 +130,40 @@ const handleNext=()=>{
     }
  
   return (
-    <div className="h-[1800px] w-screen bg-gray-400">
+    <div className="h-[1800px] w-[100%] bg-gray-400 ">
       <Navbar active={active}/>
-      <div className="w-screen h-full mt-24  flex">
-        <div className="sm:w-[25%] w-[40%] h-[50%] mt-11   ">
+      <div className="w-screen h-full mt-2  flex">
+        <div className="sm:w-[20%] w-[40%] h-[40%] mt-11">
        
           <div className="w-full h-[30%]  flex justify-center items-center">
-            <div className="w-[95%] h-[85%] bg-dark_red  rounded-3xl ">
+           {planData?
+           <div className="w-[95%] h-[85%] bg-dark-blue  rounded-3xl ">
               <div className="w-full h-[30%] flex justify-center items-center">
                 {" "}
                 <p className="font-aborato font-black text-2xl text-gray-200 ">
-                  Gold
+                 {planData.name}
                 </p>
               </div>
               <div className="w-full h-[40%] flex items-center pl-3   ">
-                <p className="font-medium text-white">Expiry:20/12/2024</p>
+
               </div>
               <div className="w-full h-[30%]  flex justify-center items-center">
                 <div className="w-44 h-9 bg-slate-300 flex justify-center items-center">
-                  <p>connection left :30/60</p>
+                  <p>connection left :{planData.avialbleConnect}/{planData.connect}</p>
                 </div>
               </div>
             </div>
+            
+            :
+            <div className="w-[95%] h-[85%] bg-dark-blue flex justify-center items-center  rounded-3xl ">
+            <h1 className="font-bold text-white">PLAN NOT AVAILABLE</h1>
+          </div>
+            
+            }
+      
           </div>
           <div className="w-full h-[70%] rounded-full flex justify-center items-center ">
-            <div className="w-[95%] h-[100%] bg-dark_red rounded-3xl   ">
+            <div className="w-[95%] h-[100%] bg-dark-blue rounded-3xl   ">
               <div className="w-full h-[20%] flex justify-center  ">
                 {" "}
                 <p className="font-mono font-black text-2xl text-gray-200 mt-2 ">
@@ -144,12 +172,12 @@ const handleNext=()=>{
               </div>
               <div
                 id="request"
-                className="w-full h-[80%]   bg-dark_red "
+                className="w-full h-[80%]   bg-dark-blue "
               >
                 {requestProfile?.map((el,index)=>{
 
                   return(
-                    <div className="w-full h-16 mt-3 bg-[#e37171] flex" key={index}>
+                    <div className="w-full h-16 mt-3 bg-theme-blue flex" key={index}>
                   <div className="w-[70%] h-full  py-2 px-2 flex ">
                     <div className="w-12 h-12 bg-slate-500 rounded-full">
                       <img src={el.photo?el.photo:'/adminLogin_.png'} className="w-full h-full rounded-full" alt="" />
@@ -188,7 +216,7 @@ const handleNext=()=>{
                   <div className="w-[90%] h-[90%] ">
                    <img
                       className="h-full w-full "
-                      src={el.photo?el.photo: "/pexels-mostafasanadd-868113.jpg"}
+                      src={el.photo?el.photo: "/defualtImage.jpg"}
                       alt=""
                     />
                   </div>
@@ -243,7 +271,7 @@ const handleNext=()=>{
         </div>
         
       </div>
-      <Footer/>
+      {/* <Footer/> */}
      
     </div>
   );

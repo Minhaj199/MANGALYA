@@ -62,3 +62,24 @@ export function alertWithOk(title:string,text:string,icon:SweetAlertIcon){
         icon: icon
       });
 }
+
+export function simplePropt(actionFunction:()=>void,titile:string){
+  Swal.fire({
+    title:titile,
+    showCancelButton: true,
+    confirmButtonText: 'Yes',
+    cancelButtonText: 'Cancel',
+    icon: 'question',
+    // reverseButtons: true,
+  }).then((result) => {
+    if (result.isConfirmed) {
+      actionFunction()
+      console.log("User confirmed!");
+    } else {
+      
+      console.log("User cancelled.");
+    }
+  });
+
+}
+

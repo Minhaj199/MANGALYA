@@ -1,4 +1,5 @@
 import {Types} from 'mongoose'
+import { PlanOrder } from '../../Infrastructure/db/planOrder'
 // export  interface User{
 //     firstName:string,
 //     secondName:string
@@ -23,11 +24,13 @@ export  interface User{
         gender:string
     }
     email:string,
-    password:string,
-    block:boolean,
+    password:string
+    block:boolean
+    CurrentPlan?:PlanOrder
+    PlanData?:string[]
     match:string[],
     subscriber:string
-    expiry:Date
+    CreatedAt:Date
 }
 
 export interface UserWithID extends User{

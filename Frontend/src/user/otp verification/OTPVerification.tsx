@@ -50,9 +50,7 @@ export const OTPVerification:React.FC = () => {
             }
           async function secondFunction(){
               console.log(resonse)
-              // localStorage.setItem('partner',resonse?.user.partnerData.gender)
-              // localStorage.setItem('gender',resonse?.user.PersonalInfo.gender)
-              // localStorage.setItem('userToken',resonse.token)
+              
               localStorage.setItem('id',resonse?.id)
               setSignupFirst({"FIRST NAME":'',"SECOND NAME":'',"DATE OF BIRTH":'',"GENDER OF PARTNER":'',"STATE THAT YOU LIVE":'',"YOUR GENDER":'','EMAIL':'','PASSWORD':''})
               alertWithOk('Signup completed','Best of luck with you journy',"success")
@@ -86,9 +84,9 @@ export const OTPVerification:React.FC = () => {
       <div className="w-28 relative top-[50px] h-28 rounded-full  ">
         <img src="/createProfile.png" alt="" />
       </div>
-      <div className="flex  items-center flex-col  sm:h-96 sm:w-2/4 md:w-2/4 md:h-96 lg:h-96  w-5/6 h-96 lg:w-1/3 rounded-3xl bg-otp_red">
+      <div className="flex  items-center flex-col  sm:h-96 sm:w-2/4 md:w-2/4 md:h-96 lg:h-96  w-5/6 h-96 lg:w-1/3 rounded-3xl bg-[rgba(25,88,99,0.5)]">
       <div className="h-[100px] w-full  flex justify-center items-end">
-        <p className="font-inter  text-white text-2xl">ENTER OTP</p>      
+        <p className="font-inter   text-2xl text-white">ENTER OTP</p>      
       </div>
       <div className="flex-col h-3/6 w-full  flex justify-center items-center">
        <input type="text" max={6} value={otp} onChange={(t)=>setOpt(t.target.value)}  className="h-16 bg-slate-300 w-1/3 font-black  font-mono text-2xl  text-center" />

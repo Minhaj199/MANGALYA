@@ -23,7 +23,12 @@ export default {
         'input_dark':'#700303',
         'red_Active':'#E82A2A',
         'otp_red':'#3E1111',
-        'admin_panel_Blue':'#2b5bee'
+        'admin_panel_Blue':'#2b5bee',
+        'dark-blue':'#0b3e80',
+        'theme-blue':'#007bff'
+      },
+      boxShadow:{
+        '3xl':'0 4px 12px 0 rgba(0, 0, 0, 0.8), 0 6px 20px 0 rgba(0, 0, 0, 0.19)'
       }
     },
   },

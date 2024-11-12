@@ -1,9 +1,9 @@
 import { UserModel } from "../../../Infrastructure/db/userModel"
 import { BcryptAdapter } from "../../../Infrastructure/bcryptAdapter" 
 import { JWTAdapter } from "../../../Infrastructure/jwt"
-import { generateOTP } from "../../../Infrastructure/otpGenerator" 
-import { UserRepository } from "../../../domain/repository/userRepository"
-import { OTPrespository } from "../../../domain/repository/OtpRepsitory"
+import { generateOTP } from "../../../interface/Utility/otpGenerator" 
+import { UserRepository } from "../../../domain/interface/userRepository"
+import { OTPrespository } from "../../../domain/interface/OtpRepsitory"
 import { EmailService } from "../../emailService"
 
 
@@ -48,8 +48,9 @@ export class AuthService{
             password:hashedPassoword,
             block:false,
             match:[],
-            subscriber:'subscribed',
-            expiry:new Date()
+            PlanData:[],
+            subscriber:'Not subscribed',
+            CreatedAt:new Date()
         }
         try {
             const response =await this.userRepository.create(user)
@@ -78,7 +79,7 @@ export class AuthService{
                    const jwt_key:string=process.env.JWT_SECRET_USER||''
                    const token=this.jwtGenerator.createToken({id:JSON.stringify(user._id) ,role:'user'},jwt_key,{expiresIn:'1 hour'})
                    const photo=user.PersonalInfo.image||'' 
-                   return {token,id:user._id,name:user.PersonalInfo.firstName,partner:user.partnerData.gender,photo:photo,gender:user.PersonalInfo.gender}
+                   return {token,id:user._id,name:user.PersonalInfo.firstName,partner:user.partnerData.gender,photo:photo,gender:user.PersonalInfo.gender,subscriptionStatus:user.subscriber}
                 }else{
                     throw new Error('password not matched')
                     

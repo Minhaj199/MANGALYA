@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import './planMgt.css'
 import { PlanValidator } from '../../../Validators/planValidator'
@@ -20,13 +20,25 @@ export type PlanData={
 }
 
 
-export const PlanMgt = () => {
+export const AddPlan = () => {
     const navigate=useNavigate()
+    const [feature,setFeature]=useState<string[]>([''])
+    const [featureData,setFeatureData]=useState<string[]>([''])
+    
+    useEffect(()=>{
+       async function fetchFeature(){
+            const response:{features:string[]}=await request({url:'/admin/fetchFeature'})
+            setFeatureData(response.features)
+            console.log(response)
+        }
+        fetchFeature()
+    },[])
     const [warning,setWarning]=useState<planMgtWarningType>({amount:'',connect:'',duration:'',name:''})
     const [datas,setDatas]=useState<PlanData>({amount:0,connect:0,name:'',duration:''})
     const months=Array.from({length:36},(_,index)=>index+1)
     const [handleFeatureState,setHandleFeature]=useState<string[]>([])
-  
+    
+
     const handleFeature=(t:React.ChangeEvent<HTMLSelectElement>)=>{
         
         if(!handleFeatureState.includes(t.target.value))
@@ -59,15 +71,15 @@ export const PlanMgt = () => {
         
     }
   return (
-    <div className='w-full h-full bg-slate-300'>
+    <div className='w-full h-full '>
         <div className='w-full h-14 px-6 py-4 '>
-            <p onClick={()=>navigate('/admin/Plan')} className='font-bold text-dark_red cursor-pointer' >{'BACK'}</p>
+            <p onClick={()=>navigate('/admin/Plan')} className='font-bold text-dark-blue cursor-pointer' >{'BACK'}</p>
         </div>
-        <div className='w-full h-[90%]  flex justify-center items-center'>
-            <div className='sm:w-[40%] w-[80%] sm:h-[95%] h-[90%] rounded-3xl bg-white px-10 items-center flex flex-col'>
-                <h1 className='font-bold text-2xl text-dark_red mt-2 mb-5'>ADD PLAN</h1>
+        <div className='w-full h-[90%]   flex justify-center items-center'>
+            <div className='sm:w-[40%]  w-[90%] sm:h-[95%] h-[60%] rounded-3xl border border-dark-blue sm:px-10 px-5 items-center flex flex-col'>
+                <h1 className='font-bold text-2xl text-dark-blue mt-2 mb-5'>ADD PLAN</h1>
                 <div className='sm:w-[100%] w-[100%] h-[15%] sm:h-[20%]     justify-between mb-2'>
-                    <label htmlFor="" className='block font-inter font-bold text-dark_red'>NAME</label>
+                    <label htmlFor="" className='block font-inter font-bold text-dark-blue'>NAME</label>
 
 
                     <input id='name' onChange={(t)=>setDatas(el=>({...el,name:t.target.value}))} type="text" value={datas.name} className=' w-[90%]  text-sm  outline-none' />
@@ -82,39 +94,37 @@ export const PlanMgt = () => {
                 <div className='w-[100%] h-[20%]  flex justify-between'>
                     <div className='w-[33%] h-full  '>
                     
-                        <label className='text-dark_red font-bold sm:text-base text-xs'>AMOUNT</label>
+                        <label className='text-dark-blue font-bold sm:text-base text-xs'>AMOUNT</label>
                         <input id='amount' onChange={(t)=>setDatas(el=>({...el,amount:parseInt( t.target.value)||0}))} value={(datas.amount===0)?'':datas.amount} type="number" className='mt-1 w-[60%] outline-none'min={1} max={10000} />
                         <p className='mt-1 sm:text-base text-xs'>{warning.amount}</p>
                     
                     </div>
                     <div className='w-[33%] h-full '>
-                    <label className='text-dark_red font-bold sm:text-base text-xs'>CONNECTION</label>
+                    <label className='text-dark-blue font-bold sm:text-base text-xs'>CONNECTION</label>
                         <input onChange={(t)=>setDatas(el=>({...el,connect:parseInt( t.target.value)||0}))} value={(datas.connect===0)?'':datas.connect} id='amount' type="number" className='mt-1 w-[80%] outline-none'min={1} max={10000} />
                         <p className='mt-1 sm:text-base text-xs '>{warning.connect}</p>
                     </div>
                     <div className='w-[33%] h-full'>
-                    <label className='text-dark_red font-bold sm:text-base text-xs'>DURATION</label>
+                    <label className='text-dark-blue font-bold sm:text-base text-xs'>DURATION</label>
                         {/* <input id='amount' type="number" className='mt-1 w-[60%] outline-none'min={1} max={10000} /> */}
-                        <select defaultValue={datas.duration} onChange={(t)=>setDatas(el=>({...el,duration:t.target.value}))} className='h-8 outline-none border-b border-dark_red' name="" id="">
+                        <select defaultValue={datas.duration} onChange={(t)=>setDatas(el=>({...el,duration:t.target.value}))} className='h-8 outline-none border-b border-theme-blue' name="" id="">
                            <option value="" >Month</option>
                            {months.map((el,index)=> <option key={index} value={el}>{el} month</option>)}
                           
                         </select>
-                        <p className='mt-1 sm:text-base text-xs'>{warning.duration}</p>
+                        <p className='mt-1 sm:text-base  text-xs'>{warning.duration}</p>
                     </div>
                 </div>
                 <div className='w-full h-10  mb-2'>
-                    <select onChange={handleFeature} className='w-[40%] outline-none rounded-xl sm:h-[80%] h-[50%] sm:text-base text-xs bg-dark_red text-white' name="features" id="">
-                        <option value="">Features</option>
-                        <option value="Video call">VIDEO CALL</option>
-                        <option value="Umlimited message">UNLIMITED MESSAGE</option>
-                        <option value="Suggestion">SUGGESTION BY US</option>
-                        <option value="Priority">GET PRIORIY</option>
+                    <select onChange={handleFeature} className='w-[40%] outline-none rounded-xl sm:h-[80%] h-[50%] sm:text-base text-xs bg-dark-blue text-white' name="features" id="">
+                       {featureData.map(el=>(<option value={el}>{el}</option>))}
+                        
+
                     </select>
                 </div>
                 <div className='w-[100%] h-[30%] bg-gray-400'>
                 {handleFeatureState.map((el,index)=>(
-                        <div key={index} className='w-full h-[20%] mt-2 bg-dark_red  flex'>
+                        <div key={index} className='w-full h-[20%] mt-2 bg-dark-blue  flex'>
                        
                         <div className='w-[90%] h-full flex  items-center text-white px-2 '>
                             
@@ -127,7 +137,7 @@ export const PlanMgt = () => {
                         ))}
                     
                 </div>
-                <button onClick={handleSubmit} className='border-2 border-red_FA0000 mt-2 w-[30%] h-[6%] font-bold text-dark_red rounded-xl'>SUBMIT</button>
+                <button onClick={handleSubmit} className='border-2 border-dark-blue text-dark-blue mt-2 w-[30%] h-[6%] font-bold  rounded-xl'>SUBMIT</button>
             </div>
         </div>
     </div>

@@ -1,10 +1,11 @@
-import {  Request,Response } from "express";
+import {  Request,response,Response } from "express";
 import { AdminAuth } from "../../application/admin/auth/authService";
 import { UserModel } from "../../Infrastructure/db/userModel";
 import { JWTAdapter } from "../../Infrastructure/jwt";
 import { jwtInterface } from "../middlewares/jwtAdmin";
 import { MongodbPlanRepository } from "../../Infrastructure/repositories/mongoRepositories";
 import { SubscriptionPlan } from "../../domain/entity/PlanEntity";
+import { featureModel, Features } from "../../Infrastructure/db/featureModel";
 
 const adminAuthentication=new AdminAuth()
 const planRepo=new MongodbPlanRepository()
@@ -35,14 +36,15 @@ export const login=(req:Request,res:Response)=>{
 export const fetechData=async(req:Request,res:Response)=>{
     try {
        
-        const data =await UserModel.aggregate([{$sort:{_id:-1}},{$project:{username:'$PersonalInfo.firstName',email:1,match:1,subscriber:1,expiry:1,block:1}}])
+        const data =await UserModel.aggregate([{$sort:{_id:-1}},{$project:{username:'$PersonalInfo.firstName',email:1,match:1,subscriber:1,CreatedAt:1,block:1}}])
+       
         const processedData=data.map((el,index)=>({
             ...el,
-            expiry:el.expiry.toDateString(),
+            expiry:el.CreatedAt.toDateString(),
             
             no:index+1
         }))
-       console.log(processedData)
+       
         res.json(processedData)
     } catch (error) {
         console.log(error)
@@ -78,6 +80,7 @@ export const fetechPlanData=async (req:Request,res:Response)=>{
     try {
         
         const plans=await planRepo.getAllPlans()
+        
         res.json(plans) 
     } catch (error:any) {
         res.json(error.message)
@@ -95,14 +98,27 @@ export const editPlan=async(req:Request,res:Response)=>{
 
 }
 export const softDlt=async(req:Request,res:Response)=>{
-    console.log(req.body)
+ 
     try {
         if(req.body.id){
-            
             const response=await planRepo.softDlt(req.body.id)
             res.json({response:response})
         }else{
             throw new Error('id not found')
+        }
+    } catch (error:any) {
+        res.json({message:error.message})
+    }
+}
+export const fetchFeature=async(req:Request,res:Response)=>{
+    try {
+        
+        const response:{features:Features}|null=await featureModel.findOne({},{_id:0,features:1})
+        if(response){
+            console.log(response)
+            res.json({features:response.features})
+        }else{
+            throw new Error("feature not found");
         }
     } catch (error:any) {
         res.json({message:error.message})

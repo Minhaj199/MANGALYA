@@ -14,11 +14,8 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
   <BrowserRouter>
   <SignupProvider>
-
-
     <App/>
   </SignupProvider>
-
    </BrowserRouter>
   </StrictMode>,
 )

@@ -1,88 +1,137 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import "./Plan.css";
 import { request } from "../../utils/axiosUtils";
 import { useNavigate } from "react-router-dom";
+import { alertWithOk, handleAlert, promptSweet } from "../../utils/alert/sweeAlert";
+import { Loading } from "../Components/Loading/Loading";
+import { fetchINRtoUSDRate } from "../../utils/currencyUtils";
+import {loadScript} from '@paypal/paypal-js'
 export type PlanData={
   name:string
   connect:number
   duration:number
   features:string[]
   amount:number
+  avialbleConnect?:number
   _id:string
 }
 const PlanPurchase = () => {
+  const [exchangeRate,setExchangeRate]=useState(80)
+  useEffect(()=>{
+    async function findExchange(){
+      const  rate=await fetchINRtoUSDRate()
+      alert(rate)
+      setExchangeRate(rate)
+    }
+    findExchange()
+  },[])
   const navigate=useNavigate()
+  const [loading,setLoading]=useState(false)
   const [planData,setPlanData]=useState<PlanData[]>([{_id:'',amount:0,duration:0,features:[''],connect:0,name:''}])
   useEffect(()=>{
    async function fetchPlanData(){
     const response:typeof planData=await request({url:'/user/fetchPlanData'})
-    console.log(response)
+    
     setPlanData(response)
    }
    fetchPlanData()
    
   },[])
   function handleSkip(){
-    localStorage.clear()
-    navigate('/')
+    if(localStorage.getItem('id')){
+      navigate('/loginLanding')
+    }else{
+      navigate('/')
+    }
+    
   }
  async function handlePurchase(planInfo:PlanData){
-    if(localStorage.getItem('id')){
-      try {
-        const response=await request({url:'/user/purchasePlan',method:'post',data:{id:localStorage.getItem('id'),planData:planInfo}})
-        console.log(response)
-      } catch (error) {
+  loadScript({clientId:'AUREtzT5do9sJyDg3X7zyW25VJdJ7O5Bgm1LOQiS4oYzMA6KS039gYXtkUOpZLenw7rg15nheE32Bpie'}).then((paypal)=>{
+
+  })
+  // setLoading(true)
+  //   if(localStorage.getItem('id')){
+  //     await promptSweet(Purchase,`Are you sure to subscribe ${planInfo.name} worth ₹${planInfo.amount} ?`,`${planInfo.name} successfully Placed`,handleCancelLoading )
+  //     async function Purchase(){
         
-      }
-    }
+  //       try {
+  //         const response:{status:boolean,message:string}=await request({url:'/user/purchasePlan',method:'post',data:{id:localStorage.getItem('id'),planData:planInfo}})
+        
+  //         if(response.status===true){
+  //           setTimeout(() => {
+  //             localStorage.setItem('subscriptionStatus','subscribed')
+  //             navigate('/')
+  //             handleAlert('success','Plan purchased')
+  //           }, 2000);
+  //         }else{
+  //           setLoading(false)
+  //           throw new Error(response.message||'Error on puchase')
+  //         }
+  //       } catch (error:any) {
+  //         setLoading(false)
+  //         alertWithOk('Plan Purchase',error.message||'Error on purchase',"warning")
+  //       }
+  //     }
+  //    async function handleCancelLoading(){
+
+  //       setLoading(false)
+  //     }
+  //   }else{
+  //     setLoading(false)
+  //     alertWithOk('Subscription Plan','You have to login first',"info")
+  //   }
   }
   return (
-    <div id="Plan" className="h-svh w-screen flex items-center flex-col ">
-      <h1 className="text-white text-5xl mt-10 font-italian">
-        PLEASE JOIN OUR FAMILY
-      </h1>
-      <p className="text-white">
-        Please take an attractive plan for you and enhance your Profile
-      </p>
-      <div className="w-screen h-14  flex justify-end items-center px-2">
-        <p className="text-white cursor-pointer" onClick={handleSkip}>{"DO IT LATER>"}</p>
+      <div className="h-svh w-screen flex items-center flex-col bg-blue-400 ">
+       
+       { loading ? <Loading /> : (
+          <>
+            
+          <h1 className="text-white text-xl sm:text-5xl mt-10 font-italian">
+            PLEASE JOIN OUR FAMILY
+          </h1>
+          <p className="text-white">
+            Please take an attractive plan for you and enhance your Profile
+          </p>
+          <div className="w-screen h-14 flex justify-end items-center px-2">
+            <p className="text-white cursor-pointer" onClick={handleSkip}>{"DO IT LATER>"}</p>
+          </div>
+          <div className="w-screen px-4 overflow-x-auto no-scrollbar h-[70%] flex justify-center items-center">
+            <div className="flex gap-5 h-full">
+              {planData.map((el, index) => (
+                <div key={index} className="w-[300px] h-[95%] ml-5 rounded-2xl bg-blue-950">
+                  <div className="w-full h-[13%] flex justify-center items-center">
+                    <p className="text-white font-bold font-inter">{`${el.name} : ${el.duration} month`} </p>
+                  </div>
+                  <div className="w-full h-[18%] flex justify-center items-center flex-col">
+                    <p className="text-white text-2xl font-bold">{`₹ ${el.amount}`}</p>
+                    <p className="text-white">{`${(el.amount / el.duration).toFixed(0)}/month`}</p>
+                  </div>
+                  <div className="w-[80%] h-[50%] ml-10 flex py-10 flex-col">
+                    <p className="inline-flex mb-2 text-white items-center">
+                      <img src="./check-mark.png" className="w-8 h-8" alt="" />UP TO {el.connect} connects
+                    </p>
+                    {el.features.map((elem, idx) => (
+                      <p key={idx} className="inline-flex mb-2 text-white items-center">
+                        <img src="./check-mark.png" className="w-8 h-8" alt="" />{elem}
+                      </p>
+                    ))}
+                  </div>
+                  <div className="w-full h-20 flex justify-center items-center">
+                    <button onClick={() => handlePurchase(el)} className="border px-10 py-1 rounded-xl text-white bg-dark-blue">
+                      BUY
+                    </button>
+                   
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          </>
+        )}
       </div>
-      <div className="w-screen px-4 overflow-x-auto  h-[70%] flex justify-center items-center">
-       {planData.map((el,index)=>{
-        return(
-
-        <div key={index} className="w-[300px] h-[95%] ml-5 rounded-2xl bg-[rgba(0,0,0,0.8)]">
-          <div className="w-full h-[13%]  flex justify-center items-center">
-            <p className="text-white font-bold font-inter">{`${el.name} : ${el.duration} month`} </p>
-          </div>
-          <div className="w-full h-[18%]  flex justify-center items-center flex-col">
-            <p className="text-white text-2xl font-bold ">{`₹ ${el.amount}`}</p>
-            <p className=" text-white">{`${(el.amount/el.duration).toFixed(0)}/month`}</p>
-          </div>
-          <div className="w-[80%] h-[50%] ml-10  flex py-10  flex-col ">
-            {el.features.map((elem,index)=>{
-              return(
-                
-            <p key={index} className="inline-flex mb-2  text-white items-center">
-              <img src="./check-mark.png" className="w-8 h-8" alt="" />{ `${elem}`}
-            </p>
-              )
-            })}
-          </div>
-          <div className="w-full h-20 flex justify-center items-center ">
-            <button onClick={()=>handlePurchase(el)} className="border border-dark_red px-10 py-1 rounded-xl text-white">
-              BUY
-            </button>
-          </div>
-        </div>
-        )
-       })}
-
-
-        
-      </div>
-    </div>
   );
+  
 };
 
 export default PlanPurchase;

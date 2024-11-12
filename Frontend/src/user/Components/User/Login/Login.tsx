@@ -1,8 +1,8 @@
 
 import { Forgot_Props } from "../Forgot/Forgot_first"
-import { useEffect, useRef, useState } from "react"
+import {  useState } from "react"
 import { LoginValidator } from "../../../../Validators/LoginValidator"
-import Swal from "sweetalert2"
+
 
 
 import React from "react"
@@ -18,7 +18,7 @@ export interface userForm {
 }
  
 export const Login:React.FC<userLoginProp> = ({changeToggle,loginTogle}) => {
- const ref=useRef<HTMLInputElement>(null)
+ 
  
   const navigate=useNavigate()
   type probs={
@@ -36,7 +36,9 @@ export const Login:React.FC<userLoginProp> = ({changeToggle,loginTogle}) => {
     if(isValid){
     const response:any=await request({url:'/user/login',method:'post',data:userData})
     
-    handleAlert("error",response.message,)
+    if(response.message&&response.message==='password not matched'){
+      handleAlert("error",response.message  )
+    }
     setWarnning(prev=>({...prev,password:null,email:null}))
     if(response?.message&&response.name){
 
@@ -45,25 +47,38 @@ export const Login:React.FC<userLoginProp> = ({changeToggle,loginTogle}) => {
        setWarnning(prev=>({...prev,email:response.message,password:null}))
       }
       else if(response.message==='password not matched'){
+        alert('here')
+        alert(response.message)
        setWarnning(prev=>({...prev,password:response.message,email:null}))
       }
       else if(response.message==='password matched'){
         localStorage.setItem('userToken',response.token)
         localStorage.setItem('id',response.id)
-        console.log(response.id)
+        console.log(response)
         
         localStorage.setItem('partner',response.partner)
         localStorage.setItem('gender',response.gender)
         if(response.photo){
           localStorage.setItem('photo',response.photo)
         }
-        
-        changeToggle('1')
-       handleAlert('success',`welcome ${response.name}`)
-       setTimeout(()=>{
+        if(response.subscriptionStatus){
+          localStorage.setItem('subscriptionStatus',response.subscriptionStatus)
+          changeToggle('1')
+          handleAlert('success',`welcome ${response.name}`)
+          setTimeout(()=>{
 
-         navigate('/loginLanding')
-       },2000)
+            if(response.subscriptionStatus==='Not subscribed'){
+              navigate('/PlanDetails')
+              return
+            }else{
+  
+              navigate('/loginLanding')
+            }
+           },2000)
+        }
+        
+      
+       
       }
     }
     }
@@ -76,7 +91,7 @@ export const Login:React.FC<userLoginProp> = ({changeToggle,loginTogle}) => {
           className={
             loginTogle !== "2"
               ? "hidden"
-              : "h-full w-1/2 sm:w-1/3 bg-[rgba(0,0,0,0.5)] absolute  top-0 right-0 bottom-0"
+              : "h-full w-[80%] sm:w-1/3 bg-[rgba(0,0,0,0.5)] absolute  top-0 right-0 bottom-0"
           }
         >
           <div className="w-full h-11 flex justify-end items-center">
@@ -92,7 +107,7 @@ export const Login:React.FC<userLoginProp> = ({changeToggle,loginTogle}) => {
               DOOR TO FIND YOUR PARTNER
             </p>
           </div>
-          <div className="w-full h-60 p-6 sm:my-6 sm:mx-12">
+          <div className="w-full h-60 p-6  ">
             <label
               htmlFor="Email"
               className="block text-white mb-4 font-aborato sm:text-lg text-sm"
@@ -104,7 +119,7 @@ export const Login:React.FC<userLoginProp> = ({changeToggle,loginTogle}) => {
             onChange={(t)=>setUserData(prev=>({...prev,email:t.target.value}))}
             
               type="email"
-              className="text-white pl-5 block bg-transparent border border-input_dark w-42 sm:w-72 h-10 "
+              className=" text-white pl-5  block bg-transparent border border-[#007bff] w-[99%] sm:w-[90%] h-10 "
             />
             <p className="w-full h-10 text-yellow-300 opacity-[.7]">
               {warning.email ? warning.email : null}
@@ -118,13 +133,13 @@ export const Login:React.FC<userLoginProp> = ({changeToggle,loginTogle}) => {
             <input
             onChange={(t)=>setUserData(prev=>({...prev,password:t.target.value}))}
               type="password"
-              className="text-white pl-5 block outline-none bg-transparent border w-42 border-input_dark sm:w-72 h-10"
+              className="text-white pl-5 block  bg-transparent border w-[99%] sm:w-[90%] border-[#007bff]  h-10"
             />
             <p className="w-full h-10  text-yellow-300 opacity-[.7]">
               {warning.password ? warning.password :null}
             </p>
           </div>
-          <div className="w-full h-8  flex justify-end text-sm "  onClick={() => changeToggle("3")}>
+          <div className="w-full h-8 mt-5 flex justify-end text-sm "  onClick={() => changeToggle("3")}>
             <p
               className="font-aborato text-white mr-12 sm:mr-24 cursor-pointer "
              

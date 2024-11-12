@@ -101,5 +101,15 @@ export const UnProtectRouteUser: React.FC = () => {
    console.log(setIsAuthorised)
   return setIsAuthorised ?<Navigate to="/loginLanding"/> :<Outlet/> ;
 };
+export const PlanRouteUser: React.FC = () => {
+ 
+  let setIsAuthorised=false
+ 
+    if(localStorage.getItem('subscriptionStatus')&&localStorage.getItem('subscriptionStatus')==='subscribed'){
+        setIsAuthorised=true
+    }
+   
+  return setIsAuthorised ?<Navigate to="/loginLanding"/> :<Outlet/> ;
+};
 
 

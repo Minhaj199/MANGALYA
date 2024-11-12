@@ -1,5 +1,5 @@
 import {User,UserWithID} from "../entity/userEntity";
-
+import { userForLanding } from "../../application/types/userTypes";
 
 export interface UserRepository{
     create(user:User):Promise<UserWithID>;
@@ -9,4 +9,5 @@ export interface UserRepository{
     addInterest(interst:string[],email:string):Promise<boolean>
     addMatch(userId:string,matchedId:string,):Promise<boolean>
     manageReqRes(requesterId:string,userId:string,action:string):Promise<boolean>
+    getUsers():Promise<userForLanding[]>
 }

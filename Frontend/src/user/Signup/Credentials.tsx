@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { credential_validation } from "../../Validators/signupValidator";
 // import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -30,18 +30,29 @@ export type PhotoAndInterest={
   interest?:string[]
 }
 export const Credentials:React.FC<InputArrayProbs> = ({inputFields,toggle}) => {
+  const [scrolled,setScrolled]=useState(false)
   const context =useContext(SignupContext)
   const [inputToggle,setIputToggle]=useState<number>(toggle)
   const [photoAndInter,setPhotAndInter]=useState<PhotoAndInterest>({photo:null,interest:[]})
   
-
+  useEffect(()=>{
+    const handleScroll=()=>{
+      if(window.scrollY>50){
+        setScrolled(true)
+      }else{
+        setScrolled(false)
+      }
+    }
+    window.addEventListener('scroll',handleScroll)
+    return ()=>window.removeEventListener('scroll',handleScroll)
+  },[])
 
     if(!context){
       throw new Error('no contex')
     }
     
   const {setSignupFirst,signupFirstData}=context
-  const basic='flex justify-center items-center w-screen md:h-svh sm:h-auto  h-auto sm:pt-0 pt-12  bg-cover bg-center'
+  const basic= 'flex justify-center items-center  w-screen md:h-svh sm:h-auto  h-auto sm:pt-0 pt-12  bg-cover bg-center'
   const photo='flex justify-center items-center w-screen md:h-lvh sm:h-lvh  h-lvh sm:pt-0 pt-12  bg-cover bg-center'
     
   const [credentialData,setCredentialData]=useState<CredentialInterface>({})
@@ -129,14 +140,14 @@ try {
  
   
   return (
-    <div id="container2" className={(inputToggle===1)?basic:photo}>
-      <div className="w-full h-20 fixed top-0 right-0 left-0 p-5 ">
+    <div id="container2" onScroll={()=>alert('hii')} className={(inputToggle===1)?basic:photo}>
+      <div className={scrolled?"w-full h-20 fixed top-0 right-0 left-0 p-5 bg-black":"w-full h-20 fixed top-0 right-0 left-0 p-5 "} >
         <p className="font-Lumanosimo text-white text-sm sm:text-base cursor-pointer" onClick={()=>navigate('/')}>BACK</p>
       </div>
         
         {loding?
       <Loading/>
-        : <div className="w-3/5 sm:w-4/5 h-auto sm:h-auto bg-[rgba(99,25,25,0.5)] rounded-2xl">
+        : <div className={(inputToggle===1)?"w-3/5 sm:w-4/5 h-auto sm:h-auto bg-[rgba(25,88,99,0.5)] rounded-2xl":"w-4/5 sm:w-4/5 h-auto sm:h-auto bg-[rgba(25,88,99,0.5)] rounded-2xl"}>
             <div className="w-full h-20 flex justify-center items-center">
             <div className="h-20 w-20 sm:h-full sm:w-[90px]   rounded-full relative sm:top-2">
                 <img src="/createProfile.png" className="w-full h-full" alt="" />
@@ -157,7 +168,7 @@ try {
                 
             </div>
         <div className="w-full h-12   flex justify-center items-center">
-            <button onClick={submintCredential} className="bg-dark_red w-1/3 h-10 rounded-2xl mb-5 mt-3">Next</button>
+            <button onClick={submintCredential} className="bg-dark-blue w-1/3 h-10 rounded-2xl mb-5 mt-3 text-white font-semibold">Next</button>
         </div>
         
       </div>}

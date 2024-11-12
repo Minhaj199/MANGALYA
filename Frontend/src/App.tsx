@@ -8,8 +8,8 @@ import { LoginLanding } from "./user/LoginLanding/LogLanding";
 import { UserTable } from "./admin/Components/Tables/UserTable/Table";
 import { OTPVerification } from "./user/otp verification/OTPVerification";
 import { PlanDetails } from "./admin/pages/PlanMa/PlanMgt";
-import { ProtectRouteAdmin, UnProtectRouteUser,UnProtectRouteAdmin,ProtectRouteUser } from "./utils/RouteManagement";
-import { PlanMgt  } from "./admin/pages/AddPlan/AddPlan";
+import { ProtectRouteAdmin,PlanRouteUser ,UnProtectRouteUser,UnProtectRouteAdmin,ProtectRouteUser } from "./utils/RouteManagement";
+import { AddPlan  } from "./admin/pages/AddPlan/AddPlan";
 import PlanPurchase from "./user/plan/Plan"; 
 
 
@@ -64,19 +64,21 @@ const App: React.FC = () => {
       
       <Route path="/admin" element={<Layout />}>
         <Route path="manageUser" element={<UserTable />} />
-       <Route path="addPlan" element={<PlanMgt />} />
+        <Route path="addPlan" element={<AddPlan/>} />
         <Route path="Plan" element={<PlanDetails />} />
       </Route>
       </Route>
-    
+        <Route path="/PlanDetails" element={<PlanRouteUser/>}>
+        <Route path="" element={<PlanPurchase />}/>
+        </Route>
       <Route element={<UnProtectRouteUser/>}>
       <Route path="/" element={<Landing />} />
-      <Route path="/PlanDetails" element={<PlanPurchase />} />
       <Route path="/signUp" element={<Credentials inputFields={inputFields} toggle={1} />} />
       <Route path="/photoAdding" element={<Credentials inputFields={inputFields} toggle={2} />} />
       <Route path="/otpVerification" element={<OTPVerification  />}/>
       </Route>
       <Route element={<ProtectRouteUser/>}>
+      
       <Route path="/loginLanding" element={<LoginLanding active={'profile'}/>} />
       </Route>
     </Routes>
