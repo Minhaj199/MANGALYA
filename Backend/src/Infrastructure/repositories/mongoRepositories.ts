@@ -348,7 +348,11 @@ export class MongodbPlanRepository implements SubscriptionPlanRepo {
       }
       throw new Error("Error on id");
     } catch (error: any) {
-      throw new Error(error.message || "error on edit");
+      if (error.code === 11000) {
+        throw new Error("Name already exist");
+      } else {
+        throw new Error(error);
+      }
     }
   }
   async softDlt(id: string): Promise<true> {
@@ -370,35 +374,6 @@ export class MongodbPlanRepository implements SubscriptionPlanRepo {
 }
 
 export class MongoPurchasedPlan {
-  async createOrder(
-    userid: string,
-    planData: subscriptionPlanModel
-  ): Promise<true> {
-    const data: PlanOrder = {
-      userID: new ObjectId(userid),
-      amount: planData.amount,
-      connect: parseInt(planData.connect),
-      avialbleConnect: parseInt(planData.connect),
-      duration: planData.duration,
-      features: planData.features,
-      name: planData.name,
-      Expiry: GetExpiryPlan(planData.duration),
-    };
-    try {
-      const response = await planOrderModel.create(data);
-      const response2 = await UserModel.updateOne(
-        { _id: new Types.ObjectId(userid) },
-        {$push:{PlanData: response._id} ,$set:{ subscriber: "subscribed", CurrentPlan: data} }
-      );
-      if (response && response2) {
-        return true;
-      } else {
-        throw new Error("error on plan purchase");
-      }
-    } catch (error: any) {
-      console.log(error);
-      throw new Error(error.message);
-    }
-  }
+  
 }
 

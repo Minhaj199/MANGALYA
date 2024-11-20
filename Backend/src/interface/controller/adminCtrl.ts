@@ -6,6 +6,7 @@ import { jwtInterface } from "../middlewares/jwtAdmin";
 import { MongodbPlanRepository } from "../../Infrastructure/repositories/mongoRepositories";
 import { SubscriptionPlan } from "../../domain/entity/PlanEntity";
 import { featureModel, Features } from "../../Infrastructure/db/featureModel";
+import { planModel } from "../../Infrastructure/db/planModel";
 
 const adminAuthentication=new AdminAuth()
 const planRepo=new MongodbPlanRepository()
@@ -35,17 +36,39 @@ export const login=(req:Request,res:Response)=>{
 }
 export const fetechData=async(req:Request,res:Response)=>{
     try {
-       
-        const data =await UserModel.aggregate([{$sort:{_id:-1}},{$project:{username:'$PersonalInfo.firstName',email:1,match:1,subscriber:1,CreatedAt:1,block:1}}])
-       
-        const processedData=data.map((el,index)=>({
-            ...el,
-            expiry:el.CreatedAt.toDateString(),
-            
-            no:index+1
-        }))
-       
-        res.json(processedData)
+       if(req.query.from&&req.query.from==='subscriber'){
+        const planData=await planModel.find({},{_id:0,name:1})
+        const userDataDraft:{
+            username: string;
+            planName: string;
+            expiry: Date;
+            planAmount:string}[]=await UserModel.aggregate([{$match:{$or:[{subscriber:'subscribed'},{subscriber:'connection finished'}]}},{$match:{'CurrentPlan.name':{$exists:true}}},{$project:{_id:0,username:'$PersonalInfo.firstName',planName:'$CurrentPlan.name',MatchCountRemaining:'$CurrentPlan.avialbleConnect',expiry:'$CurrentPlan.Expiry',planAmount:'$CurrentPlan.amount'}}])
+            let userData:{
+                username: string;
+                planName: string;
+                expiry: string;
+                planAmount:string}[]=[]
+            if(userDataDraft.length){
+                userData=userDataDraft.map((el,index)=>{
+                  return  {...el,no:index+1,expiry:el.expiry.toDateString()}
+                })
+            }
+        
+        res.json({planData,userData})
+       }
+       else if(req.query.from&&req.query.from==='user'){
+
+           const data =await UserModel.aggregate([{$sort:{_id:-1}},{$project:{username:'$PersonalInfo.firstName',email:1,match:1,subscriber:1,CreatedAt:1,block:1}}])
+           
+           const processedData=data.map((el,index)=>({
+               ...el,
+               expiry:el?.CreatedAt?el.CreatedAt.toDateString():el?.CreatedAt,
+               
+               no:index+1
+           }))
+          
+           res.json(processedData)
+       }
     } catch (error) {
         console.log(error)
     }
@@ -55,7 +78,7 @@ export const userBlockAndUnblock=async(req:Request,res:Response)=>{
     try {
       
        const response= await UserModel.findByIdAndUpdate(req.body.id,{$set:{block:req.body.updateStatus}})
-      
+        console.log
        if(response){
             res.json({message:'updated'})
         }
@@ -81,7 +104,7 @@ export const fetechPlanData=async (req:Request,res:Response)=>{
         
         const plans=await planRepo.getAllPlans()
         
-        res.json(plans) 
+        res.json({plans}) 
     } catch (error:any) {
         res.json(error.message)
         

@@ -9,7 +9,7 @@ import { Types } from "mongoose";
 import { profileTypeFetch } from "../../application/types/userTypes";
 import { MongoPurchasedPlan } from "../../Infrastructure/repositories/mongoRepositories";
 import { InterestModel } from "../../Infrastructure/db/signupInterest";
-import { PayPalService } from "../../Infrastructure/paypal/paypalService";
+
 
 const emailService=new EmailService()
 const paymentService=new PayPalService()
@@ -263,9 +263,9 @@ export const fetchPlanData=async (req:Request,res:Response):Promise<void>=>{
 }
 export const purchasePlan=async (req:Request,res:Response):Promise<void>=>{
     try {
-        const response2=await paymentService.createOrder(String(250))
-       console.log(response2)
-        // const response=await  orderRepo.createOrder(req.body.id,req.body.planData)
+    //     const response2=await paymentService.createOrder(String(250))
+    //    console.log(response2)
+        const response=await  orderRepo.createOrder(req.body.id,req.body.planData)
         res.json({status:response})
     } catch (error:any) {
         console.log(error)

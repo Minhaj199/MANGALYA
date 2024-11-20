@@ -5,9 +5,9 @@ import { CredentialInterface } from "../user/Signup/Credentials"
 export function Validator_(setWarning:Dispatch<SetStateAction<CredentialInterface>>,key:string,value:string,password?:string){
 
     if(key==='FIRST NAME'){
-        if(value.trim().length<5||value?.trim().length>10){
+        if(value.trim().length<3||value?.trim().length>10){
             setWarning((el)=>{
-                return {...el,[key]:'Charector should b/w 5-10'}
+                return {...el,[key]:'Charector should b/w 3-10'}
             })
         }else{
             setWarning((el)=>{
@@ -16,9 +16,9 @@ export function Validator_(setWarning:Dispatch<SetStateAction<CredentialInterfac
         }
     }
     if(key==='SECOND NAME'){
-        if(value.trim().length<2||value?.trim().length>10){
+        if(value.trim().length<1||value?.trim().length>10){
             setWarning((el)=>{
-                return {...el,[key]:'Charector should b/w 5-10'}
+                return {...el,[key]:'Charector should b/w 1-10'}
             })
         }else{
             setWarning((el)=>{

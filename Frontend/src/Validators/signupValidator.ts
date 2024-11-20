@@ -7,15 +7,15 @@ export const  credential_validation=async(formData:CredentialInterface,setWarnni
     if(formData['FIRST NAME']?.trim()===''||formData['FIRST NAME']===undefined){
             setWarnning(el=>({...el,['FIRST NAME']:'Blank not allowed'}))
             return false
-        }else if(formData['FIRST NAME'].length>10||formData['FIRST NAME'].length<5){
+        }else if(formData['FIRST NAME'].length>10||formData['FIRST NAME'].length<3){
                 setWarnning(el=>({...el,['FIRST NAME']:'Charector should b/w 5-10'}))
                 return false
             }
             if(formData['SECOND NAME']?.trim()===''||formData['SECOND NAME']===undefined){
                 setWarnning(el=>({...el,['SECOND NAME']:'Blank not allowed'}))
                 return false
-            }else if(formData['SECOND NAME'].length<2||formData['SECOND NAME'].length>10){
-                    setWarnning(el=>({...el,['SECOND NAME']:'Charector should b/w 5-10'}))
+            }else if(formData['SECOND NAME'].length<1||formData['SECOND NAME'].length>10){
+                    setWarnning(el=>({...el,['SECOND NAME']:'Charector should b/w 1-10'}))
                     return false
                 }else{
                     setWarnning(el=>({...el,['SECOND NAME']:''}))

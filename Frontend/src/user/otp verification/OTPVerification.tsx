@@ -89,7 +89,7 @@ export const OTPVerification:React.FC = () => {
         <p className="font-inter   text-2xl text-white">ENTER OTP</p>      
       </div>
       <div className="flex-col h-3/6 w-full  flex justify-center items-center">
-       <input type="text" max={6} value={otp} onChange={(t)=>setOpt(t.target.value)}  className="h-16 bg-slate-300 w-1/3 font-black  font-mono text-2xl  text-center" />
+       <input type="text" max={6} value={otp} onChange={(t)=>setOpt(t.target.value)}  className="h-16 border border-theme-blue bg-slate-300 w-1/3 font-black  font-mono text-2xl  text-center" />
        <p className="font-sans font-semibold cursor-pointer text-white mt-1">{warning?warning:warning}</p>      
        <Countdown expiryTimeStamp={expiryTimeStamp} from="signup"/>    
       </div>

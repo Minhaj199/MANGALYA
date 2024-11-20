@@ -10,6 +10,7 @@ import {
 
 import { planMgtWarningType } from "../AddPlan/AddPlan";
 import { PlanValidator } from "../../../Validators/planValidator";
+import { capitaliser } from "../../../utils/capitalise";
 
 export type PlanType = {
   _id: string;
@@ -69,11 +70,15 @@ export const PlanDetails = () => {
     features: [""],
     name: "no plan"});
 
-  let dataDB: PlanType[];
+  let dataDB:{message:string,plans:PlanType[]};
   useEffect(() => {
     async function fetchPlanData() {
       dataDB = await request({ url: "/admin/fetchPlanData" });
-      setData(dataDB);
+      if(dataDB.message&&typeof dataDB.message==='string'){
+        alertWithOk('Validation',dataDB.message||'Validation faild','info')
+        navigate('/login')
+      }
+      setData(dataDB.plans);
     }
     fetchPlanData();
   }, []);
@@ -171,6 +176,13 @@ export const PlanDetails = () => {
       }));
     }
   }
+
+  
+const handleNameChange=(t:React.ChangeEvent<HTMLInputElement>)=>{
+  setEditData(el=>({...el,name:capitaliser(t.target.value)}))
+}
+
+
   async function handleSubmission() {
     if (PlanValidator(editData, setWarning, editData.features)) {
       try {
@@ -216,21 +228,7 @@ export const PlanDetails = () => {
 
       
         <div className="w-full h-[25%]  flex justify-center items-center">
-          {/* <div className="w-[80%]  h-[95%] border  bg-white overflow-y-auto flex"> */}
-          {/* {datas?.map((el,index)=>{
-            return(
-              <div onClick={()=>handleInserData(el._id)} key={index} className="w-44 mx-6 my-2 rounded-lg  h-[90%] bg-black flex flex-col hover:bg-[#1c1b1b] active cursor-pointer">
-              <div onClick={()=>handleRemovePlan(el._id,el.name)} className="w-[90%] h-[20%] ml-1   text-end font-bold text-white">
-                X
-              </div>
-              <div className="w-[100%] h-[80%] text-white flex justify-center items-center font-inter font-semibold">
-                {el.name}
-              </div>
-            </div>
-            )
-          })} */}
-
-          {/* </div> */}
+          
           {!toggle && (
         <div className="w-24 bg-white  h-20 font-bold flex justify-center items-end">
           <p
@@ -255,9 +253,7 @@ export const PlanDetails = () => {
             </button>
           </div>
 
-          {/* <div onClick={()=>navigate('/admin/addPlan')}   className="w-[17%] h-[95%] ml-2 bg-white border border-dark_red cursor-pointer  flex justify-center items-center ">
-            <p className=" font-bold  text-dark_red  ">ADD</p>
-          </div> */}
+          
         </div>
      
 
@@ -323,25 +319,25 @@ export const PlanDetails = () => {
     
       <div className="w-[100%] h-[75%]  flex justify-center items-center">
       {!toggle && currentData && (
-      <div className="sm:w-[40%] bg w-[95%] sm:h-[98%]  h-[90%] rounded-3xl border border-dark-blue border-b-2 bg-white sm:px-10 px-3 items-center flex flex-col">
+      <div className="sm:w-[60%] bg w-[95%] sm:h-[98%] md:w-[40%]  h-[90%] rounded-3xl border border-dark-blue border-b-2 bg-white sm:px-10 px-3 items-center flex flex-col">
    
       <div className="h-full w-full justify-center flex flex-col items-center">
         <h1 className="font-bold text-2xl text-theme-blue mt-2 mb-5">EDIT</h1>
-        <div className="w-[100%] h-[10%] justify-between mb-2">
+        <div className="w-[100%] h-[15%] justify-between mb-2">
           <label htmlFor="name" className="block font-inter font-bold text-dark-blue">
             NAME
           </label>
           <input
             id="name"
-            // value={editData.name}
+           
             value={editData.name}
-            onChange={(t) => setEditData((el) => ({ ...el, name: t.target.value }))}
+            onChange={(t) =>handleNameChange(t)}
             type="text"
             className="w-[90%] border-b border-theme-blue outline-none text-gray-700"
           />
-          <p className="mt-1">{warning.name || ""}</p>
+          <p className="mt-1">{warning.name || ""} </p>
         </div>
-        <div className="w-[100%] h-[20%] mb-2 flex justify-between">
+        <div className="w-[100%] h-[17%]   mb-2 flex justify-between">
           <div className="w-[33%] h-full">
             <label className="text-dark-blue font-bold">AMOUNT</label>
             <input

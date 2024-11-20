@@ -3,72 +3,77 @@ import { useTable,usePagination} from 'react-table';
 import { Table, TableBody, TableCell, TableHead, TableRow, Paper } from '@mui/material';
 
 import { Columns } from './UserHeadSchema'
-import { TableDataType } from './userTable';
+import { SubscriberTableDataType } from './SubscriberTableDataType'; 
 
-import { request } from '../../../../utils/axiosUtils';
+import { request } from '../../../utils/axiosUtils';
 import { useNavigate } from 'react-router-dom';
-import { promptSweet } from '../../../../utils/alert/sweeAlert';
+import { alertWithOk, promptSweet } from '../../../utils/alert/sweeAlert';
 
 export interface UserListInterface{
   triggerPagination:()=>void
 } 
 
 
-export const UserTable:React.FC = () => {
+export const SubscriberTable:React.FC = () => {
   const navigate=useNavigate()
-  function handleClick(id:string){
-    alert(id)
+  type planDataType={
+    name:string
+  }
+  interface data{
+    planData:planDataType[],
+    userData:SubscriberTableDataType[],
+    message:string
   }
 
-  const [MockData,setMockData]=useState<TableDataType[]>([]) 
-   function blockUser(id:string,name:string,status:string){
-    async  function Handler(){ 
-        const updateStatus=(status==='block')?true:false
-        const response:any= await request({url:'/admin/block&Unblock',method:'patch',data:{updateStatus:updateStatus,id}})
-        
-        if(response.message==='validation Faild'){
-          
-          navigate('/login')
-        }
-        if(response?.message){
-          setMockData(el=>el.map(user=>(user._id===id)?{...user,block:updateStatus}:user))
-          
-        } 
-    }
-    const text=`Do you want to ${status} ${name} ?`
-    const completed=`Your ${status}ing is completed`
-    promptSweet(()=>Handler(),text,completed)
-  }
+  const [MockData,setMockData]=useState<SubscriberTableDataType[]>([]) 
+  const[ planData,setPlanData]=useState<planDataType[]>([{name:''}])
   const [searchWord,setSearchWord]=useState<string>('')
+ 
+ 
+ ///fetch data///
   useEffect(()=>{
-   async function fetchData (){
-    try {
-      const MockDataFromDb:any=await request({url:`/admin/fetchData`,method:'get'})
-      console.log(MockDataFromDb)
-      if(MockDataFromDb?.message==='validation Faild'){
-        alert(MockDataFromDb.message)
-        navigate('/login')
-      } 
-      setMockData(MockDataFromDb)
-    } catch (error) {
+    async function fetchData (){
+      try {
+        const data:data=await request({url:`/admin/fetchData?from=subscriber`,method:'get'})
+        if(data.planData){
+          setPlanData(data.planData) 
+          
+        }
+        
+        if(data?.message==='validation Faild'){
+          alertWithOk('Validation',data.message||'Validation faild','info')
+          navigate('/login')
+        } 
+        setMockData(data.userData)
+      } catch (error) {
+        
+      }
       
     }
-  
-   }
-   fetchData()
+    fetchData()
   },[])
-
   
-  function handleSearch(e:React.ChangeEvent<HTMLInputElement>){
-    setSearchWord(e.target.value)
-  }
-  const filterData=useMemo(()=>{
-    
-    return MockData.filter(user=>user.username.toLocaleLowerCase().includes(searchWord.toLocaleLowerCase()))
-  },[searchWord,MockData])
-  const columns=useMemo(()=>Columns,[])
-  const data=useMemo(()=>filterData??[],[filterData])
- 
+  
+ ///// fitlter data when sortin initiated
+    const filterData=useMemo(()=>{
+      
+      return MockData.filter(plan=>plan.planName.toLocaleLowerCase().includes(searchWord.toLocaleLowerCase()))
+    },[searchWord,MockData])
+  
+  
+    const columns=useMemo(()=>Columns,[])
+    const data=useMemo(()=>filterData??[],[filterData])
+   
+    ///// sorting///////
+    function handleFilter(t:React.ChangeEvent<HTMLSelectElement>){
+      const value=t.target.value
+      if(value==='All'){
+        setSearchWord('')
+      }else{
+        setSearchWord(value)
+      }
+    }
+   
   
     const { getTableProps, getTableBodyProps, headerGroups,page, nextPage,setPageSize,previousPage,prepareRow,canNextPage,canPreviousPage,pageOptions,state } = useTable({ columns, data },usePagination);
     const {pageIndex,pageSize}=state
@@ -77,8 +82,14 @@ export const UserTable:React.FC = () => {
         <div className="h-full w-10/12  flex flex-col items-center">
           <div className="w-full h-1/5   flex justify-center items-center">
             <div className="w-[95%] h-5/6 drop-shadow-lg bg-white rounded-lg flex justify-between items-center ">
-            <p className=' ml-5 font-extrabold sm:text-base text-xs  font-inter text-dark-blue'>USER MANAGEMENT</p>
-            <input type="search"  value={searchWord} onChange={handleSearch} className="cursor-text bg-white mr-3 h-8 w-20 sm:w-48 pl-2  text-[#2552cc] border border-theme-blue placeholder:text-xs placeholder:text-blue-400 placeholder:font-italian placeholder:font-bold sm:placeholder:text-sm  outline-none " placeholder="Search Here....."/>
+            <p className=' ml-5 font-extrabold sm:text-base text-xs  font-inter text-dark-blue'>SUBSCRIBER DATA</p>
+            <select onChange={handleFilter} className='cursor-pointer bg-white mr-3 h-8 w-20 sm:w-48 pl-2  text-dark-blue border border-dark-blue  sm:placeholder:text-sm  outline-none'  id="">
+              <option value="All">All</option>
+              {planData[0].name!==''&&planData.map((el,index)=>(
+                <option key={index} value={el.name}>{el.name}</option>
+              ))}
+              
+            </select>
           </div>
           </div>
           <div className="w-[95%] h-3/5 mt-10 overflow-auto no-scrollbar ">
@@ -106,11 +117,7 @@ export const UserTable:React.FC = () => {
                       <img onClick={()=>handleClick(row.original._id)} className='w-10 h-10 cursor-pointer' src="/info.png" alt="" />
                       
                       </TableCell> */}
-                      <TableCell>
-                      
-                      
-                      {!(row.original.block)?<img onClick={()=>blockUser(row.original._id,row.original.username,'block')} src="/user.png"  className='w-5 h-5 cursor-pointer' alt="" />:<img src="/block-user.png" onClick={()=>blockUser(row.original._id,row.original.username,"unblock")} className='w-5 h-5 cursor-pointer' alt="" /> }
-                      </TableCell>
+                     
                   </TableRow>
                 );
               })}

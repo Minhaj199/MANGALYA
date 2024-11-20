@@ -7,7 +7,7 @@ const router=Router()
 router.post('/login',login)
 
 //fetch data to user table
-router.get('/fetchData',adminJwtAuthenticator,fetechData)
+router.get('/fetchData',fetechData)
 router.get('/fetchPlanData',fetechPlanData)
 
 router.patch('/block&Unblock',adminJwtAuthenticator,userBlockAndUnblock)

@@ -85,7 +85,7 @@ import { handleAlert } from "../../../../utils/alert/sweeAlert";
 
 export const Navbar = ({ active }: { active: string }) => {
   const [image, setImage] = useState<string>("");
-  const [menuOpen, setMenuOpen] = useState(false); // State to manage menu visibility
+  const [menuOpen, setMenuOpen] = useState(false); 
   const navigate = useNavigate();
 
   useEffect(() => {

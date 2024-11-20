@@ -5,11 +5,12 @@ import { Routes,Route} from "react-router-dom";
 import { Landing } from "./user/Landing/Landing";
 import { SignupContext } from "./GlobalContext/signupData"; 
 import { LoginLanding } from "./user/LoginLanding/LogLanding";
-import { UserTable } from "./admin/Components/Tables/UserTable/Table";
+import { UserTable } from "./admin/pages/userMgt/Table";
 import { OTPVerification } from "./user/otp verification/OTPVerification";
 import { PlanDetails } from "./admin/pages/PlanMa/PlanMgt";
 import { ProtectRouteAdmin,PlanRouteUser ,UnProtectRouteUser,UnProtectRouteAdmin,ProtectRouteUser } from "./utils/RouteManagement";
 import { AddPlan  } from "./admin/pages/AddPlan/AddPlan";
+import { SubscriberTable } from "./admin/pages/Subscribers/Table";
 import PlanPurchase from "./user/plan/Plan"; 
 
 
@@ -57,7 +58,6 @@ const App: React.FC = () => {
     <Routes>
      <Route element={<UnProtectRouteAdmin/>}>
 
-     
       <Route path="/login" element={<Login />} />
      </Route>
       <Route  element={<ProtectRouteAdmin />} >
@@ -66,7 +66,9 @@ const App: React.FC = () => {
         <Route path="manageUser" element={<UserTable />} />
         <Route path="addPlan" element={<AddPlan/>} />
         <Route path="Plan" element={<PlanDetails />} />
+        <Route path="subscriber" element={<SubscriberTable/>} />
       </Route>
+       
       </Route>
         <Route path="/PlanDetails" element={<PlanRouteUser/>}>
         <Route path="" element={<PlanPurchase />}/>
@@ -78,7 +80,6 @@ const App: React.FC = () => {
       <Route path="/otpVerification" element={<OTPVerification  />}/>
       </Route>
       <Route element={<ProtectRouteUser/>}>
-      
       <Route path="/loginLanding" element={<LoginLanding active={'profile'}/>} />
       </Route>
     </Routes>

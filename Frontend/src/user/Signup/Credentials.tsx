@@ -126,6 +126,8 @@ try {
     }
    }
    
+  }else{
+    navigate('/PlanDetails')
   }
   
   

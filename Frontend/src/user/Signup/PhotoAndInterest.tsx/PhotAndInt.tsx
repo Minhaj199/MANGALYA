@@ -16,7 +16,8 @@ export const PhotAndInt:React.FC<PhotAndIntInterface> = ({probState,probSetter})
         probSetter(el=>({...el,interest:selected}))
     },[selected,image])
         type interestType={'sports':string[],'music':string[],'food':string[]}
-    const interestCategory:ReadonlyArray<string>=['']
+    
+    const [enablingTypesOfInterest,setEnablingTypesOfInterest]=useState<boolean>(false)
     const [handleChange,setHandleChang]=useState<string[]>([''])
     
     const [interest,setInterest]=useState<interestType>({
@@ -59,7 +60,9 @@ export const PhotAndInt:React.FC<PhotAndIntInterface> = ({probState,probSetter})
    function handleCategoryInterest (t:React.ChangeEvent<HTMLSelectElement>){
     
        if(t.target.value){
-       
+       if(!enablingTypesOfInterest){
+        setEnablingTypesOfInterest(true)
+       }
         if(t.target){
             
             const key=t.target.value
@@ -72,7 +75,7 @@ export const PhotAndInt:React.FC<PhotAndIntInterface> = ({probState,probSetter})
             }
         }
     }else{
-        setHandleChang([])
+        setEnablingTypesOfInterest(false)
        
     }
    }
@@ -83,7 +86,6 @@ export const PhotAndInt:React.FC<PhotAndIntInterface> = ({probState,probSetter})
         }
         if(interestCount.current===5){
             setHandleChang([])
-            console.log(selected)
         }
        
    }
@@ -106,7 +108,7 @@ export const PhotAndInt:React.FC<PhotAndIntInterface> = ({probState,probSetter})
  
     <div className='w-5/6 h-72 sm:mt-0 flex'>
         <div id='photo'  className='flex flex-col justify-center cursor-pointer items-center w-1/3 h-full '>
-        <div className='sm:h-32 sm:w-32 h-16 w-16 rounded-full bg-gray-950 absolute' onClick={handleClick}>
+        <div className='sm:h-32 sm:w-32 h-16 w-16 border border-theme-blue rounded-full bg-gray-950 absolute' onClick={handleClick}>
             <input type="file" ref={fileInputRef} onChange={handleFile} className='hidden' accept='image/*' />
             <img className='w-full h-full rounded-full' src={image?image:"/photoUpload.png"} alt="" />
             
@@ -118,16 +120,16 @@ export const PhotAndInt:React.FC<PhotAndIntInterface> = ({probState,probSetter})
         <div className='w-full h-[40%] items-center  sm:flex  '>
         {interestCount.current!==5&&
         
-            <select name="" id="" onChange={(t)=>handleCategoryInterest(t)} className='w-[30%]   h-9 outline-none'>
+            <select name="" id="" onChange={(t)=>handleCategoryInterest(t)} className='w-[30%]   h-9 outline-none border border-theme-blue'>
                 <option value="">Interst Category</option>
                 {Object.keys(interest).map((key,index)=>{
                     return <option key={index} value={key}>{key}</option>
                 })}  
             </select>
     }
-            {(handleChange.length>0)&&
+            {enablingTypesOfInterest&&
             
-            <select name="" id="" className='w-[30%] ml-10 h-9 outline-none' onChange={handleAddInterest}>
+            <select name="" id="" className='w-[30%] ml-10 h-9 outline-none border border-theme-blue' onChange={handleAddInterest}>
                 <option value="">Interst</option>
                {handleChange.map((el,index)=>{
                   return <option key={index} value={el}>{el}</option> 
@@ -136,7 +138,7 @@ export const PhotAndInt:React.FC<PhotAndIntInterface> = ({probState,probSetter})
             }
            
         </div>
-        <div className='w-full sm:h-[60%] h-72 sm:mt-0 mt-14 mb-10 bg-white'>
+        <div className='w-full sm:h-[60%] h-72 sm:mt-0 mt-14 mb-10 bg-white border border-theme-blue'>
             {selected.length>0&&selected.map((el,index)=>{
                 return <div key={index} className='flex justify-between items-center w-full h-8 bg-slate-200 mt-1'><p>{index+1}:{el}</p>
                 <img src="/remove.png" className='w-4 h-4 mr-1 cursor-pointer' onClick={()=>handleRemove(el)} alt="" />

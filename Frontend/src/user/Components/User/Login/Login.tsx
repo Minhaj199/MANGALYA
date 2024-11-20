@@ -67,10 +67,11 @@ export const Login:React.FC<userLoginProp> = ({changeToggle,loginTogle}) => {
           handleAlert('success',`welcome ${response.name}`)
           setTimeout(()=>{
 
-            if(response.subscriptionStatus==='Not subscribed'){
+            if(response.subscriptionStatus==='Not subscribed'||response.subscriptionStatus==='connection finished'){
               navigate('/PlanDetails')
               return
-            }else{
+            }
+            else{
   
               navigate('/loginLanding')
             }

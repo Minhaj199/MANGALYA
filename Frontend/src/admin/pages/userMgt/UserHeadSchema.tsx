@@ -1,5 +1,5 @@
 import { Column } from "react-table";
-import { TableDataType } from "./userTable";
+import { TableDataType } from "./userTable"; 
 export const  Columns: Column<TableDataType>[] = [
     {
       Header: 'no',
@@ -23,4 +23,3 @@ export const  Columns: Column<TableDataType>[] = [
       accessor: 'expiry',
     }
   ];
-  

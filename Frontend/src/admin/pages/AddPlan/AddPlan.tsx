@@ -5,6 +5,7 @@ import { PlanValidator } from '../../../Validators/planValidator'
 import { alertWithOk, handleAlert } from '../../../utils/alert/sweeAlert'
 import { request } from '../../../utils/axiosUtils'
 import { useNavigate } from 'react-router-dom'
+import { capitaliser } from '../../../utils/capitalise'
 export type planMgtWarningType={
 
     name:string
@@ -16,7 +17,7 @@ export type PlanData={
     name:string;
     amount:number;
     connect:number;
-    duration:string
+    duration:number
 }
 
 
@@ -34,19 +35,23 @@ export const AddPlan = () => {
         fetchFeature()
     },[])
     const [warning,setWarning]=useState<planMgtWarningType>({amount:'',connect:'',duration:'',name:''})
-    const [datas,setDatas]=useState<PlanData>({amount:0,connect:0,name:'',duration:''})
+    const [datas,setDatas]=useState<PlanData>({amount:0,connect:0,name:'',duration:0})
     const months=Array.from({length:36},(_,index)=>index+1)
     const [handleFeatureState,setHandleFeature]=useState<string[]>([])
     
 
     const handleFeature=(t:React.ChangeEvent<HTMLSelectElement>)=>{
         
-        if(!handleFeatureState.includes(t.target.value))
+        if(!handleFeatureState.includes(t.target.value)&&t.target.value!=='')
         setHandleFeature(el=>[...el,t.target.value])
    
     }
     function handleClose(item:string){
         setHandleFeature(el=>el.filter(el=>el!==item))
+    }
+    
+    const handleNameChange=(t:React.ChangeEvent<HTMLInputElement>)=>{
+         setDatas(el=>({...el,name:capitaliser(t.target.value)}))
     }
    async function handleSubmit(){
         
@@ -76,13 +81,13 @@ export const AddPlan = () => {
             <p onClick={()=>navigate('/admin/Plan')} className='font-bold text-dark-blue cursor-pointer' >{'BACK'}</p>
         </div>
         <div className='w-full h-[90%]   flex justify-center items-center'>
-            <div className='sm:w-[40%]  w-[90%] sm:h-[95%] h-[60%] rounded-3xl border border-dark-blue sm:px-10 px-5 items-center flex flex-col'>
+            <div className='sm:w-[40%]  w-[90%] sm:h-[95%] h-[84%] rounded-3xl border border-dark-blue sm:px-10 px-5 items-center flex flex-col'>
                 <h1 className='font-bold text-2xl text-dark-blue mt-2 mb-5'>ADD PLAN</h1>
                 <div className='sm:w-[100%] w-[100%] h-[15%] sm:h-[20%]     justify-between mb-2'>
                     <label htmlFor="" className='block font-inter font-bold text-dark-blue'>NAME</label>
 
 
-                    <input id='name' onChange={(t)=>setDatas(el=>({...el,name:t.target.value}))} type="text" value={datas.name} className=' w-[90%]  text-sm  outline-none' />
+                    <input id='name' onChange={(t)=>handleNameChange(t)} type="text" value={datas.name} className=' w-[90%]  text-sm  outline-none' />
                     
                     
                     
@@ -107,7 +112,7 @@ export const AddPlan = () => {
                     <div className='w-[33%] h-full'>
                     <label className='text-dark-blue font-bold sm:text-base text-xs'>DURATION</label>
                         {/* <input id='amount' type="number" className='mt-1 w-[60%] outline-none'min={1} max={10000} /> */}
-                        <select defaultValue={datas.duration} onChange={(t)=>setDatas(el=>({...el,duration:t.target.value}))} className='h-8 outline-none border-b border-theme-blue' name="" id="">
+                        <select defaultValue={datas.duration} onChange={(t)=>setDatas(el=>({...el,duration:parseInt(t.target.value)||0}))} className='h-8 outline-none border-b border-theme-blue' name="" id="">
                            <option value="" >Month</option>
                            {months.map((el,index)=> <option key={index} value={el}>{el} month</option>)}
                           
@@ -117,12 +122,14 @@ export const AddPlan = () => {
                 </div>
                 <div className='w-full h-10  mb-2'>
                     <select onChange={handleFeature} className='w-[40%] outline-none rounded-xl sm:h-[80%] h-[50%] sm:text-base text-xs bg-dark-blue text-white' name="features" id="">
+                    <option value="">Features</option>
                        {featureData.map(el=>(<option value={el}>{el}</option>))}
                         
 
                     </select>
                 </div>
                 <div className='w-[100%] h-[30%] bg-gray-400'>
+                    
                 {handleFeatureState.map((el,index)=>(
                         <div key={index} className='w-full h-[20%] mt-2 bg-dark-blue  flex'>
                        

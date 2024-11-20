@@ -5,7 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { alertWithOk, handleAlert, promptSweet } from "../../utils/alert/sweeAlert";
 import { Loading } from "../Components/Loading/Loading";
 import { fetchINRtoUSDRate } from "../../utils/currencyUtils";
-import {loadScript} from '@paypal/paypal-js'
+
+
 export type PlanData={
   name:string
   connect:number
@@ -16,18 +17,25 @@ export type PlanData={
   _id:string
 }
 const PlanPurchase = () => {
-  const [exchangeRate,setExchangeRate]=useState(80)
-  useEffect(()=>{
-    async function findExchange(){
-      const  rate=await fetchINRtoUSDRate()
-      alert(rate)
-      setExchangeRate(rate)
-    }
-    findExchange()
-  },[])
+  // const [exchangeRate,setExchangeRate]=useState(80)
+  // useEffect(()=>{
+  //   async function findExchange(){
+  //     const  rate=await fetchINRtoUSDRate()
+  //     alert(rate)
+  //     setExchangeRate(rate)
+  //   }
+  //   findExchange()
+  // },[])
+  
+  
+  
   const navigate=useNavigate()
   const [loading,setLoading]=useState(false)
+  const [selected,setSelected]=useState({_id:'',amount:0,duration:0,features:[''],connect:0,name:''})
   const [planData,setPlanData]=useState<PlanData[]>([{_id:'',amount:0,duration:0,features:[''],connect:0,name:''}])
+ 
+ 
+ ///////////fetching plan
   useEffect(()=>{
    async function fetchPlanData(){
     const response:typeof planData=await request({url:'/user/fetchPlanData'})
@@ -37,6 +45,9 @@ const PlanPurchase = () => {
    fetchPlanData()
    
   },[])
+
+
+  ////handing skiping
   function handleSkip(){
     if(localStorage.getItem('id')){
       navigate('/loginLanding')
@@ -46,60 +57,60 @@ const PlanPurchase = () => {
     
   }
  async function handlePurchase(planInfo:PlanData){
-  loadScript({clientId:'AUREtzT5do9sJyDg3X7zyW25VJdJ7O5Bgm1LOQiS4oYzMA6KS039gYXtkUOpZLenw7rg15nheE32Bpie'}).then((paypal)=>{
-
-  })
-  // setLoading(true)
-  //   if(localStorage.getItem('id')){
-  //     await promptSweet(Purchase,`Are you sure to subscribe ${planInfo.name} worth ₹${planInfo.amount} ?`,`${planInfo.name} successfully Placed`,handleCancelLoading )
-  //     async function Purchase(){
+  setLoading(true)
+    if(localStorage.getItem('id')){
+      await promptSweet(Purchase,`Are you sure to subscribe ${planInfo.name} worth ₹${planInfo.amount} ?`,`${planInfo.name} successfully Placed`,handleCancelLoading )
+      async function Purchase(){
         
-  //       try {
-  //         const response:{status:boolean,message:string}=await request({url:'/user/purchasePlan',method:'post',data:{id:localStorage.getItem('id'),planData:planInfo}})
+        try {
+          const response:{status:boolean,message:string}=await request({url:'/user/purchasePlan',method:'post',data:{id:localStorage.getItem('id'),planData:planInfo}})
         
-  //         if(response.status===true){
-  //           setTimeout(() => {
-  //             localStorage.setItem('subscriptionStatus','subscribed')
-  //             navigate('/')
-  //             handleAlert('success','Plan purchased')
-  //           }, 2000);
-  //         }else{
-  //           setLoading(false)
-  //           throw new Error(response.message||'Error on puchase')
-  //         }
-  //       } catch (error:any) {
-  //         setLoading(false)
-  //         alertWithOk('Plan Purchase',error.message||'Error on purchase',"warning")
-  //       }
-  //     }
-  //    async function handleCancelLoading(){
+          if(response.status===true){
+            setTimeout(() => {
+              localStorage.setItem('subscriptionStatus','subscribed')
+              navigate('/')
+              handleAlert('success','Plan purchased')
+            }, 2000);
+          }else{
+            setLoading(false)
+            throw new Error(response.message||'Error on puchase')
+          }
+        } catch (error:any) {
+          setLoading(false)
+          alertWithOk('Plan Purchase',error.message||'Error on purchase',"warning")
+        }
+      }
+     async function handleCancelLoading(){
 
-  //       setLoading(false)
-  //     }
-  //   }else{
-  //     setLoading(false)
-  //     alertWithOk('Subscription Plan','You have to login first',"info")
-  //   }
+        setLoading(false)
+      }
+    }else{
+      setLoading(false)
+      alertWithOk('Subscription Plan','You have to login first',"info")
+    }
   }
   return (
       <div className="h-svh w-screen flex items-center flex-col bg-blue-400 ">
        
-       { loading ? <Loading /> : (
+       { loading ?
+        <Loading/>
+        
+        : (
           <>
             
           <h1 className="text-white text-xl sm:text-5xl mt-10 font-italian">
             PLEASE JOIN OUR FAMILY
           </h1>
-          <p className="text-white">
+          <p className="text-white sm:text-base text-xs">
             Please take an attractive plan for you and enhance your Profile
           </p>
-          <div className="w-screen h-14 flex justify-end items-center px-2">
+          <div className="w-screen h-14 flex justify-end items-center px-2 ">
             <p className="text-white cursor-pointer" onClick={handleSkip}>{"DO IT LATER>"}</p>
           </div>
-          <div className="w-screen px-4 overflow-x-auto no-scrollbar h-[70%] flex justify-center items-center">
-            <div className="flex gap-5 h-full">
+          <div className="w-[80%] px-4 overflow-x-auto no-scrollbar no-scrollbarh-[70%] flex justify-center items-center">
+            <div className="flex sm:flex-col md:flex-col lg:flex-row flex-col gap-5 h-full ">
               {planData.map((el, index) => (
-                <div key={index} className="w-[300px] h-[95%] ml-5 rounded-2xl bg-blue-950">
+                <div key={index} className="sm:w-[300px] w-[250px]  h-[98%] ml-5 rounded-2xl bg-blue-950 " >
                   <div className="w-full h-[13%] flex justify-center items-center">
                     <p className="text-white font-bold font-inter">{`${el.name} : ${el.duration} month`} </p>
                   </div>
@@ -118,9 +129,10 @@ const PlanPurchase = () => {
                     ))}
                   </div>
                   <div className="w-full h-20 flex justify-center items-center">
-                    <button onClick={() => handlePurchase(el)} className="border px-10 py-1 rounded-xl text-white bg-dark-blue">
+                    <button id="pay" onClick={() => handlePurchase(el)} className="border px-10 py-1 rounded-xl text-white bg-dark-blue">
                       BUY
                     </button>
+                   
                    
                   </div>
                 </div>

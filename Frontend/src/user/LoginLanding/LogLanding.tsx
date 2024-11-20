@@ -16,19 +16,34 @@ type profileType = { _id: string;interest:string[];photo:string;lookingFor:strin
 
 
 export const LoginLanding = ({active}:{active:string}) => {
-    const navigate=useNavigate()
-    const [planData,setPlanData]=useState<PlanData|null>(null)
-    
+
+  
+  
+  
+  const navigate=useNavigate()
+  const [planData,setPlanData]=useState<PlanData|null>(null)
+  useEffect(()=>{
+    console.log(planData)
+  },[planData])
+  
   const [requestProfile,setRequest]=useState<profileType[]>([{_id:'',age:0,gender:'',interest:[],lookingFor:'',name:'',no:0,photo:'',secondName:'',state:''}])
+  
+  ///////////////////accept request
+  
   const acceptRequest=async (id:string)=>{ 
     try {
-      const response=await request({url:'/user/manageReqRes',method:'patch',data:{id:id,action:'accept',userId:localStorage.getItem('id')}})
-      
-      if(typeof response==='object'){
-        handleAlert("success",'Request accepted')
-        setRequest(el=>el.filter((el)=>el._id!==id))
+      if(planData?.name){
+
+        const response=await request({url:'/user/manageReqRes',method:'patch',data:{id:id,action:'accept',userId:localStorage.getItem('id')}})
+        
+        if(typeof response==='object'){
+          handleAlert("success",'Request accepted')
+          setRequest(el=>el.filter((el)=>el._id!==id))
+        }else{
+          throw new Error('error on requeset')
+        }
       }else{
-        throw new Error('error on requeset')
+        alertWithOk('Plan subscription','No valid plan',"info")
       }
 
     } catch (error:any) {
@@ -38,13 +53,18 @@ export const LoginLanding = ({active}:{active:string}) => {
 
   const rejectRequest=async(id:string)=>{
     try {
-      const response=await request({url:'/user/manageReqRes',method:'patch',data:{id:id,action:'reject',userId:localStorage.getItem('id')}})
-      
-      if(typeof response==='object'){
-        handleAlert("warning",'Request rejected')
-        setRequest(el=>el.filter((el)=>el._id!==id))
+      if(planData?.name){
+        
+        const response=await request({url:'/user/manageReqRes',method:'patch',data:{id:id,action:'reject',userId:localStorage.getItem('id')}})
+        
+        if(typeof response==='object'){
+          handleAlert("warning",'Request rejected')
+          setRequest(el=>el.filter((el)=>el._id!==id))
+        }else{
+          throw new Error('error on requeset')
+        }
       }else{
-        throw new Error('error on requeset')
+        alertWithOk('Plan subscription','No valid plan',"info")
       }
 
     } catch (error:any) {
@@ -53,6 +73,9 @@ export const LoginLanding = ({active}:{active:string}) => {
   }
   
   const userId=localStorage.getItem('id')
+
+
+///////////handle matching
 
 const handleMatch=async(id:string)=>{
   
@@ -77,16 +100,20 @@ const handleMatch=async(id:string)=>{
       simplePropt(()=>navigate('/PlanDetails'),'Do you want purchase new Plan')
     }
   }else{
-    alert('Plan data not found')
+    alertWithOk('Plan subscription','No valid plan',"info")
   }
 }
   const [profils, setProfiles] = useState<profileType[]>();
+
+  ////////pagination
   useEffect(()=>{
       if(profils?.length&&profils.length>1){
           setTotalPage(Math.ceil(  profils.length?profils?.length/5:1))
       }
   },[profils])
   
+
+  //////////profile and plan fetching///////
   useEffect(() => {
     async function fetch() { 
       const preferedGender=localStorage.getItem('partner')
@@ -109,6 +136,7 @@ const handleMatch=async(id:string)=>{
     fetch();
 }, []);
 
+/////////////pagination
 const [totalPage,setTotalPage]=useState(0)
 
 const itemPerPage=5
@@ -119,10 +147,12 @@ const   currentData=profils?.slice(
     currentPage*itemPerPage
 )
 
+//////////scroll pagination
 const handlePreviouse=()=>{
   window.scrollTo({top:0,behavior:'smooth'})
     if(currentPage>1)setCurrenPage(el=>el-1)
 }
+
 const handleNext=()=>{
    
   window.scrollTo({top:0,behavior:'smooth'})   
@@ -136,7 +166,7 @@ const handleNext=()=>{
         <div className="sm:w-[20%] w-[40%] h-[40%] mt-11">
        
           <div className="w-full h-[30%]  flex justify-center items-center">
-           {planData?
+           {planData?.name?
            <div className="w-[95%] h-[85%] bg-dark-blue  rounded-3xl ">
               <div className="w-full h-[30%] flex justify-center items-center">
                 {" "}
