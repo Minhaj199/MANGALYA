@@ -4,7 +4,8 @@ import { request } from "../../utils/axiosUtils";
 import { useNavigate } from "react-router-dom";
 import { alertWithOk, handleAlert, promptSweet } from "../../utils/alert/sweeAlert";
 import { Loading } from "../Components/Loading/Loading";
-import { fetchINRtoUSDRate } from "../../utils/currencyUtils";
+import { useSelector } from "react-redux";
+import { ReduxState } from "../../Redux/ReduxGlobal";
 
 
 export type PlanData={
@@ -45,11 +46,12 @@ const PlanPurchase = () => {
    fetchPlanData()
    
   },[])
-
+  const userData=useSelector((state:ReduxState)=>state.userData) 
 
   ////handing skiping
+  console.log(userData)
   function handleSkip(){
-    if(localStorage.getItem('id')){
+    if(localStorage.getItem('userToken')){
       navigate('/loginLanding')
     }else{
       navigate('/')
@@ -58,7 +60,7 @@ const PlanPurchase = () => {
   }
  async function handlePurchase(planInfo:PlanData){
   setLoading(true)
-    if(localStorage.getItem('id')){
+    if(localStorage.getItem('userToken')){
       await promptSweet(Purchase,`Are you sure to subscribe ${planInfo.name} worth ₹${planInfo.amount} ?`,`${planInfo.name} successfully Placed`,handleCancelLoading )
       async function Purchase(){
         

@@ -7,7 +7,7 @@ export type PlanDataForValidation={
     name:string;
     amount:number|string;
     connect:number|string;
-    duration:string
+    duration:number
 }
 export function PlanValidator(planData:PlanData|PlanType,setWarning:Dispatch<SetStateAction<planMgtWarningType>>,handleFeatureState:string[]):boolean{
    let state=true

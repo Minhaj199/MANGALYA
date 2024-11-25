@@ -7,6 +7,9 @@ import { Navbar } from "../Components/User/navbar/Navbar";
 import { alertWithOk, handleAlert,  simplePropt } from "../../utils/alert/sweeAlert";
 import { PlanData } from "../plan/Plan";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { StateProb } from "../../Redux/ReduxGlobal";
+import { ReduxState } from "../../Redux/ReduxGlobal";
 
 type profileType = { _id: string;interest:string[];photo:string;lookingFor:string; name: string; no: number,secondName:string,state
 :string,age:number,gender:string
@@ -104,7 +107,7 @@ const handleMatch=async(id:string)=>{
   }
 }
   const [profils, setProfiles] = useState<profileType[]>();
-
+  const useData=useSelector((state:ReduxState)=>state.userData) 
   ////////pagination
   useEffect(()=>{
       if(profils?.length&&profils.length>1){
@@ -116,11 +119,8 @@ const handleMatch=async(id:string)=>{
   //////////profile and plan fetching///////
   useEffect(() => {
     async function fetch() { 
-      const preferedGender=localStorage.getItem('partner')
-       const gender=localStorage.getItem('gender')
-       const id=localStorage.getItem('id')
       const response: {datas:profileType[],currntPlan:PlanData} = await request({
-        url: `/user/fetchProfile?preferedGender=${preferedGender}&gender=${gender}&id=${id}`,
+        url: `/user/fetchProfile`,
       })
   
       const res:any = response.datas??{profile:[],request:[]} ;

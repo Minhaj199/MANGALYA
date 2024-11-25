@@ -71,10 +71,10 @@ const App: React.FC = () => {
        
       </Route>
         <Route path="/PlanDetails" element={<PlanRouteUser/>}>
-        <Route path="" element={<PlanPurchase />}/>
+        <Route path="" element={<PlanPurchase/>}/>
         </Route>
       <Route element={<UnProtectRouteUser/>}>
-      <Route path="/" element={<Landing />} />
+      <Route path="/" element={<Landing/>} />
       <Route path="/signUp" element={<Credentials inputFields={inputFields} toggle={1} />} />
       <Route path="/photoAdding" element={<Credentials inputFields={inputFields} toggle={2} />} />
       <Route path="/otpVerification" element={<OTPVerification  />}/>

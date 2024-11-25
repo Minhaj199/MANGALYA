@@ -2,6 +2,7 @@
 import { Forgot_Props } from "../Forgot/Forgot_first"
 import {  useState } from "react"
 import { LoginValidator } from "../../../../Validators/LoginValidator"
+import { useDispatch } from 'react-redux';
 
 
 
@@ -9,17 +10,28 @@ import React from "react"
 import { useNavigate } from "react-router-dom"
 import { request } from "../../../../utils/axiosUtils"
 import { handleAlert } from "../../../../utils/alert/sweeAlert"
+import {  StateProb } from "../../../../Redux/ReduxGlobal";
+
 interface userLoginProp extends Forgot_Props{
     loginTogle:string
 }
+
 export interface userForm {
     email: string
     password: string
 }
  
 export const Login:React.FC<userLoginProp> = ({changeToggle,loginTogle}) => {
+  const dispatch=useDispatch()
  
- 
+  const data:StateProb={
+   
+    photo:'',
+    subscriptionStatus:'',
+  }  
+  
+  
+
   const navigate=useNavigate()
   type probs={
     email:string|null
@@ -31,6 +43,7 @@ export const Login:React.FC<userLoginProp> = ({changeToggle,loginTogle}) => {
       password: "",
     });
  async function handleLogin(){
+
   try {
     const isValid:boolean=LoginValidator({...userData},setWarnning)
     if(isValid){
@@ -53,16 +66,19 @@ export const Login:React.FC<userLoginProp> = ({changeToggle,loginTogle}) => {
       }
       else if(response.message==='password matched'){
         localStorage.setItem('userToken',response.token)
-        localStorage.setItem('id',response.id)
+        
+
         console.log(response)
         
-        localStorage.setItem('partner',response.partner)
-        localStorage.setItem('gender',response.gender)
+        
         if(response.photo){
-          localStorage.setItem('photo',response.photo)
+         
+          data.photo=response.photo||''
         }
         if(response.subscriptionStatus){
-          localStorage.setItem('subscriptionStatus',response.subscriptionStatus)
+          
+          data.subscriptionStatus=response.subscriptionStatus
+          dispatch({type:'SET_DATA',payload:data})
           changeToggle('1')
           handleAlert('success',`welcome ${response.name}`)
           setTimeout(()=>{

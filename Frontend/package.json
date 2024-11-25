@@ -15,9 +15,7 @@
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "@mui/material": "^6.1.4",
-    "@paypal/checkout-server-sdk": "^1.0.3",
-    "@paypal/paypal-js": "^8.1.2",
-    "@paypal/react-paypal-js": "^8.7.0",
+    "@reduxjs/toolkit": "^2.3.0",
     "axios": "^1.7.7",
     "bootstrap": "^5.3.3",
     "dotenv": "^16.4.5",
@@ -28,6 +26,7 @@
     "react-sweetalert2": "^0.6.0",
     "react-table": "^7.8.0",
     "react-timer-hook": "^3.0.7",
+    "redux-persist": "^6.0.0",
     "semantic-ui-react": "^2.1.5",
     "sweetalert2": "^11.14.4"
   },

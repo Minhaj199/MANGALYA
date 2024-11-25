@@ -82,24 +82,28 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { handleAlert } from "../../../../utils/alert/sweeAlert";
+import { useDispatch, useSelector } from "react-redux";
+import { ReduxState } from "../../../../Redux/ReduxGlobal";
 
 export const Navbar = ({ active }: { active: string }) => {
   const [image, setImage] = useState<string>("");
   const [menuOpen, setMenuOpen] = useState(false); 
   const navigate = useNavigate();
-
+  const userphoto=useSelector((state:ReduxState)=>state.userData.photo)
+  
   useEffect(() => {
-    if (localStorage.getItem("photo")) {
-      setImage(localStorage.getItem("photo") || "");
+    if (userphoto) {
+      setImage(userphoto || "");
     }
   }, []);
-
+  const dispatch=useDispatch()
   const activeForHome =
     "border-b-2 cursor-pointer border-white text-sm text-white font-inter";
 
   function handleLogout() {
     setImage("");
-    localStorage.clear();
+    localStorage.removeItem('userToken');
+    dispatch({type:'CLEAR_DATA'})
     handleAlert("warning", "User logged out");
     navigate("/");
   }
@@ -107,9 +111,7 @@ export const Navbar = ({ active }: { active: string }) => {
   function toggleMenu() {
     setMenuOpen(!menuOpen); // Toggle menu visibility
   }
-  useEffect(()=>{
-    console.log(menuOpen)
-  },[menuOpen])
+  
 
   return (
     <>

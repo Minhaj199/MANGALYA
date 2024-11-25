@@ -7,6 +7,8 @@ import { request } from "../../utils/axiosUtils";
 import { Loading } from "../Components/Loading/Loading";
 import { alertWithOk } from "../../utils/alert/sweeAlert";
 import { promptSweet } from "../../utils/alert/sweeAlert";
+import { useDispatch, useSelector } from "react-redux";
+import { ReduxState } from "../../Redux/ReduxGlobal";
 
 
 
@@ -16,6 +18,8 @@ export interface CredentialInterface{
 
 
 export const OTPVerification:React.FC = () => {
+  const dispatch=useDispatch()
+  const userData=useSelector((state:ReduxState)=>state.userData)
   const navigate=useNavigate()
   const context=useContext(SignupContext)
   if(!context){
@@ -41,17 +45,18 @@ export const OTPVerification:React.FC = () => {
       if(Response){
         if(Response?.message==='OTP valid'){
           
-          const resonse:any=await request({url:'/user/firstBatchData',method:'post',data:signupFirstData})
-          if(resonse?.message&&resonse.message==="sign up completed"){
+          const response:{message:string,token:string}=await request({url:'/user/firstBatchData',method:'post',data:signupFirstData})
+          if(response?.message&&response.message==="sign up completed"){
+            localStorage.setItem('userToken',response.token)
             promptSweet(routeToPhoto,'Do you want to continue adding details ?','Basic account creation completed',secondFunction)
             async function routeToPhoto(){
-              localStorage.setItem('id',resonse?.id)
+              dispatch({type:'SET_DATA',payload:{...userData,auth:true}})
               navigate('/photoAdding')
             }
           async function secondFunction(){
-              console.log(resonse)
+              console.log(response)
               
-              localStorage.setItem('id',resonse?.id)
+              dispatch({type:'SET_DATA',payload:{...userData,auth:true}})
               setSignupFirst({"FIRST NAME":'',"SECOND NAME":'',"DATE OF BIRTH":'',"GENDER OF PARTNER":'',"STATE THAT YOU LIVE":'',"YOUR GENDER":'','EMAIL':'','PASSWORD':''})
               alertWithOk('Signup completed','Best of luck with you journy',"success")
               navigate('/PlanDetails')

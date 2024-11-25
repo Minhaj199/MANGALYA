@@ -8,7 +8,7 @@ interface PhotAndIntInterface{
     probSetter:Dispatch<SetStateAction<PhotoAndInterest>>
 }
 
-export const PhotAndInt:React.FC<PhotAndIntInterface> = ({probState,probSetter}) => {
+export const PhotAndInt:React.FC<PhotAndIntInterface> = ({probSetter}) => {
     const [selected,setSelected]=useState<string[]>([])
     let interestCount=useRef(0)
     const [image,setImage]=useState<string|null>(null)
@@ -68,10 +68,7 @@ export const PhotAndInt:React.FC<PhotAndIntInterface> = ({probState,probSetter})
             const key=t.target.value
           
             if(key==='sports'||key==='music'||key==='food'){
-               
                 setHandleChang(interest[key])
-                
-                
             }
         }
     }else{
