@@ -1,6 +1,8 @@
 import React from 'react';
 import { Outlet, Navigate} from 'react-router-dom';
 import {jwtDecode} from 'jwt-decode';
+import {useSelector } from 'react-redux';
+import { ReduxState } from '../Redux/ReduxGlobal';
 
 interface JWTPayload {
   auth: boolean;
@@ -102,10 +104,12 @@ export const UnProtectRouteUser: React.FC = () => {
   return setIsAuthorised ?<Navigate to="/loginLanding"/> :<Outlet/> ;
 };
 export const PlanRouteUser: React.FC = () => {
+  
+  const userData=useSelector((state:ReduxState)=>state.userData)
  
   let setIsAuthorised=false
  
-    if(localStorage.getItem('subscriptionStatus')&&localStorage.getItem('subscriptionStatus')==='subscribed'){
+    if(userData.subscriptionStatus&&userData.subscriptionStatus==='subscribed'){
         setIsAuthorised=true
     }
    

@@ -15,7 +15,7 @@ export const Search = () => {
     
   return (
     <>
-    <div className="w-screen  h-[100px] bg-white flex justify-center items-center">
+    <div className="w-[100%]  h-[100px] bg-white flex justify-center items-center">
           <p className="text-base sm:text-xl lg:text-3xl text-[#0b3e80] fin font-aborato">
           Last Added Profiles
           </p>

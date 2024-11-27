@@ -15,9 +15,11 @@ import { planModel } from "../db/planModel";
 import { Types } from "mongoose";
 import { PlanOrder, planOrderModel } from "../db/planOrder";
 import { subscriptionPlanModel } from "../db/planModel";
-import { userForLanding } from "../../application/types/userTypes";
+import { profileTypeFetch, userForLanding } from "../../application/types/userTypes";
 import { getAge } from "../../interface/Utility/ageCalculator";
 import { GetExpiryPlan } from "../../interface/Utility/getExpiryDateOfPlan";
+import { getDateFromAge } from "../../interface/Utility/getDateFromAge";
+
 
 export class MongoUserRepsitories implements UserRepository {
   async create(user: User): Promise<UserWithID> {
@@ -60,13 +62,13 @@ export class MongoUserRepsitories implements UserRepository {
       return false;
     }
   }
-  async addMatch(userId: string, matchedId: string): Promise<boolean> {
+  async addMatch(userId: unknown, matchedId: string): Promise<boolean> {
+    if(typeof userId==='string'){
+
       if (userId && matchedId) {
           const userMatchId = new ObjectId(matchedId);
-          const userID = new ObjectId(userId);
-          
-          
-      try {
+          const userID = new ObjectId(userId);  
+          try {
         const isEbleTo: UserWithID | null = await UserModel.findById({
           _id: userId,
         });
@@ -182,6 +184,7 @@ export class MongoUserRepsitories implements UserRepository {
         console.log(error);
         return false;
       }
+    }
     } else {
       return false;
     }
@@ -189,31 +192,60 @@ export class MongoUserRepsitories implements UserRepository {
   }
   async manageReqRes(
     requesterId: string,
-    userId: string,
+    userId: unknown,
     action: string
   ): Promise<boolean> {
     try {
-      if (action === "accept") {
+      if (action === "accept"&&typeof userId==='string') {
         try {
           const convertedReqID = new Types.ObjectId(requesterId);
           const convertedUserID = new Types.ObjectId(userId);
-          const response = await UserModel.updateOne(
-            { _id: convertedUserID, "match._id": convertedReqID },
-            { $set: { "match.$.status": "accepted" } }
-          );
+          // const response = await UserModel.updateOne(
+          //   { _id: convertedUserID, "match._id": convertedReqID },
+          //   { $set: { "match.$.status": "accepted" } }
+          // );
+          const response=await UserModel.bulkWrite([
+            {
+              updateOne:{
+                filter:{_id: convertedUserID,"match._id": convertedReqID},
+                update:{ $set: { "match.$.status": "accepted" }}
+
+              }
+            },
+            {
+              updateOne:{
+                filter:{_id: convertedReqID,"match._id": convertedUserID},
+                update:{ $set: { "match.$.status": "accepted" }}
+
+              }
+            }
+          ])
           return true;
         } catch (error) {
           console.log(error);
           throw new Error("error on manage Request");
         }
-      } else if (action === "reject") {
+      } else if (action === "reject"&&typeof userId==='string') {
         try {
           const convertedReqID = new Types.ObjectId(requesterId);
           const convertedUserID = new Types.ObjectId(userId);
-          const response = await UserModel.updateOne(
-            { _id: convertedUserID, "match._id": convertedReqID },
-            { $set: { "match.$.status": "rejected" } }
-          );
+          
+          const response=await UserModel.bulkWrite([
+            {
+              updateOne:{
+                filter:{_id: convertedUserID,"match._id": convertedReqID},
+                update:{ $set: { "match.$.status": "rejected" }}
+
+              }
+            },
+            {
+              updateOne:{
+                filter:{_id: convertedReqID,"match._id": convertedUserID},
+                update:{ $set: { "match.$.status": "rejected" }}
+
+              }
+            }
+          ])
           return true;
         } catch (error) {
           throw new Error("error on manage Request");
@@ -273,6 +305,64 @@ export class MongoUserRepsitories implements UserRepository {
     } catch (error: any) {
       console.log(error);
       throw new Error(error.message || "error on getting new added data");
+    }
+  }
+  async getSearch(data: string,gender:string, preferedGender:string): Promise<profileTypeFetch | []> {
+  
+    try {
+      const datas:{ minAge:number, maxAge: number, district: string, interest:string[]}=JSON.parse(data)
+      if(datas.minAge>datas.maxAge){
+        throw new Error('please enter a valid range')
+      }
+      const dates=getDateFromAge(datas.minAge,datas.maxAge)
+      if(datas.district&&datas.interest.length!==0){
+        const responseDB:any=await UserModel.aggregate([{$match:{$and:[{'PersonalInfo.gender':preferedGender},{'partnerData.gender':gender},{'PersonalInfo.dateOfBirth':{$lte:dates.minAgeDate,$gte:dates.maxAgeDate}},{'PersonalInfo.state':datas.district},{'PersonalInfo.interest':{$all:datas.interest}}]}},
+          {$project:{name:'$PersonalInfo.firstName',
+            lookingFor:'$partnerData.gender',secondName:'$PersonalInfo.secondName',
+                state:'$PersonalInfo.state',gender:'$PersonalInfo.gender',
+                dateOfBirth:'$PersonalInfo.dateOfBirth',interest:'$PersonalInfo.interest',
+                photo:'$PersonalInfo.image',match:'$match'}},{$sort:{_id:-1}}
+        ])
+        return responseDB
+      }
+      else if(!datas.district&&datas.interest.length===0){
+        const responseDB:any=await UserModel.aggregate([{$match:{$and:[{'PersonalInfo.gender':preferedGender},{'partnerData.gender':gender},{'PersonalInfo.dateOfBirth':{$lte:dates.minAgeDate,$gte:dates.maxAgeDate}}]}},
+          {$project:{name:'$PersonalInfo.firstName',
+            lookingFor:'$partnerData.gender',secondName:'$PersonalInfo.secondName',
+                state:'$PersonalInfo.state',gender:'$PersonalInfo.gender',
+                dateOfBirth:'$PersonalInfo.dateOfBirth',interest:'$PersonalInfo.interest',
+                photo:'$PersonalInfo.image',match:'$match'}},{$sort:{_id:-1}}
+        
+        ])
+        // console.log(responseDB)
+        return responseDB
+      }else if(datas.district){
+        
+        const responseDB:any=await UserModel.aggregate([{$match:{$and:[{'PersonalInfo.dateOfBirth':{$lte:dates.minAgeDate,$gte:dates.maxAgeDate}},
+          {'PersonalInfo.state':datas.district}
+        ]}},
+        {$project:{name:'$PersonalInfo.firstName',
+          lookingFor:'$partnerData.gender',secondName:'$PersonalInfo.secondName',
+              state:'$PersonalInfo.state',gender:'$PersonalInfo.gender',
+              dateOfBirth:'$PersonalInfo.dateOfBirth',interest:'$PersonalInfo.interest',
+              photo:'$PersonalInfo.image',match:'$match'}},{$sort:{_id:-1}}
+      ])
+        
+        return responseDB
+      }else if(datas.interest.length!==0){
+        const responseDB:any=await UserModel.aggregate([{$match:{$and:[{'PersonalInfo.gender':preferedGender},{'partnerData.gender':gender},{'PersonalInfo.dateOfBirth':{$lte:dates.minAgeDate,$gte:dates.maxAgeDate}},{'PersonalInfo.interest':{$all:datas.interest}}]}},
+          {$project:{name:'$PersonalInfo.firstName',
+            lookingFor:'$partnerData.gender',secondName:'$PersonalInfo.secondName',
+                state:'$PersonalInfo.state',gender:'$PersonalInfo.gender',
+                dateOfBirth:'$PersonalInfo.dateOfBirth',interest:'$PersonalInfo.interest',
+                photo:'$PersonalInfo.image',match:'$match'}},{$sort:{_id:-1}}
+        ])
+        return responseDB
+      }
+      throw new Error('Error on search (299-mrpt)')
+    } catch (error:any) {
+      console.log(error)
+      throw new Error(error.message)
     }
   }
 }
@@ -374,6 +464,39 @@ export class MongodbPlanRepository implements SubscriptionPlanRepo {
 }
 
 export class MongoPurchasedPlan {
-  
+  async createOrder(
+    userid: unknown,
+    planData: subscriptionPlanModel
+  ): Promise<true> {
+    if(typeof userid==='string'){
+      const data: PlanOrder = {
+        userID: new ObjectId(userid),
+        amount: planData.amount,
+        connect: parseInt(planData.connect),
+        avialbleConnect: parseInt(planData.connect),
+        duration: planData.duration,
+        features: planData.features,
+        name: planData.name,
+        Expiry: GetExpiryPlan(planData.duration),
+      };
+      try {
+        const response = await planOrderModel.create(data);
+        const response2 = await UserModel.updateOne(
+          { _id: new Types.ObjectId(userid) },
+          {$push:{PlanData: response._id} ,$set:{ subscriber: "subscribed", CurrentPlan: data} }
+        );
+        if (response && response2) {
+          return true;
+        } else {
+          throw new Error("error on plan purchase");
+        }
+      } catch (error: any) {
+        console.log(error);
+        throw new Error(error.message);
+      }
+    }else{
+      throw new Error('Error on purchase')
+    }
+    }
 }
 

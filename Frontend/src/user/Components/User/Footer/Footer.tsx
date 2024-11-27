@@ -3,7 +3,7 @@
 export const Footer = () => {
   
   return (
-    <div className="w-screen h-72 bg-[#0b3e80] flex text-base">
+    <div className="w-[100%] h-72 bg-[#0b3e80] flex text-base">
       
         <div className="w-1/4 sm:w-1/3 h-full sm:px-5 py-10   ">
         <div className="sm:w-44 sm:h-16 w-20 ">

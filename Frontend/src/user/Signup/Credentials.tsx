@@ -109,9 +109,11 @@ try {
     }
     type Response={
       url:boolean,
-      responseFromAddinInterest:boolean
+      responseFromAddinInterest:boolean,
+     
     }
    const response:Response=await request({url:'/user/uploadProfile',method:'post',data:formData,headers:{'Content-Type': 'multipart/form-data'}})
+   
    if(response){
     setSignupFirst({"FIRST NAME":'',"SECOND NAME":'',"DATE OF BIRTH":'',"GENDER OF PARTNER":'',"STATE THAT YOU LIVE":'',"YOUR GENDER":'','EMAIL':'','PASSWORD':''})
     if(response.responseFromAddinInterest||response.url){

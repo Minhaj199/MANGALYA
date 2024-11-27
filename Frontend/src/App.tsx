@@ -19,7 +19,7 @@ import PlanPurchase from "./user/plan/Plan";
 
 import { Credentials } from "./user/Signup/Credentials";
 
-const districtsOfKerala = [
+export const districtsOfKerala = [
   "Alappuzha",
   "Ernakulam",
   "Idukki",
@@ -68,7 +68,6 @@ const App: React.FC = () => {
         <Route path="Plan" element={<PlanDetails />} />
         <Route path="subscriber" element={<SubscriberTable/>} />
       </Route>
-       
       </Route>
         <Route path="/PlanDetails" element={<PlanRouteUser/>}>
         <Route path="" element={<PlanPurchase/>}/>

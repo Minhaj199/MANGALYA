@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { ChangeEventHandler, useCallback, useDebugValue, useEffect, useState } from "react";
 import { request } from "../../utils/axiosUtils";
 
 
@@ -7,12 +7,15 @@ import { Navbar } from "../Components/User/navbar/Navbar";
 import { alertWithOk, handleAlert,  simplePropt } from "../../utils/alert/sweeAlert";
 import { PlanData } from "../plan/Plan";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { StateProb } from "../../Redux/ReduxGlobal";
 import { ReduxState } from "../../Redux/ReduxGlobal";
+import { districtsOfKerala } from "../../App";
+
+import { getDateFromAge } from "../../utils/getDateFromAge";
 
 type profileType = { _id: string;interest:string[];photo:string;lookingFor:string; name: string; no: number,secondName:string,state
-:string,age:number,gender:string
+:string,age:number,gender:string,dateOfBirth:Date|string
 };
 
 
@@ -25,11 +28,9 @@ export const LoginLanding = ({active}:{active:string}) => {
   
   const navigate=useNavigate()
   const [planData,setPlanData]=useState<PlanData|null>(null)
-  useEffect(()=>{
-    console.log(planData)
-  },[planData])
   
-  const [requestProfile,setRequest]=useState<profileType[]>([{_id:'',age:0,gender:'',interest:[],lookingFor:'',name:'',no:0,photo:'',secondName:'',state:''}])
+  
+  const [requestProfile,setRequest]=useState<profileType[]>([{_id:'',age:0,gender:'',interest:[],lookingFor:'',name:'',no:0,photo:'',secondName:'',state:'',dateOfBirth:''}])
   
   ///////////////////accept request
   
@@ -37,7 +38,7 @@ export const LoginLanding = ({active}:{active:string}) => {
     try {
       if(planData?.name){
 
-        const response=await request({url:'/user/manageReqRes',method:'patch',data:{id:id,action:'accept',userId:localStorage.getItem('id')}})
+        const response=await request({url:'/user/manageReqRes',method:'patch',data:{id:id,action:'accept'}})
         
         if(typeof response==='object'){
           handleAlert("success",'Request accepted')
@@ -58,7 +59,7 @@ export const LoginLanding = ({active}:{active:string}) => {
     try {
       if(planData?.name){
         
-        const response=await request({url:'/user/manageReqRes',method:'patch',data:{id:id,action:'reject',userId:localStorage.getItem('id')}})
+        const response=await request({url:'/user/manageReqRes',method:'patch',data:{id:id,action:'reject'}})
         
         if(typeof response==='object'){
           handleAlert("warning",'Request rejected')
@@ -75,18 +76,19 @@ export const LoginLanding = ({active}:{active:string}) => {
     }
   }
   
-  const userId=localStorage.getItem('id')
+  
 
 
 ///////////handle matching
-
+const dispatch=useDispatch()
+ 
 const handleMatch=async(id:string)=>{
   
   if(planData){
     if(planData.avialbleConnect&&planData.avialbleConnect>0){
      
       try {    
-        const response:boolean= await request({url:'/user/addMatch',method:'post',data:{matchId:id,userId:userId}})  
+        const response:boolean= await request({url:'/user/addMatch',method:'post',data:{matchId:id}})  
         if(response===true){
           setPlanData(el=>{
             if(!el)return null
@@ -98,7 +100,7 @@ const handleMatch=async(id:string)=>{
         
       }
     }else{
-      localStorage.setItem('subscriptionStatus','connection finished')
+      dispatch({type:'SET_DATA',payload:{...useData,subscriptionStatus:'connection finished'}})
       alertWithOk('Plan subscription','You connection count finished please subscribe',"info")
       simplePropt(()=>navigate('/PlanDetails'),'Do you want purchase new Plan')
     }
@@ -109,25 +111,25 @@ const handleMatch=async(id:string)=>{
   const [profils, setProfiles] = useState<profileType[]>();
   const useData=useSelector((state:ReduxState)=>state.userData) 
   ////////pagination
-  useEffect(()=>{
-      if(profils?.length&&profils.length>1){
-          setTotalPage(Math.ceil(  profils.length?profils?.length/5:1))
-      }
-  },[profils])
+ 
   
-
+  
+  const [interest,setInterest]=useState<string[]>()
   //////////profile and plan fetching///////
   useEffect(() => {
     async function fetch() { 
-      const response: {datas:profileType[],currntPlan:PlanData} = await request({
+      const response: {datas:profileType[],currntPlan:PlanData,interest:string[]} = await request({
         url: `/user/fetchProfile`,
       })
-  
+      setInterest(response.interest)
+      
       const res:any = response.datas??{profile:[],request:[]} ;
      
       if(res[0]?.profile)
+      
       setProfiles(res[0].profile);
     if(res[0]?.request)
+      
       setRequest(res[0]?.request)
     if(response.currntPlan&&typeof response.currntPlan==='object'&&Object.keys(response.currntPlan).length){
       setPlanData(response.currntPlan)
@@ -141,28 +143,221 @@ const [totalPage,setTotalPage]=useState(0)
 
 const itemPerPage=5
 const [currentPage,setCurrenPage]=useState(1)
-
-const   currentData=profils?.slice(
-    (currentPage-1)*itemPerPage,
-    currentPage*itemPerPage
-)
+let  currentData=profils?.slice(
+  (currentPage-1)*itemPerPage,
+  currentPage*itemPerPage
+  )
 
 //////////scroll pagination
 const handlePreviouse=()=>{
   window.scrollTo({top:0,behavior:'smooth'})
     if(currentPage>1)setCurrenPage(el=>el-1)
 }
-
 const handleNext=()=>{
-   
+  
   window.scrollTo({top:0,behavior:'smooth'})   
-    if(currentPage<totalPage)setCurrenPage(el=>el+1)
+  if(currentPage<totalPage)setCurrenPage(el=>el+1)
+  }
+///////search////////////
+const [openSearch,setOpenSearch]=useState<boolean>(false)
+const [searchData,setSearchData]=useState<{minAge:number,maxAge:number,district:string,interest:string[]}>({minAge:18,maxAge:60,district:'',interest:[]})
+let minAge:number[]=[]
+for(let i=18;i<60;i++){
+  minAge.push(i)
+}
+let maxAge:number[]=[]
+for(let i=19;i<61;i++){
+  maxAge.push(i)
+}
+function openSearchModalFunc(){
+  setOpenSearch(true)
+}
+async function  resetProfilePage(){
+  const response: {datas:profileType[],currntPlan:PlanData,interest:string[],massage:string} = await request({
+    url: `/user/fetchProfile`,
+  })
+  if(response.massage){
+    localStorage.removeItem('id')
+  }
+const res:any = response.datas??{profile:[],request:[]} ;
+  if(res[0]?.profile)  
+  setProfiles(res[0].profile);
+}
+function handleInterest(e:React.ChangeEvent<HTMLSelectElement>){
+  if(!searchData.interest.includes(e.target.value)&&e.target.value!==''){
+    setSearchData(el=>({...el,interest:[...el.interest,e.target.value]}))
+  }
+}
+    function handleClose(e:React.MouseEvent<HTMLDivElement>){
+      if(e.target===e.currentTarget){
+        setSearchData({minAge:18,maxAge:60,district:'',interest:[]})
+        setOpenSearch(false)
+
+      }
     }
- 
+    function handleChild(e:React.MouseEvent<HTMLDivElement>):void{
+      e.stopPropagation()
+    }
+    function removeInterest(index:number){
+      if(interest){
+        setSearchData(el=>({...el,interest:el.interest.filter(el=>el!==searchData.interest[index])}))
+      }
+    }
+  async  function handleSearch(){
+    if(searchData.maxAge<searchData.minAge){
+      alertWithOk('Search Details','Please provide a valid age range',"warning")
+      return
+    }
+    
+    const response: {datas:profileType[],currntPlan:PlanData,interest:string[]} = await request({
+      url: `/user/fetchProfile`,
+    })
+    
+  const res:any = response.datas??{profile:[],request:[]} ;
+    if(res[0]?.profile)  
+    setProfiles(res[0].profile);
+    const DateAge:{minAgeDate:Date,maxAgeDate:Date}=getDateFromAge(searchData.minAge,searchData.maxAge)
+      
+    if(searchData.district&&searchData.interest.length!==0){
+       
+      setProfiles(element=>element?.filter(el=>{
+        
+          return (DateAge.minAgeDate>=new Date (el.dateOfBirth)&&DateAge.maxAgeDate<=new Date (el.dateOfBirth)&&el.state===searchData.district&&el.state&&searchData.interest.every(interest=>el.interest.includes(interest)))
+        }))
+      }
+      else if(!searchData.district&&searchData.interest.length===0){
+         
+        
+        setProfiles(element=>element?.filter(el=>{
+
+          return (DateAge.minAgeDate>=new Date (el.dateOfBirth)&&DateAge.maxAgeDate<=new Date (el.dateOfBirth))
+        }))
+
+        
+      }else if(searchData.district){
+          
+        setProfiles(element=>element?.filter(el=>{
+          return (DateAge.minAgeDate>=new Date (el.dateOfBirth)&&DateAge.maxAgeDate<=new Date (el.dateOfBirth)&&searchData.district===el.state)
+        }))
+        
+      }else if(searchData.interest.length!==0){
+          
+        setProfiles(element=>element?.filter(el=>{
+          return (DateAge.minAgeDate>=new Date (el.dateOfBirth)&&DateAge.maxAgeDate<=new Date (el.dateOfBirth)&&searchData.interest.every(interest=>el.interest.includes(interest)))
+        }))
+      }
+      
+     
+      setSearchData({minAge:18,maxAge:60,district:'',interest:[]})
+      setOpenSearch(false)
+    }
+    useEffect(()=>{
+      
+      if(profils?.length&&profils.length>1){
+        setTotalPage(Math.ceil(  profils.length?profils?.length/5:1))
+    }
+      
+    
+    if(currentData?.length===0||profils?.length===0){
+        alertWithOk('Search Data','No data found',"info")
+       
+        // async function fetch() { 
+        //   const response: {datas:profileType[],currntPlan:PlanData,interest:string[]} = await request({
+        //     url: `/user/fetchProfile`,
+        //   })
+        //   setInterest(response.interest)
+          
+        //   const res:any = response.datas??{profile:[],request:[]} ;
+         
+        //   if(res[0]?.profile)
+          
+        //   setProfiles(res[0].profile);
+        // if(res[0]?.request)
+          
+        //   setRequest(res[0]?.request)
+        // if(response.currntPlan&&typeof response.currntPlan==='object'&&Object.keys(response.currntPlan).length){
+        //   setPlanData(response.currntPlan)
+        // }
+        // }   
+        // fetch();
+      }else{
+        // handleAlert("info",`${profils?.length} profile for you`)
+        // console.log(profils)
+        // console.log(searchData)
+        // console.log(currentData)
+        // console.log(currentPage)
+        // console.log(totalPage)
+      }
+    },[profils])
   return (
     <div className="h-[1800px] w-[100%] bg-gray-400 ">
-      <Navbar active={active}/>
-      <div className="w-screen h-full mt-2  flex">
+      {openSearch&&
+      <div onClick={(e)=>handleClose(e)} className="w-full h-full  flex justify-center items-center fixed  z-10">
+      <div onClick={(e)=>handleChild(e)} className="sm:w-[40%] sm:h-[80%] w-[80%] h-[70%] bg-theme-blue rounded-3xl">
+        <div className="w-full h-[20%] flex justify-center items-center">
+          <p className="text-white text-2xl font-popin">SEARCH</p>
+        </div>
+        <div className=" items-center w-full h-[60%]   flex-col flex justify-evenly ">
+          <div className="w-[70%]  flex  text-white font-medium font-popin h-[15%] ">
+          <div className="w-[60%] flex items-center">
+          <p className="font-bold">Age</p>
+          </div>
+          <div className="w-[40%]  flex justify-evenly items-center">
+          <select value={searchData.minAge} onChange={(t)=>setSearchData(el=>({...el,minAge:parseInt(t.target.value)}))} className=" outline-none h-10 w-10 text-gray-600" name="" id="">
+            {minAge.map((el,index)=><option key={index}>{el}</option>)}
+          </select>       
+          <p className="">TO</p>
+          <select value={searchData.maxAge} onChange={(t)=>setSearchData(el=>({...el,maxAge:parseInt(t.target.value)}))} className=" outline-none h-10 w-10 text-gray-600" >
+            {maxAge.map((el,index)=><option key={index}>{el}</option>)}
+          </select>
+         
+          </div>
+          
+          </div>
+          <div className="w-[70%]   flex  text-white font-medium font-popin h-[15%] ">
+          <div className="w-[40%] flex items-center">
+          <p className="font-bold">District</p>
+          </div>
+          <div className="w-[60%]  flex justify-end items-center">
+
+          <select  onChange={(t)=>setSearchData(el=>({...el,district:t.target.value}))} className="text-slate-700 outline-none h-8"  name="" id="">
+            <option value='' >District</option>
+            {districtsOfKerala.map((el,index)=>(<option  key={index}>{el}</option>))}
+          </select>
+          </div>
+          
+          </div>
+          <div className="w-[70%]  flex  text-white font-medium font-popin h-[15%] ">
+          <div className="w-[40%] flex items-center">
+          <p className="font-bold">Interest</p>
+          </div>
+          <div className="w-[60%]  flex justify-end items-center">
+          <select disabled={(searchData.interest?.length===3)?true:false}  onChange={(t)=>handleInterest(t)} className="text-slate-700 outline-none w-[75%] h-8"   name="" id="">
+            <option value=''  >Interest</option>
+            {interest?.map((el,index)=>(<option  key={index}>{el}</option>))}
+          </select>
+          </div>
+          </div>
+          <div className="w-[70%] p-3 h-[38%] bg-white grid grid-cols-2 ">
+            {searchData.interest.map((el,index)=>
+              <div key={index} className="sm:w-32 sm:text-base w-18 text-sm h-8 inline-flex justify-center items-center rounded-full boreder border">
+                <p>
+                {el}
+                </p>
+                <img src="/minus-button.png" onClick={()=>removeInterest(index)} className="ml-2 cursor-pointer" width={15} height={15} alt="" />
+                </div>
+            )}
+            
+          </div>
+        </div>
+        <div className="w-full h-[15%] flex justify-center items-center ">
+          <button onClick={()=>handleSearch()} className="outline-none border-2 border-white text-white h-12 font-bold rounded-lg w-44">SEARCH</button>
+        </div>
+      </div>
+      </div>
+      }
+      <Navbar active={active} openSearchModalFunc={openSearchModalFunc} resetProfilePage={resetProfilePage}/>
+      <div className="w-[100%] h-full mt-2  flex">
         <div className="sm:w-[20%] w-[40%] h-[40%] mt-11">
        
           <div className="w-full h-[30%]  flex justify-center items-center">
@@ -212,7 +407,7 @@ const handleNext=()=>{
                     <div className="w-12 h-12 bg-slate-500 rounded-full">
                       <img src={el.photo?el.photo:'/adminLogin_.png'} className="w-full h-full rounded-full" alt="" />
                     </div>
-                    <p className="font-popin px-6 py-2">{el.name} {el.secondName}</p>
+                    <p className="font-popin px-6 py-2">{el.name}</p>
                   </div>
                   <div className="w-[30%] h-full flex justify-center items-center">
                     <div className="w-5 h-5 mr-2">
@@ -230,7 +425,6 @@ const handleNext=()=>{
                 </div>
                   )
                 })}
-                
               </div>
             </div>
           </div>
@@ -276,11 +470,9 @@ const handleNext=()=>{
                       </div>
                       </div>
                       <div className="w-1/2 h-[99%] border-l border-gray-300 ">
-                      {el.interest.length?<p className="pl-2 text-gray-600 sm:text-base text-[11px]">Interest</p>:<></>}
+                      {el.interest?.length?<p className="pl-2 text-gray-600 sm:text-base text-[11px]">Interest</p>:<></>}
                       <ul className="sm:px-2 px-1 sm:pt-3 text-gray-600 grid grid-cols-2">
-                       {el.interest.map((element,index)=>( <li className="sm:pt-2 pt-1 sm:text-base text-[10px]" key={index}>{element}</li>))}
-                       
-                       
+                       {el.interest?.map((element,index)=>( <li className="sm:pt-2 pt-1 sm:text-base text-[10px]" key={index}>{element}</li>))}
                       </ul>
                       </div>
                     </div>

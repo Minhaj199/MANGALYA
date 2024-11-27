@@ -5,6 +5,7 @@ import { generateOTP } from "../../../interface/Utility/otpGenerator"
 import { UserRepository } from "../../../domain/interface/userRepository"
 import { OTPrespository } from "../../../domain/interface/OtpRepsitory"
 import { EmailService } from "../../emailService"
+import { UserWithID } from "../../../domain/entity/userEntity"
 
 
 interface FirstBatch{
@@ -53,13 +54,15 @@ export class AuthService{
             CreatedAt:new Date()
         }
         try {
-            const response =await this.userRepository.create(user)
+            const response:UserWithID =await this.userRepository.create(user)
+            
             if(response){
-                console.log(response)
                 
                 const key=process.env.JWT_SECRET_USER||'123'
                 const id=JSON.stringify(response._id)||'123'
-                const token=this.jwtGenerator.createToken({id:id,role:'user'},key,{expiresIn:'1 hour'})
+                const preferedGender=response.partnerData.gender
+                const gender=response.PersonalInfo.gender
+                const token=this.jwtGenerator.createToken({id:id,role:'user',preferedGender,gender},key,{expiresIn:'1 hour'})
                 return {user,token,id:response._id}
             }   
         } catch (error:any) {
@@ -76,9 +79,12 @@ export class AuthService{
             if(user){
                 const isMatch=await this.bcryptAdapter.compare(password,user.password)
                 if(isMatch){
+                    const preferedGender=user.partnerData.gender
+                     const gender=user.PersonalInfo.gender
+                    
                    const jwt_key:string=process.env.JWT_SECRET_USER||''
-                   const token=this.jwtGenerator.createToken({id:JSON.stringify(user._id) ,role:'user'},jwt_key,{expiresIn:'1 hour'})
-                   const photo=user.PersonalInfo.image||'' 
+                   const token=this.jwtGenerator.createToken({id:JSON.stringify(user._id) ,role:'user',preferedGender,gender},jwt_key,{expiresIn:'1 hour'})
+                   const photo=user.PersonalInfo.image||''
                    return {token,id:user._id,name:user.PersonalInfo.firstName,partner:user.partnerData.gender,photo:photo,gender:user.PersonalInfo.gender,subscriptionStatus:user.subscriber}
                 }else{
                     throw new Error('password not matched')
@@ -102,11 +108,11 @@ export class AuthService{
     }
     async otpVerification(email:string){
         try {
-           console.log('auth servie 107')
+          
             const otp=await generateOTP()
             const isCreated=await this.otpRepsistory.create({otp,email})
             await emailService.sendEmail(email,'Signup MANGALYA OTP',`Welcome to Mangalya. Your Signup OTP for Authentication is <h1>${otp}<h1/>`)
-           console.log('hii')
+
             return  true
             
         } catch (error) {

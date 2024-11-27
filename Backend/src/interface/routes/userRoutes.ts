@@ -16,13 +16,14 @@ router.post('/otpCreation',otpCreation)
 router.post('/otpValidation',otpValidation)
 router.patch('/changePassword',changePassword)
 router.get('/forgotEmail',forgotCheckValidate)
-router.patch('/manageReqRes',manageReqRes)
+router.patch('/manageReqRes',userJwtAuthenticator,manageReqRes)
 router.post('/forgotEmail',forgotCheckValidateSigunp)
 router.post('/uploadProfile',upload.single('file'),secondBatch)
 router.get('/fetchProfile',userJwtAuthenticator,fetechProfileData)
 router.get('/fetchPlanData',fetchPlanData)
-router.post('/purchasePlan',purchasePlan)
+router.post('/purchasePlan',userJwtAuthenticator,purchasePlan)
 router.get('/getInterest',fetchInterest)
+
 
 
 

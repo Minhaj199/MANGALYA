@@ -16,8 +16,8 @@ export const Landing = () => {
   
 
   return (
-    <div className="container">
-      <div className="w-screen h-svh bg-cover bg-center first_part">
+    <div>
+      <div className="w-[100%] h-svh bg-cover bg-center first_part">
         <div className={loginTogle !== "1" ? "hidden" : "w-full h-full"}>
           <div className="w-full h-20   flex justify-between items-center p-5 ">
             <div className=" sm:h-16 sm:w-18 h-12 w-18">
@@ -38,12 +38,12 @@ export const Landing = () => {
             </div>
             
           </div>
-          <div className="w-screen h-2/4 flex justify-center  items-end">
+          <div className="w-[100%] h-2/4 flex justify-center  items-end">
             <h1 className="font-italian relative text-xl  text-white sm:text-3xl">
               Connecting Souls: Find Your Other Half
             </h1>
           </div>
-          <div className="w-screen h-1/4  justify-center items-end flex">
+          <div className="w-[100%] h-1/4  justify-center items-end flex">
            
           </div>
         </div>
@@ -55,7 +55,7 @@ export const Landing = () => {
         {loginTogle === "4" ? <Forgot_second changeToggle={changeTogle} /> : ""}
         {loginTogle === "5" ? <Forgot_Final changeToggle={changeTogle} /> : ""}
       </div>
-      <div className="w-screen h-auto  sm:h-auto lg:h-svh ">
+      <div className="w-[100%] h-auto  sm:h-auto lg:h-svh ">
         
        <Search />
       </div>

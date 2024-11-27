@@ -4,7 +4,7 @@ import { request } from "../../utils/axiosUtils";
 import { useNavigate } from "react-router-dom";
 import { alertWithOk, handleAlert, promptSweet } from "../../utils/alert/sweeAlert";
 import { Loading } from "../Components/Loading/Loading";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { ReduxState } from "../../Redux/ReduxGlobal";
 
 
@@ -58,6 +58,8 @@ const PlanPurchase = () => {
     }
     
   }
+   const diptach=useDispatch()
+
  async function handlePurchase(planInfo:PlanData){
   setLoading(true)
     if(localStorage.getItem('userToken')){
@@ -69,7 +71,7 @@ const PlanPurchase = () => {
         
           if(response.status===true){
             setTimeout(() => {
-              localStorage.setItem('subscriptionStatus','subscribed')
+              diptach({type:'SET_DATA',payload:{...userData,subscriptionStatus:'subscribed'}})
               navigate('/')
               handleAlert('success','Plan purchased')
             }, 2000);

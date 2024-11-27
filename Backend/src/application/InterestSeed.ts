@@ -2,7 +2,7 @@
 import { InterestModel } from "../Infrastructure/db/signupInterest"; 
 
 const interestData={
-    sports:['Footbal','Cricket','Hockey'],
+    sports:['Football','Cricket','Hockey'],
     music:['Hollywood','Bollywood','Molywood'],
     food:['Biryani', 'Sadya']
 }

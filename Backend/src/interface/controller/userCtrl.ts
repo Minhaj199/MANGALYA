@@ -9,10 +9,10 @@ import { Types } from "mongoose";
 import { profileTypeFetch } from "../../application/types/userTypes";
 import { MongoPurchasedPlan } from "../../Infrastructure/repositories/mongoRepositories";
 import { InterestModel } from "../../Infrastructure/db/signupInterest";
+import { searchOnProfile } from "../../application/useCases/searchOnProfiles";
 
 
 const emailService=new EmailService()
-const paymentService=new PayPalService()
 const planRepo=new MongodbPlanRepository
 const userRepository=new MongoUserRepsitories()
 const otpRepsitory=new MongoOtpRepository()
@@ -23,7 +23,7 @@ const orderRepo=new MongoPurchasedPlan()
 export const signup=async (req:Request,res:Response)=>{
     try {
         const user=await authService.signupFirstBatch(req.body)
-        res.status(201).json({message:'sign up completed',user:user?.user,token:user?.token,id:user?.id}) 
+        res.status(201).json({message:'sign up completed',token:user?.token}) 
     } catch (error:any) {
         console.log(error)
         if(error){
@@ -76,19 +76,21 @@ export const login=async(req:Request,res:Response)=>{
     }
 }
 export const fetechProfileData=async(req:Request,res:Response)=>{
- 
-    const Gender=req.query.preferedGender||'female'
+    
     
     try {
         
-        if(req.query.id&&typeof req.query.id==='string'){
+        if(req.userID ){
         
-            const idd=new Types.ObjectId(req.query.id)
+            const idd=new Types.ObjectId(req.userID.slice(1,25))
           
+          
+          
+
                         let datas:{profile:profileTypeFetch,request:profileTypeFetch}[]=await UserModel.aggregate([{
                 $facet:{
-                    profile:[{$match:{$and:[{'PersonalInfo.gender':Gender},{'partnerData.gender':req.query.gender},{match:{$not:{$elemMatch:{_id:idd}}}}]}},{$project:{name:'$PersonalInfo.firstName',
-                        lookingFor:'$partnerData.gender',secondName:'$PersonalInfo.secondName',
+                    profile:[{$match:{$and:[{'PersonalInfo.gender':req.preferedGender},{'partnerData.gender':req.gender},{match:{$not:{$elemMatch:{_id:idd}}}}]}},{$project:{name:'$PersonalInfo.firstName',
+                    lookingFor:'$partnerData.gender',secondName:'$PersonalInfo.secondName',
                         state:'$PersonalInfo.state',gender:'$PersonalInfo.gender',
                         dateOfBirth:'$PersonalInfo.dateOfBirth',interest:'$PersonalInfo.interest',
                         photo:'$PersonalInfo.image',match:'$match'}},{$sort:{_id:-1}}],
@@ -101,9 +103,40 @@ export const fetechProfileData=async(req:Request,res:Response)=>{
                     photo:'$matchedUser.PersonalInfo.image'}},{$sort:{_id:-1}}]
                 }
             }])
-            let currntPlan=await UserModel.aggregate([{$match:{_id:new Types.ObjectId(req.query.id)}},{$project:{_id:0,CurrentPlan:1}}])
             
-            
+            let currntPlan=await UserModel.aggregate([{$match:{_id:idd}},{$project:{_id:0,CurrentPlan:1}}])
+            let interest:unknown[]=await InterestModel.aggregate([
+                {
+                    $project: {
+                      arrayFields: {
+                        $filter: {
+                          input: { $objectToArray: "$$ROOT" }, 
+                          as: "field",
+                          cond: { $isArray: "$$field.v" }, 
+                        },
+                      },
+                    },
+                  },
+                  {
+                    $project: {
+                      allInterests: {
+                        $reduce: {
+                          input: "$arrayFields",
+                          initialValue: [],
+                          in: { $concatArrays: ["$$value", "$$this.v"] }, 
+                        },
+                      },
+                    },
+                  },
+              ]);
+             let interestArray:{allInterests:string[]}[]=[]
+            if(interest?.length){
+             interestArray= interest as {allInterests:string[]}[]
+            }
+            if(!interestArray[0].allInterests){
+                throw new Error('Error on interest fetching')
+            }
+
             
             if(datas[0].profile){
 
@@ -117,14 +150,15 @@ export const fetechProfileData=async(req:Request,res:Response)=>{
                 })
             }
             
-            res.json({datas,currntPlan:currntPlan[0]?.CurrentPlan})
+            res.json({datas,currntPlan:currntPlan[0]?.CurrentPlan,interest:interestArray[0].allInterests})
         }else{
             throw new Error('id not found')
         }
             
        
         
-    } catch (error) {
+    } catch (error:any) {
+        res.json({message:error.message})
         console.log(error)
     }
 }
@@ -230,7 +264,7 @@ export const addMatch=async(req:Request,res:Response):Promise<void>=>{
    
     try {
         
-        const response=await userRepository.addMatch(req.body.userId,req.body.matchId)
+        const response=await userRepository.addMatch(req.userID?.slice(1,25),req.body.matchId)
          
         res.json(response) 
     } catch (error) {
@@ -240,7 +274,7 @@ export const addMatch=async(req:Request,res:Response):Promise<void>=>{
 export const  manageReqRes=async(req:Request,res:Response):Promise<void>=>{
    
     try {
-        const response=await userRepository.manageReqRes(req.body.id,req.body.userId,req.body.action)
+        const response=await userRepository.manageReqRes(req.body.id,req.userID?.slice(1,25),req.body.action)
         if(response){
 
             res.json({message:'changed'})
@@ -265,7 +299,8 @@ export const purchasePlan=async (req:Request,res:Response):Promise<void>=>{
     try {
     //     const response2=await paymentService.createOrder(String(250))
     //    console.log(response2)
-        const response=await  orderRepo.createOrder(req.body.id,req.body.planData)
+    
+        const response=await  orderRepo.createOrder(req.userID?.slice(1,25),req.body.planData)
         res.json({status:response})
     } catch (error:any) {
         console.log(error)

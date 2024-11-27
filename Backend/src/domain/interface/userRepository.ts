@@ -1,5 +1,5 @@
 import {User,UserWithID} from "../entity/userEntity";
-import { userForLanding } from "../../application/types/userTypes";
+import { profileTypeFetch, userForLanding } from "../../application/types/userTypes";
 
 export interface UserRepository{
     create(user:User):Promise<UserWithID>;
@@ -10,4 +10,5 @@ export interface UserRepository{
     addMatch(userId:string,matchedId:string,):Promise<boolean>
     manageReqRes(requesterId:string,userId:string,action:string):Promise<boolean>
     getUsers():Promise<userForLanding[]>
+    getSearch(data:string,gender:string,preferedGender:string):Promise<profileTypeFetch|[]>
 }

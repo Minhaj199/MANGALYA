@@ -4,9 +4,10 @@ import { JwtPayload } from 'jsonwebtoken'
 import { Types } from 'mongoose'
 
 export class JWTAdapter{
-    createToken(information:{id:string,role:string},key:string,option:{expiresIn:string}){
-      
-        return jwt.sign(information,key,option)
+    createToken(information:{id:string,role:string,preferedGender?:string,gender?:string},key:string,option:{expiresIn:string}){
+     
+        const {id,role,preferedGender='no parnter',gender='not available'} =information
+        return jwt.sign({id,role,preferedGender,gender},key,option)
     }
     verifyTock(token:string,from:string){
         try {
@@ -20,8 +21,8 @@ export class JWTAdapter{
             }
 
             
-        } catch (error) {
-            
+        } catch (error:any) {
+           throw new Error(error?.TokenExpiredError||'validation Faild') 
         }
     }
     
