@@ -365,6 +365,22 @@ export class MongoUserRepsitories implements UserRepository {
       throw new Error(error.message)
     }
   }
+  async findEmailByID(id: unknown): Promise<string> {
+    try {
+      
+      if(!id||typeof id!=='string'){
+        throw new Error('id not found')
+      }
+      const changedId=id as string
+      const email:any=await UserModel.findById(changedId,{_id:0,email:1})
+      if(email){
+        return email
+      }
+      throw new Error('email not found')
+    } catch (error:any) {
+      throw new Error(error.message||'error on email fetching')
+    }
+  }
 }
 export class MongoOtpRepository implements OTPrespository {
   async create(otpData: OtpEntity): Promise<OTPWithID> {

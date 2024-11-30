@@ -1,4 +1,4 @@
-import React, { ChangeEventHandler, useCallback, useDebugValue, useEffect, useState } from "react";
+import React, {  useEffect, useState } from "react";
 import { request } from "../../utils/axiosUtils";
 
 
@@ -8,11 +8,9 @@ import { alertWithOk, handleAlert,  simplePropt } from "../../utils/alert/sweeAl
 import { PlanData } from "../plan/Plan";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { StateProb } from "../../Redux/ReduxGlobal";
 import { ReduxState } from "../../Redux/ReduxGlobal";
 import { districtsOfKerala } from "../../App";
 
-import { getDateFromAge } from "../../utils/getDateFromAge";
 
 type profileType = { _id: string;interest:string[];photo:string;lookingFor:string; name: string; no: number,secondName:string,state
 :string,age:number,gender:string,dateOfBirth:Date|string
@@ -108,7 +106,7 @@ const handleMatch=async(id:string)=>{
     alertWithOk('Plan subscription','No valid plan',"info")
   }
 }
-  const [profils, setProfiles] = useState<profileType[]>();
+  const [profils, setProfiles] = useState<profileType[]>([]);
   const useData=useSelector((state:ReduxState)=>state.userData) 
   ////////pagination
  
@@ -140,13 +138,11 @@ const handleMatch=async(id:string)=>{
 
 /////////////pagination
 const [totalPage,setTotalPage]=useState(0)
-
 const itemPerPage=5
 const [currentPage,setCurrenPage]=useState(1)
-let  currentData=profils?.slice(
-  (currentPage-1)*itemPerPage,
-  currentPage*itemPerPage
-  )
+const [currentData,setCurrentData]=useState<profileType[]|undefined>([])
+
+
 
 //////////scroll pagination
 const handlePreviouse=()=>{
@@ -208,87 +204,86 @@ function handleInterest(e:React.ChangeEvent<HTMLSelectElement>){
       alertWithOk('Search Details','Please provide a valid age range',"warning")
       return
     }
-    
     const response: {datas:profileType[],currntPlan:PlanData,interest:string[]} = await request({
       url: `/user/fetchProfile`,
     })
-    
   const res:any = response.datas??{profile:[],request:[]} ;
     if(res[0]?.profile)  
     setProfiles(res[0].profile);
-    const DateAge:{minAgeDate:Date,maxAgeDate:Date}=getDateFromAge(searchData.minAge,searchData.maxAge)
-      
     if(searchData.district&&searchData.interest.length!==0){
-       
-      setProfiles(element=>element?.filter(el=>{
-        
-          return (DateAge.minAgeDate>=new Date (el.dateOfBirth)&&DateAge.maxAgeDate<=new Date (el.dateOfBirth)&&el.state===searchData.district&&el.state&&searchData.interest.every(interest=>el.interest.includes(interest)))
-        }))
-      }
-      else if(!searchData.district&&searchData.interest.length===0){
-         
-        
-        setProfiles(element=>element?.filter(el=>{
-
-          return (DateAge.minAgeDate>=new Date (el.dateOfBirth)&&DateAge.maxAgeDate<=new Date (el.dateOfBirth))
-        }))
-
-        
+      const profile=profils.filter(el=>{
+        return (searchData.minAge<=el.age&&searchData.maxAge>=el.age&&el.state===searchData.district&&el.state&&searchData.interest.every(interest=>el.interest.includes(interest)))
+     })
+     if(!profile.length){
+      alertWithOk('search result','no result found',"warning")
+      return
+     }
+     setProfiles(profile)  
+      
+    }
+    else if(!searchData.district&&searchData.interest.length===0){
+      
+        const profile=profils.filter(el=>{
+              return (searchData.minAge<=el.age&&searchData.maxAge>=el.age)
+           })
+           if(!profile.length){
+            alertWithOk('search result','no result found',"warning")
+            return
+           }
+           setProfiles(profile)  
+      
+            
       }else if(searchData.district){
-          
-        setProfiles(element=>element?.filter(el=>{
-          return (DateAge.minAgeDate>=new Date (el.dateOfBirth)&&DateAge.maxAgeDate<=new Date (el.dateOfBirth)&&searchData.district===el.state)
-        }))
+        const profile=profils.filter(el=>{
+           return (searchData.minAge<=el.age&&searchData.maxAge>=el.age&&searchData.district===el.state)
+        })     
+        if(!profile.length){
+          alertWithOk('search result','no result found',"warning")
+          return
+         }
+         setProfiles(profile)
+        
         
       }else if(searchData.interest.length!==0){
-          
-        setProfiles(element=>element?.filter(el=>{
-          return (DateAge.minAgeDate>=new Date (el.dateOfBirth)&&DateAge.maxAgeDate<=new Date (el.dateOfBirth)&&searchData.interest.every(interest=>el.interest.includes(interest)))
-        }))
+        const profile=profils.filter(el=>{
+          return (searchData.minAge<=el.age&&searchData.maxAge>=el.age&&searchData.interest.every(interest=>el.interest.includes(interest)))
+        })   
+        if(!profile.length){
+          alertWithOk('search result','no result found',"warning")
+          return
+         }
+         setProfiles(profile)
+        
       }
       
      
       setSearchData({minAge:18,maxAge:60,district:'',interest:[]})
       setOpenSearch(false)
     }
-    useEffect(()=>{
-      
-      if(profils?.length&&profils.length>1){
-        setTotalPage(Math.ceil(  profils.length?profils?.length/5:1))
-    }
-      
-    
-    if(currentData?.length===0||profils?.length===0){
-        alertWithOk('Search Data','No data found',"info")
-       
-        // async function fetch() { 
-        //   const response: {datas:profileType[],currntPlan:PlanData,interest:string[]} = await request({
-        //     url: `/user/fetchProfile`,
-        //   })
-        //   setInterest(response.interest)
-          
-        //   const res:any = response.datas??{profile:[],request:[]} ;
-         
-        //   if(res[0]?.profile)
-          
-        //   setProfiles(res[0].profile);
-        // if(res[0]?.request)
-          
-        //   setRequest(res[0]?.request)
-        // if(response.currntPlan&&typeof response.currntPlan==='object'&&Object.keys(response.currntPlan).length){
-        //   setPlanData(response.currntPlan)
-        // }
-        // }   
-        // fetch();
-      }else{
-        // handleAlert("info",`${profils?.length} profile for you`)
-        // console.log(profils)
-        // console.log(searchData)
-        // console.log(currentData)
-        // console.log(currentPage)
-        // console.log(totalPage)
+  //   useEffect(() => {
+  //     setCurrenPage(1);
+  // }, [profils]);
+  
+    useEffect(() => {
+      if (profils?.length) {
+          const total = Math.ceil(profils.length / itemPerPage);
+          setTotalPage(total);
+          if (currentPage > total) {
+              setCurrenPage(total);
+          } else {
+              const sliceData = profils.slice(
+                  (currentPage - 1) * itemPerPage,
+                  currentPage * itemPerPage
+              );
+              setCurrentData(sliceData);
+          }
+      } else {
+        console.log(typeof profils[0]?.age)
+          setTotalPage(0);
+          setCurrentData([]); 
       }
-    },[profils])
+  }, [profils, currentPage, itemPerPage]);
+  
   return (
     <div className="h-[1800px] w-[100%] bg-gray-400 ">
       {openSearch&&

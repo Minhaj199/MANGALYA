@@ -10,6 +10,9 @@ import { profileTypeFetch } from "../../application/types/userTypes";
 import { MongoPurchasedPlan } from "../../Infrastructure/repositories/mongoRepositories";
 import { InterestModel } from "../../Infrastructure/db/signupInterest";
 import { searchOnProfile } from "../../application/useCases/searchOnProfiles";
+import { doStripePayment } from "../../application/paymentSerivice";
+import { SubscriptionPlan } from "../../domain/entity/PlanEntity";
+import { Token } from "@stripe/stripe-js";
 
 
 const emailService=new EmailService()
@@ -297,11 +300,18 @@ export const fetchPlanData=async (req:Request,res:Response):Promise<void>=>{
 }
 export const purchasePlan=async (req:Request,res:Response):Promise<void>=>{
     try {
-    //     const response2=await paymentService.createOrder(String(250))
-    //    console.log(response2)
-    
-        const response=await  orderRepo.createOrder(req.userID?.slice(1,25),req.body.planData)
-        res.json({status:response})
+       
+       
+        641385
+       
+        const result=await doStripePayment(req.body.planData,req.body?.token,req.body?.token.email)
+
+        if(result==='succeeded'){
+            const response=await  orderRepo.createOrder(req.userID?.slice(1,25),req.body.planData)
+            res.json({status:response})
+        }else{
+            throw new Error('Error on payment')
+        }
     } catch (error:any) {
         console.log(error)
         res.json({message:error.message})
@@ -331,5 +341,23 @@ export const fetchInterest=async (req:Request,res:Response):Promise<void>=>{
         res.json({message:error.message||'Error on message interest getting'})
     }
 }
+// export const subscriptionPayment=async (req:Request,res:Response):Promise<void>=>{
+//     console.log('i am at subscription route')
+    
+//     try {
+//         const plan:SubscriptionPlan={
+//             amount:'200',
+//             connect:'100',
+//             duration:6,
+//             features:[],
+//             name:'sample'
+//         }
+     
+//       console.log(result)
+//       res.json({result})
+//     } catch (error:any) {
+//         res.status(500).json({message:error.message})
+//     }
+// }
 
 

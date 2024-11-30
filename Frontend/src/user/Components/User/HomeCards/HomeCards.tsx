@@ -7,7 +7,6 @@ export const Search = () => {
   useEffect(()=>{
     const fetchNewAdded=async()=>{
       const data:newAddedData[]=await request({url:'/user/fetchforLanding'})
-      console.log(data)
       setFetechedData(data)
     }
     fetchNewAdded()

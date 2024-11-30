@@ -1,11 +1,13 @@
-import  { useEffect, useState } from "react";
+import  React, { useEffect, useState } from "react";
 import "./Plan.css";
 import { request } from "../../utils/axiosUtils";
 import { useNavigate } from "react-router-dom";
 import { alertWithOk, handleAlert, promptSweet } from "../../utils/alert/sweeAlert";
+import StripeCheckout, { Token } from 'react-stripe-checkout'
 import { Loading } from "../Components/Loading/Loading";
 import { useDispatch, useSelector } from "react-redux";
 import { ReduxState } from "../../Redux/ReduxGlobal";
+
 
 
 export type PlanData={
@@ -18,21 +20,13 @@ export type PlanData={
   _id:string
 }
 const PlanPurchase = () => {
-  // const [exchangeRate,setExchangeRate]=useState(80)
-  // useEffect(()=>{
-  //   async function findExchange(){
-  //     const  rate=await fetchINRtoUSDRate()
-  //     alert(rate)
-  //     setExchangeRate(rate)
-  //   }
-  //   findExchange()
-  // },[])
+  
   
   
   
   const navigate=useNavigate()
   const [loading,setLoading]=useState(false)
-  const [selected,setSelected]=useState({_id:'',amount:0,duration:0,features:[''],connect:0,name:''})
+ 
   const [planData,setPlanData]=useState<PlanData[]>([{_id:'',amount:0,duration:0,features:[''],connect:0,name:''}])
  
  
@@ -49,7 +43,7 @@ const PlanPurchase = () => {
   const userData=useSelector((state:ReduxState)=>state.userData) 
 
   ////handing skiping
-  console.log(userData)
+  
   function handleSkip(){
     if(localStorage.getItem('userToken')){
       navigate('/loginLanding')
@@ -60,14 +54,14 @@ const PlanPurchase = () => {
   }
    const diptach=useDispatch()
 
- async function handlePurchase(planInfo:PlanData){
+ async function handlePurchase(token:Token,planInfo:PlanData){
   setLoading(true)
     if(localStorage.getItem('userToken')){
-      await promptSweet(Purchase,`Are you sure to subscribe ${planInfo.name} worth ₹${planInfo.amount} ?`,`${planInfo.name} successfully Placed`,handleCancelLoading )
+      
       async function Purchase(){
         
         try {
-          const response:{status:boolean,message:string}=await request({url:'/user/purchasePlan',method:'post',data:{id:localStorage.getItem('id'),planData:planInfo}})
+          const response:{status:boolean,message:string}=await request({url:'/user/purchasePlan',method:'post',data:{planData:planInfo,token}})
         
           if(response.status===true){
             setTimeout(() => {
@@ -84,15 +78,13 @@ const PlanPurchase = () => {
           alertWithOk('Plan Purchase',error.message||'Error on purchase',"warning")
         }
       }
-     async function handleCancelLoading(){
-
-        setLoading(false)
-      }
+     Purchase()
     }else{
       setLoading(false)
       alertWithOk('Subscription Plan','You have to login first',"info")
     }
   }
+ 
   return (
       <div className="h-svh w-screen flex items-center flex-col bg-blue-400 ">
        
@@ -132,10 +124,13 @@ const PlanPurchase = () => {
                       </p>
                     ))}
                   </div>
-                  <div className="w-full h-20 flex justify-center items-center">
-                    <button id="pay" onClick={() => handlePurchase(el)} className="border px-10 py-1 rounded-xl text-white bg-dark-blue">
+                  <div  className="w-full h-20 flex justify-center items-center">
+                  <StripeCheckout   stripeKey={import.meta.env.VITE_STRIPE_SECRET_KEY}  token={(token)=>handlePurchase(token,el)} currency="INR" name={el.name} amount={el.amount*100}>
+      
+                    <button id="pay" className="border px-10 py-1 rounded-xl text-white bg-dark-blue">
                       BUY
                     </button>
+                  </StripeCheckout>
                    
                    
                   </div>

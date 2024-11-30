@@ -7,7 +7,7 @@ import { BrowserRouter } from 'react-router-dom'
 import {Provider} from 'react-redux' 
 import { PersistGate } from 'redux-persist/integration/react'
 import store,{persistor} from './Redux/ReduxGlobal.ts'
-
+import { Sample } from './Sample.tsx'
 
 
 

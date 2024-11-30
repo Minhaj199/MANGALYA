@@ -101,7 +101,7 @@ export const Navbar = ({ openSearchModalFunc,resetProfilePage }: { active: strin
           </div>
         </div>
         <div className="sm:w-[40%] w-[70%]  justify-end mr-1 flex items-center flex-row">
-          {userData.subscriptionStatus&&userData.subscriptionStatus!=='subscribed'&&<button type="button" onClick={()=>navigate('/PlanDetails')} className="mr-10 text-white bg-gradient-to-br from-pink-500 to-orange-400 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-pink-200 dark:focus:ring-pink-800 font-medium rounded-lg text-sm px-5 py-2.5 my-2 text-center me-2 mb-2">PREMIUM</button>}
+          {userData.subscriptionStatus&&userData.subscriptionStatus!==''&&userData.subscriptionStatus!=='subscribed'&&<button type="button" onClick={()=>navigate('/PlanDetails')} className="mr-10 text-white bg-gradient-to-br from-pink-500 to-orange-400 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-pink-200 dark:focus:ring-pink-800 font-medium rounded-lg text-sm px-5 py-2.5 my-2 text-center me-2 mb-2">PREMIUM</button>}
           
           <p
             className="font-aborato font-extrabold mr-1 text-xs text-white cursor-pointer sm:mb-0"

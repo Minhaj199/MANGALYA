@@ -1,17 +1,22 @@
 import "./Landing.css";
 
 import { Footer } from "../Components/User/Footer/Footer";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Forgot_first } from "../Components/User/Forgot/Forgot_first";
 import { Forgot_second } from "../Components/User/Forgot/Forgot_second copy"; 
 import { Forgot_Final } from "../Components/User/Forgot/Forgot_final";
 import { Login } from "../Components/User/Login/Login";
 
 import { Search } from "../Components/User/HomeCards/HomeCards";
+import { useDispatch } from "react-redux";
 
 export const Landing = () => {
   const [loginTogle, changeTogle] = useState<string>("1");
-  
+  const dispatch=useDispatch()
+  useEffect(()=>{
+    dispatch({type:'CLEAR_DATA'})
+    localStorage.removeItem('userToken')
+  },[])
   
   
 
