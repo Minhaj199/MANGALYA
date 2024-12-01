@@ -53,7 +53,7 @@ export const Navbar = ({ openSearchModalFunc,resetProfilePage }: { active: strin
   }
   return (
     <>
-      <nav className="w-full fixed top-0 left-0 right-0 h-16 flex  bg-dark-blue overflow-hidden">
+      <nav className="w-full fixed top-0 z-[1] left-0 right-0 h-16 flex  bg-dark-blue overflow-hidden">
         <div className="sm:w-[60%] w-[30%] flex">
           <div className="sm:hidden w-20 h-full flex justify-center items-center">
             {/* Toggle icon with onClick handler */}
