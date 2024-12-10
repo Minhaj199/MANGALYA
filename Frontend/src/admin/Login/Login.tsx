@@ -49,7 +49,7 @@ interface LoginType{
               handleAlert("success",'welcome admin')
               localStorage.setItem('adminToken',response.token)
              
-              navigate('/admin/manageUser')
+              navigate('/admin/Dash')
             }else{
               alert('validation faild try again')
             }

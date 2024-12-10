@@ -9,6 +9,7 @@ import { request } from "../../utils/axiosUtils";
 import { Loading } from "../Components/Loading/Loading";
 import { PhotAndInt } from "./PhotoAndInterest.tsx/PhotAndInt";
 import { handleAlert } from "../../utils/alert/sweeAlert";
+import { districtsOfKerala } from "../../App";
 
 
 

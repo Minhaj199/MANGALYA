@@ -12,12 +12,14 @@ import { ProtectRouteAdmin,PlanRouteUser ,UnProtectRouteUser,UnProtectRouteAdmin
 import { AddPlan  } from "./admin/pages/AddPlan/AddPlan";
 import { SubscriberTable } from "./admin/pages/Subscribers/Table";
 import PlanPurchase from "./user/plan/Plan"; 
+import { UserProfile } from "./user/userProfile/userProfile";
 
 
 
 
 
 import { Credentials } from "./user/Signup/Credentials";
+import { Dash } from "./admin/pages/Dash/Dash";
 
 export const districtsOfKerala = [
   "Alappuzha",
@@ -57,16 +59,15 @@ const App: React.FC = () => {
   return (
     <Routes>
      <Route element={<UnProtectRouteAdmin/>}>
-
       <Route path="/login" element={<Login />} />
      </Route>
       <Route  element={<ProtectRouteAdmin />} >
-      
       <Route path="/admin" element={<Layout />}>
         <Route path="manageUser" element={<UserTable />} />
         <Route path="addPlan" element={<AddPlan/>} />
         <Route path="Plan" element={<PlanDetails />} />
         <Route path="subscriber" element={<SubscriberTable/>} />
+        <Route path="Dash" element={<Dash/>} />
       </Route>
       </Route>
         <Route path="/PlanDetails" element={<PlanRouteUser/>}>
@@ -80,6 +81,7 @@ const App: React.FC = () => {
       </Route>
       <Route element={<ProtectRouteUser/>}>
       <Route path="/loginLanding" element={<LoginLanding active={'profile'}/>} />
+      <Route path="/userProfile" element={<UserProfile/>} />
       </Route>
     </Routes>
   );

@@ -13,6 +13,13 @@ import { searchOnProfile } from "../../application/useCases/searchOnProfiles";
 import { doStripePayment } from "../../application/paymentSerivice";
 import { SubscriptionPlan } from "../../domain/entity/PlanEntity";
 import { Token } from "@stripe/stripe-js";
+import { getUserProfileUseCase } from "../../application/useCases/getUserProfile";
+import { otpProfile } from "../../application/useCases/otpProfile";
+import { Validate } from "../../application/useCases/validateOTP";
+import { changePasswordProfile } from "../../application/useCases/resetPassoword";
+import { upload } from "../Utility/multer";
+import { uploadImage } from "../../application/useCases/uploadImage";
+import { updateData } from "../../application/useCases/updateData";
 
 
 const emailService=new EmailService()
@@ -28,7 +35,7 @@ export const signup=async (req:Request,res:Response)=>{
         const user=await authService.signupFirstBatch(req.body)
         res.status(201).json({message:'sign up completed',token:user?.token}) 
     } catch (error:any) {
-        console.log(error)
+        
         if(error){
          if(error.code===11000){
             res.json({message:'Email already exist',status:false})
@@ -69,12 +76,17 @@ export const otpCreation=async(req:Request,res:Response)=>{
     
 }
 export const login=async(req:Request,res:Response)=>{
+    
     const {email,password}=req.body
     try {
         const response=await authService.login(email,password)
         const {token,name,photo,partner,gender,id,subscriptionStatus}=response
+            
         res.json({message:'password matched',token,name,photo,partner,gender,id,subscriptionStatus})
+   
     } catch (error:any) {
+      
+        
         res.json({message:error.message})
     }
 }
@@ -162,7 +174,7 @@ export const fetechProfileData=async(req:Request,res:Response)=>{
         
     } catch (error:any) {
         res.json({message:error.message})
-        console.log(error)
+       
     }
 }
 export const forgotCheckValidate=async(req:Request,res:Response):Promise<void>=>{
@@ -302,7 +314,7 @@ export const purchasePlan=async (req:Request,res:Response):Promise<void>=>{
     try {
        
        
-        641385
+        
        
         const result=await doStripePayment(req.body.planData,req.body?.token,req.body?.token.email)
 
@@ -313,7 +325,7 @@ export const purchasePlan=async (req:Request,res:Response):Promise<void>=>{
             throw new Error('Error on payment')
         }
     } catch (error:any) {
-        console.log(error)
+     
         res.json({message:error.message})
     }
 }
@@ -360,4 +372,65 @@ export const fetchInterest=async (req:Request,res:Response):Promise<void>=>{
 //     }
 // }
 
+export const getUserProfile=async(req:Request,res:Response)=>{
+    
+    try {
+        const user=await getUserProfileUseCase(req.userID)
+        res.json({user})
+    } catch (error:any) {
+        res.json({message:error.message})
+    }
+}
+export const otpForResetPassword=async(req:Request,res:Response)=>{
+    
+    const sentOpt= await otpProfile(req.userID?.slice(1,25))
+}
+
+export const otpForUserResetPassword=async(req:Request,res:Response)=>{
+    try {
+        
+        const validate=await Validate(req.userID?.slice(1,25),JSON.stringify(req.body.OTP))
+        res.json({status:validate})
+    } catch (error:any) {
+        res.json({message:error.message})
+    }
+    
+}
+export const resetPassword=async(req:Request,res:Response)=>{
+    try {
+        const { password ,confirmPassword }=req.body
+        if(password===confirmPassword){
+            const response=await changePasswordProfile(password,req.userID?.slice(1,25))
+           
+            res.json({status:response})
+        }else{
+            throw new Error('Password not match')
+        }
+        
+    } catch (error:any) {
+        res.status(500).json({message:error.message})
+    }
+}
+export const editProfile=async(req:Request,res:Response)=>{
+   
+   
+    try {
+        if(req.file){    
+            const response=await uploadImage(req.file,req.userID?.slice(1,25))
+            console.log(response)
+            const updateDetail=await updateData(JSON.parse (req.body.data),req.userID)
+                res.json({status:true, newData:updateDetail})
+        }else{
+            const updateDetail=await updateData(JSON.parse (req.body.data),req.userID?.slice(1,25))
+            if(typeof updateDetail==='string'){
+                res.json({newData:updateDetail})
+            }else{
+                res.json({newData:updateDetail})
+            }
+        }
+    } catch (error:any) {
+        console.log(error)
+        res.json({message:error.messaeg||'error on update'})
+    }
+}
 

@@ -51,6 +51,7 @@ export const Login:React.FC<userLoginProp> = ({changeToggle,loginTogle}) => {
     
     if(response.message&&response.message==='password not matched'){
       handleAlert("error",response.message  )
+      return
     }
     setWarnning(prev=>({...prev,password:null,email:null}))
     if(response?.message&&response.name){
@@ -97,8 +98,14 @@ export const Login:React.FC<userLoginProp> = ({changeToggle,loginTogle}) => {
       
        
       }
+      return
+    }
+    if(response.message){
+      handleAlert("error",response.message  )
+      return
     }
     }
+  
   } catch (error) {
    }
     

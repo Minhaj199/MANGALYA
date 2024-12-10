@@ -28,7 +28,7 @@ export class EmailService implements IEmailService{
 
         try {
           const result=  await this.transporter.sendMail(mailOptions);
-           console.log(result)
+        
         } catch (error) {
             console.error('Error sending email:', error);
             throw new Error('Failed to send email');

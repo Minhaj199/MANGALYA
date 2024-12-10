@@ -70,7 +70,7 @@ export class AuthService{
         }
     }
     async login (email:string,password:string){
-        
+      
         try {
             const user=await this.userRepository.findByEmail(email)   
             if(!user){
@@ -136,9 +136,7 @@ export class AuthService{
     }
     async otpValidation(otp:string,email:string){
         try {
-
           const response=await this.otpRepsistory.otpValidation(otp,email)
-        
           if(response){
             return true
           }else{
@@ -153,11 +151,10 @@ export class AuthService{
             const hashed=await this.bcryptAdapter.hash(password)
            
             const response=await UserModel.updateOne({email:email},{password:hashed})
-           
-            if(response){
+                       if(response){
                 return true
             }else{
-                throw new Error('error on password creation')
+                throw new Error('error on password reseting')
             }
             
         } catch (error) {

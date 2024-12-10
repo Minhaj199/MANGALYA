@@ -108,7 +108,6 @@ export const PhotAndInt:React.FC<PhotAndIntInterface> = ({probSetter}) => {
         <div className='sm:h-32 sm:w-32 h-16 w-16 border border-theme-blue rounded-full bg-gray-950 absolute' onClick={handleClick}>
             <input type="file" ref={fileInputRef} onChange={handleFile} className='hidden' accept='image/*' />
             <img className='w-full h-full rounded-full' src={image?image:"/photoUpload.png"} alt="" />
-            
             {!image&&<img className='sm:w-7 sm:left-24 sm:h-7 relative bottom-5 w-4 h-4' src="/photo-camera-interface-symbol-for-button.png" alt="" />}
             {image&&<img className='sm:w-7 sm:left-24 sm:h-7 relative bottom-5 w-4 h-4' src="/deleteRemove.png" onClick={()=>(setImage(null),resetPhoto())} alt="" />}
         </div>

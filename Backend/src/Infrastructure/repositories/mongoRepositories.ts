@@ -19,6 +19,7 @@ import { profileTypeFetch, userForLanding } from "../../application/types/userTy
 import { getAge } from "../../interface/Utility/ageCalculator";
 import { GetExpiryPlan } from "../../interface/Utility/getExpiryDateOfPlan";
 import { getDateFromAge } from "../../interface/Utility/getDateFromAge";
+import { updateData } from "../../application/useCases/updateData";
 
 
 export class MongoUserRepsitories implements UserRepository {
@@ -37,17 +38,20 @@ export class MongoUserRepsitories implements UserRepository {
     return user as UserWithID | null;
   }
   async addPhoto(photo: string, email: string): Promise<boolean> {
+    
     try {
       const result = await UserModel.updateOne(
         { email },
         { $set: { "PersonalInfo.image": photo } }
       );
+      
       if (result) {
         return true;
       } else {
         return false;
       }
     } catch (error: any) {
+      console.log('here at 54')
       return error;
     }
   }
@@ -381,6 +385,122 @@ export class MongoUserRepsitories implements UserRepository {
       throw new Error(error.message||'error on email fetching')
     }
   }
+  async getUserProfile(id: string): Promise<UserWithID> {
+    try {
+      const user:unknown=await UserModel.findOne({_id:id.slice(1,25)}).lean()
+      if(user){
+        return user as UserWithID 
+      }else{
+        throw new Error('user not found')
+      }
+    } catch (error:any) {
+      console.log(error)
+      throw new Error(error.message||'error on profile fetching')
+    }
+  }
+  async update(user: updateData,id:string): Promise<UserWithID> {
+    console.log(id.length+' i am')
+    try {
+      const response:unknown=await UserModel.findOneAndUpdate({_id:id},{$set:user}, { new: true })   
+      console.log(response)
+      if(response){
+        return response as UserWithID
+      }else{
+        throw new Error('not updated')
+      }  
+    } catch (error:any) {
+      throw new Error(error.message||'error on update')
+    }
+  }
+  async getRevenue(): Promise<{ month: number[], revenue:number[] }> {
+    const monthlyRevenue = await planOrderModel.aggregate([
+      {
+        $group: {
+          _id: {
+            year: { $year: "$created" }, 
+            month: { $month: "$created" }
+          },
+          totalRevenue: { $sum: "$amount" } 
+        }
+      },
+      {
+        $sort: { "_id.year": 1, "_id.month": 1 } 
+      }
+    ]);
+    const month:number[]=[]
+    const revenue:number[]=[]
+    if(monthlyRevenue){
+      monthlyRevenue?.forEach(element => {
+        month.push(element?._id.month)
+        revenue.push(element?.totalRevenue)
+      });
+    }
+    console.log(month)
+    console.log(revenue)
+    return { month: month, revenue:revenue }
+  }
+  async getSubcriberCount(): Promise<number[]> {
+    try {
+      const data:any=await UserModel.aggregate([{$group:{_id:'$subscriber',count:{$sum:1}}}])
+      let ans={subscriber:0,notSubscriber:0}
+      if(data?.length){
+        data.forEach((el: { _id: string, count: number })=>{
+          if(el._id==='subscribed'||el._id==='connection finished'){
+            ans.subscriber+=el.count
+          }else{
+            ans.notSubscriber+=el.count
+          }
+        })
+      }
+      const response=[]
+      response[0]=parseFloat (((ans.subscriber/(ans.notSubscriber+ans.subscriber))*100).toFixed(2))
+      response[1]= parseFloat(((ans.notSubscriber/(ans.notSubscriber+ans.subscriber))*100).toFixed(2))
+      console.log(response)
+      return response
+    } catch (error:any) {
+      throw new Error(error.message)
+    }
+   
+  }
+  async getDashCount(): Promise<{ MonthlyRevenue: number; SubscriberCount: number; UserCount: number; }> {
+    const data: any = await UserModel.aggregate([
+      {
+        $facet: {
+          totalCount: [{ $count: "totalCount" }], 
+          subscriberGroups: [
+            {
+              $group: {
+                _id: "$subscriber", 
+                count: { $sum: 1 } 
+              }
+            }
+          ]
+        }
+      }
+    ])
+    const revenue:any=await planOrderModel.aggregate([
+      {
+        $group: {
+          _id: null, 
+          totalAmount: { $sum: "$amount" } 
+        }
+      }
+    ])
+    console.log(revenue)
+    let ans={subscriber:0,notSubscriber:0}
+    if(data?.length){
+      data[0].subscriberGroups.forEach((el: { _id: string, count: number })=>{
+        if(el._id==='subscribed'||el._id==='connection finished'){
+          ans.subscriber+=el.count
+        }else{
+          ans.notSubscriber+=el.count
+        }
+      })
+    }
+    // [ { _id: null, totalAmount: 26840 } ]
+   
+    return { MonthlyRevenue:revenue[0].totalAmount, SubscriberCount: ans.subscriber, UserCount:data[0].totalCount[0].totalCount }
+  }
 }
 export class MongoOtpRepository implements OTPrespository {
   async create(otpData: OtpEntity): Promise<OTPWithID> {
@@ -392,7 +512,7 @@ export class MongoOtpRepository implements OTPrespository {
     try {
       const otpDoc = await OtpModel.aggregate([
         { $match: { email: email } },
-        { $sort: { _id: -1 } },
+        { $sort: { _id: -1 }},
         { $limit: 1 },
       ]);
       const otpParsed: number = parseInt(otp);

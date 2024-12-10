@@ -29,8 +29,8 @@ export const  credential_validation=async(formData:CredentialInterface,setWarnni
                 if(monthdiff<0||(monthdiff===0&&dayDiff<0)){
                     --age
                 }
-                if(age<18||age>100){
-                    setWarnning((el)=>({...el,['DATE OF BIRTH']:'Age must be between 18-100'}))
+                if(age<18||age>60){
+                    setWarnning((el)=>({...el,['DATE OF BIRTH']:'Age must be between 18-60'}))
                     return false
                 }
             }else{

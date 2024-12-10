@@ -33,11 +33,7 @@ export const Navbar = ({ openSearchModalFunc,resetProfilePage }: { active: strin
   function handleToggleMenu(){
     toggleMenu()
     if(openSearchModalFunc)
-      
-
       openSearchModalFunc()
-    
-
   }
   function handleSearch(){
     if(openSearchModalFunc){
@@ -51,6 +47,7 @@ export const Navbar = ({ openSearchModalFunc,resetProfilePage }: { active: strin
       setActivePage("profile")
     }
   }
+  
   return (
     <>
       <nav className="w-full fixed top-0 z-[1] left-0 right-0 h-16 flex  bg-dark-blue overflow-hidden">
@@ -110,9 +107,9 @@ export const Navbar = ({ openSearchModalFunc,resetProfilePage }: { active: strin
             LOG OUT
           </p>
           <div className="sm:w-12 sm:h-12 w-10 h-10 rounded-[50%]">
-            <img
+            <img onClick={()=>navigate('/userProfile')}
               src={image ? image : "/profile.png"}
-              className="rounded-full w-full h-full"
+              className="cursor-pointer rounded-full w-full h-full"
               alt="Profile"
             />
           </div>

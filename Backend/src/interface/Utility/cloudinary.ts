@@ -10,19 +10,19 @@ cloudinary.v2.config({
 
 
 export class Cloudinary{
-   async upload (path:string){
-    
+   async upload (path:string){ 
     try {
         const result=await cloudinary.v2.uploader.upload(path,{
             folder:'mangalya'
         })
-        
+        console.log(result)
         fs.unlink(path,()=>{})
         if(result.secure_url){
             return result.secure_url
         }
-    } catch (error) {
-        
+    } catch (error:any) {
+        console.log(error)
+        throw new Error(error.message||'error on cloudinary')
     }
         
     }

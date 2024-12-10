@@ -15,6 +15,11 @@ import {
   purchasePlan,
   fetchDataForProfile,
   fetchInterest,
+  getUserProfile,
+  otpForResetPassword,
+  otpForUserResetPassword,
+  resetPassword,
+  editProfile
 } from "../controller/userCtrl";
 import { userJwtAuthenticator } from "../middlewares/jwtUser";
 import { upload } from "../Utility/multer";
@@ -35,6 +40,12 @@ router.get("/fetchProfile", userJwtAuthenticator, fetechProfileData);
 router.get("/fetchPlanData", fetchPlanData);
 router.post("/purchasePlan", userJwtAuthenticator, purchasePlan);
 router.get("/getInterest", fetchInterest);
-// router.post("/payment", subscriptionPayment);
+router.get('/getUserProfile',userJwtAuthenticator,getUserProfile )
+router.post('/otpRstPsword',userJwtAuthenticator,otpForResetPassword)
+router.post('/validateUserOTP',userJwtAuthenticator,otpForUserResetPassword)
+///////////from userPassword///////////////////
+router.patch('/resetPassword',userJwtAuthenticator,resetPassword)
+router.put('/editProfile',userJwtAuthenticator,upload.single('file'),editProfile)
+  
 
 export default router;

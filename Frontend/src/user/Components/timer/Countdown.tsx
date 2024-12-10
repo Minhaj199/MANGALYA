@@ -3,10 +3,11 @@ import { useTimer } from 'react-timer-hook'
 import { SignupContext } from '../../../GlobalContext/signupData'
 import { useNavigate } from 'react-router-dom'
 import { request } from '../../../utils/axiosUtils'
-interface TimerProbs{
+ export interface TimerProbs{
     expiryTimeStamp:Date,
     from:string
     email?:string
+    status?:boolean
 }
 export const Countdown:React.FC<TimerProbs> = ({expiryTimeStamp,from,email}) => {
 
@@ -43,16 +44,26 @@ export const Countdown:React.FC<TimerProbs> = ({expiryTimeStamp,from,email}) => 
                 }catch(error){
                     
                 }
-            }else{
-                navigate('/signup')
+            }
+            else{
+                // navigate('/signup')
             }
         }
+    }
+    function resetProfileOtp(){
+        
+        alert('on top reset')
     }
    
     const singup=(<p className="font-sans font-semibold cursor-pointer text-white mt-1"><span>{minutes}:{seconds}</span><span className="pl-14" onClick={()=>handleRestart('signup')}>Resent</span></p>)
     const forgot=<p className='text-white font-aborato '>{minutes}:{seconds} <span className='pl-24 cursor-pointer' onClick={()=>handleRestart('forgot')}>RESET</span></p>
+    const userProfile=<>
+    <span>{minutes}:{seconds}</span>
+    <span onClick={resetProfileOtp}>RESET</span>
+    </>
     return (
-    (from==='signup')?singup:forgot
+    (from==='signup')?singup:(from==='userProfile')?userProfile:forgot
     
   )
 }
+

@@ -13,7 +13,9 @@ export default {
         Lumanosimo:['Lumanosimo','sans-serif'],
         roboto:['Roboto','sans-serif'],
         popin:['Poppins','sans-serif'],
-        antiqua:['Inknut','sans-serif']
+        antiqua:['Inknut','sans-serif'],
+        raleway:['Raleway','sans-serif'],
+        acme:['Acme','sans-serif']
       },
       colors:{
         'dark_red':'#990000',

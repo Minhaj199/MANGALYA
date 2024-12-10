@@ -10,7 +10,6 @@ export interface PlanOrder{
     avialbleConnect:number
     Expiry:Date
     created?:Date
-  
 }
 
 const PlanOrderSchema=new Schema<PlanOrder>({

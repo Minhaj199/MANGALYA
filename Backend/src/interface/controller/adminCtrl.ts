@@ -7,6 +7,7 @@ import { MongodbPlanRepository } from "../../Infrastructure/repositories/mongoRe
 import { SubscriptionPlan } from "../../domain/entity/PlanEntity";
 import { featureModel, Features } from "../../Infrastructure/db/featureModel";
 import { planModel } from "../../Infrastructure/db/planModel";
+import { getDashData } from "../../application/useCases/getDashData";
 
 const adminAuthentication=new AdminAuth()
 const planRepo=new MongodbPlanRepository()
@@ -147,6 +148,17 @@ export const fetchFeature=async(req:Request,res:Response)=>{
         res.json({message:error.message})
     }
 }
+export const fetchDashData=async(req:Request,res:Response)=>{
+    try {      
+        const getDashBoardDatas=await getDashData(req.query.from)
+        res.json(getDashBoardDatas)
+    } catch (error:any) {
+        console.log(error)
+        res.status(500).json({message:error.message})
+    }
+
+}
+
 // export const tokenAuthenticated=(req:Request,res:Response)=>{
 //     if(!req.headers['authorizationforuser']){
 //          res.json({auth:false,message:'authetication failed'})
