@@ -6,7 +6,7 @@ import { request } from '../../../utils/axiosUtils'
 import { TimerProbs } from './Countdown'
 export const CountdownProfile:React.FC<TimerProbs> =({expiryTimeStamp,from,status}) => {
 
-    console.log('i am at count down')
+   
      
     
      // const timeRef=useRef(expiryTimeStamp)

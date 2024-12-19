@@ -16,5 +16,5 @@ export interface UserRepository{
     getUserProfile(id:string):Promise<UserWithID>
     getDashCount():Promise<{MonthlyRevenue:number,SubscriberCount:number,UserCount: number}>
     getSubcriberCount():Promise<number[]>
-    getRevenue():Promise<{ month: number[], revenue:number[]}>
+    getRevenue():Promise<{ month: string[], revenue:number[]}>
 }

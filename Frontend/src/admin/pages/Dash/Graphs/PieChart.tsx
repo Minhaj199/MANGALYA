@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Pie } from "react-chartjs-2";
+import { Doughnut  } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -33,7 +33,7 @@ const PieChart: React.FC = () => {
       {
         label: "Subscribers",
         data: dashCount, 
-        backgroundColor: ["#1F77B4", "#D3D3D3"], 
+        backgroundColor: ["#1F77B4", "#ff036c"], 
         borderWidth: 1,
       },
     ],
@@ -60,11 +60,11 @@ const PieChart: React.FC = () => {
   };
 
   return (
-    <div style={{ width: "300px", margin: "auto", textAlign: "center" }}>
-      <h3 style={{ fontWeight: "bold", marginBottom: "10px" }}>
+    <div style={{ margin: "auto", textAlign: "center"}} className="w-[300px]">
+      <h3  className="font-bold mb-4 text-dark-blue">
         subscribers and not subscribers
       </h3>
-      <Pie data={data} options={options} />
+      <Doughnut  data={data} options={options} />
     </div>
   );
 };

@@ -115,7 +115,7 @@ export const Login:React.FC<userLoginProp> = ({changeToggle,loginTogle}) => {
           className={
             loginTogle !== "2"
               ? "hidden"
-              : "h-full w-[80%] sm:w-1/3 bg-[rgba(0,0,0,0.5)] absolute  top-0 right-0 bottom-0"
+              : " h-full w-[80%] sm:w-1/3 bg-[rgba(0,0,0,0.5)] absolute  top-0 right-0 bottom-0"
           }
         >
           <div className="w-full h-11 flex justify-end items-center">

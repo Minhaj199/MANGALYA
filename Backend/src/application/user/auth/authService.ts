@@ -83,7 +83,7 @@ export class AuthService{
                      const gender=user.PersonalInfo.gender
                     
                    const jwt_key:string=process.env.JWT_SECRET_USER||''
-                   const token=this.jwtGenerator.createToken({id:JSON.stringify(user._id) ,role:'user',preferedGender,gender},jwt_key,{expiresIn:'1 hour'})
+                   const token=this.jwtGenerator.createToken({id:JSON.stringify(user._id) ,role:'user',preferedGender,gender},jwt_key,{expiresIn:'6 hour'})
                    const photo=user.PersonalInfo.image||''
                    return {token,id:user._id,name:user.PersonalInfo.firstName,partner:user.partnerData.gender,photo:photo,gender:user.PersonalInfo.gender,subscriptionStatus:user.subscriber}
                 }else{

@@ -75,13 +75,15 @@ export const SubscriberTable:React.FC = () => {
     }
    
   
-    const { getTableProps, getTableBodyProps, headerGroups,page, nextPage,setPageSize,previousPage,prepareRow,canNextPage,canPreviousPage,pageOptions,state } = useTable({ columns, data },usePagination);
+    const { getTableProps, getTableBodyProps, headerGroups,page, nextPage,setPageSize,previousPage,prepareRow,canNextPage,canPreviousPage,pageOptions,state } = useTable({ columns, data,initialState:{pageSize:5} },usePagination);
     const {pageIndex,pageSize}=state
     return (
       <>
-        <div className="h-full w-10/12  flex flex-col items-center">
+      <div className='w-[100%] h-svh'>
+
+        <div className="h-full w-[100%]  flex flex-col items-center">
           <div className="w-full h-1/5   flex justify-center items-center">
-            <div className="w-[95%] h-5/6 drop-shadow-lg bg-white rounded-lg flex justify-between items-center ">
+            <div className="w-[95%] lg:mt-0 mt-20 h-5/6 drop-shadow-lg transform transition-transform duration-300 ease-in-out hover:scale-105 bg-white rounded-lg flex justify-between items-center ">
             <p className=' ml-5 font-extrabold sm:text-base text-xs  font-inter text-dark-blue'>SUBSCRIBER DATA</p>
             <select onChange={handleFilter} className='cursor-pointer bg-white mr-3 h-8 w-20 sm:w-48 pl-2  text-dark-blue border border-dark-blue  sm:placeholder:text-sm  outline-none'  id="">
               <option value="All">All</option>
@@ -113,10 +115,7 @@ export const SubscriberTable:React.FC = () => {
                       <TableCell className='text-lg'  {...cell.getCellProps()} >
                         {cell.render('Cell')}</TableCell>
                     ))}
-                    {/* <TableCell>
-                      <img onClick={()=>handleClick(row.original._id)} className='w-10 h-10 cursor-pointer' src="/info.png" alt="" />
-                      
-                      </TableCell> */}
+                    
                      
                   </TableRow>
                 );
@@ -131,6 +130,7 @@ export const SubscriberTable:React.FC = () => {
             <button onClick={()=>nextPage()} disabled={!canNextPage} className="bg-dark-blue text-white rounded-full sm:h-14 sm:w-14 h-8 w-8 ml-1 sm:mb-0 mb-5  font-bold ">{'>>'}</button>
           </div>
         </div>
+      </div>
            </> 
       );
 }

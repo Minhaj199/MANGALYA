@@ -1,12 +1,28 @@
+import { Dispatch, SetStateAction } from "react";
 import { userData } from "../user/userProfile/userProfile";
 import { showToast } from "../utils/toast"; 
 
-
-export function validateEditedData(editedData:userData){
-    console.log(editedData)
+type warning={
+    firstName: string;
+    secondName: string;
+    state: string;
+    dob: string;
+    email: string;
+  }
+export function validateEditedData(editedData:userData,setFormWaring:Dispatch<SetStateAction<warning>>){
+    let count=0
+    // setFormWaring({
+    //     firstName: '',
+    //     secondName: '',
+    //     state: '',
+    //     dob: '',
+    //     email: ''
+    //   })
         if(editedData.PersonalInfo.firstName.trim()!==''){
             if( editedData.PersonalInfo.firstName.trim().length>10||
                 editedData.PersonalInfo.firstName.trim().length<3){
+                    // setFormWaring(el=>({...el,firstName:'First name should be between 3-10'}))
+                    // count++
                     showToast('First name should be between 3-10 ',"info")
                     return false
                 }
@@ -21,7 +37,7 @@ export function validateEditedData(editedData:userData){
             }
             if(editedData.PersonalInfo.dateOfBirth!==''){
                 const birthDate=new Date(editedData.PersonalInfo.dateOfBirth)
-                console.log(birthDate)
+                
                 const today=new Date();
                 let age=today.getFullYear()-birthDate.getFullYear()
                 let monthdiff=today.getMonth()-birthDate.getMonth()

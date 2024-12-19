@@ -9,6 +9,7 @@ import { PersistGate } from 'redux-persist/integration/react'
 import store,{persistor} from './Redux/ReduxGlobal.ts'
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Sample } from './Sample.tsx'
 
 
 
@@ -28,6 +29,8 @@ createRoot(document.getElementById('root')!).render(
     </Provider>
   </SignupProvider>
    </BrowserRouter>
-   
+  
+ 
+ 
   </StrictMode>,
 )

@@ -76,12 +76,17 @@ export const AddPlan = () => {
         
     }
   return (
-    <div className='w-full h-full '>
-        <div className='w-full h-14 px-6 py-4 '>
-            <p onClick={()=>navigate('/admin/Plan')} className='font-bold text-dark-blue cursor-pointer' >{'BACK'}</p>
+    <div className='w-[90%] h-svh '>
+
+    <div className='w-full lg:mt-0 mt-10 h-full '>
+        <div className='w-full h-14 px-6 py-4 cursor-pointer  '>
+            <div className='w-10 h-10 '>
+            <img onClick={()=>navigate('/admin/Plan')} src="/backPlan.png" className="h-full w-full" alt="" />
+            </div>
+            
         </div>
         <div className='w-full h-[90%]   flex justify-center items-center'>
-            <div className='sm:w-[40%]  w-[90%] sm:h-[95%] h-[84%] rounded-3xl border border-dark-blue sm:px-10 px-5 items-center flex flex-col'>
+            <div className='sm:w-[40%]  w-[90%] sm:h-[95%] h-[84%] rounded-3xl border shadow-3xl shadow-theme-blue bg-white sm:px-10 px-5 items-center flex flex-col'>
                 <h1 className='font-bold text-2xl text-dark-blue mt-2 mb-5'>ADD PLAN</h1>
                 <div className='sm:w-[100%] w-[100%] h-[15%] sm:h-[20%]     justify-between mb-2'>
                     <label htmlFor="" className='block font-inter font-bold text-dark-blue'>NAME</label>
@@ -147,6 +152,7 @@ export const AddPlan = () => {
                 <button onClick={handleSubmit} className='border-2 border-dark-blue text-dark-blue mt-2 w-[30%] h-[6%] font-bold  rounded-xl'>SUBMIT</button>
             </div>
         </div>
+    </div>
     </div>
   )
 }

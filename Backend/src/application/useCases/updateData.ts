@@ -54,7 +54,8 @@ export async function updateData(data:updateData,id:unknown){
     try {
         
         if(Object.keys(updateData)?.length){
-            const data:UserWithID=await userRepo.update(updateData as updateData,id.slice(0,25))
+            const mongoId=(id.length!==24)?id.slice(1,25):id
+            const data:UserWithID=await userRepo.update(updateData as updateData,mongoId)
             if(data._id){
                 const useFullData={
                     PersonalInfo:{...data.PersonalInfo,age:getAge(data.PersonalInfo.dateOfBirth)},

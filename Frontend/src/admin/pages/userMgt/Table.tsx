@@ -70,18 +70,20 @@ export const UserTable:React.FC = () => {
   const data=useMemo(()=>filterData??[],[filterData])
  
   
-    const { getTableProps, getTableBodyProps, headerGroups,page, nextPage,setPageSize,previousPage,prepareRow,canNextPage,canPreviousPage,pageOptions,state } = useTable({ columns, data },usePagination);
+    const { getTableProps, getTableBodyProps, headerGroups,page, nextPage,setPageSize,previousPage,prepareRow,canNextPage,canPreviousPage,pageOptions,state } = useTable({ columns, data,initialState:{pageSize:5} },usePagination);
     const {pageIndex,pageSize}=state
     return (
       <>
-        <div className="h-full w-10/12  flex flex-col items-center">
-          <div className="w-full h-1/5   flex justify-center items-center">
+      <div className='w-[80%] h-svh'>
+
+        <div className="h-full w-full  flex flex-col items-center">
+          <div className="w-full h-[150px] lg:mt-0 mt-10 transform transition-transform duration-300 ease-in-out hover:scale-10   flex justify-center items-center">
             <div className="w-[95%] h-5/6 drop-shadow-lg bg-white rounded-lg flex justify-between items-center ">
             <p className=' ml-5 font-extrabold sm:text-base text-xs  font-inter text-dark-blue'>USER MANAGEMENT</p>
-            <input type="search"  value={searchWord} onChange={handleSearch} className="cursor-text bg-white mr-3 h-8 w-20 sm:w-48 pl-2  text-[#2552cc] border border-theme-blue placeholder:text-xs placeholder:text-blue-400 placeholder:font-italian placeholder:font-bold sm:placeholder:text-sm  outline-none " placeholder="Search Here....."/>
+            <input type="search"  value={searchWord} onChange={handleSearch} className="cursor-text bg-white mr-3 h-8 w-20 sm:w-48 pl-2  text-[#2552cc] border border-theme-blue placeholder:text-xs placeholder:text-dark-blue placeholder:font-acme placeholder:font-thin sm:placeholder:text-sm  outline-none " placeholder="Search Here....."/>
           </div>
           </div>
-          <div className="w-[95%] h-3/5 mt-10 overflow-auto no-scrollbar ">
+          <div className="w-[90%] h-3/5 mt-10 overflow-auto no-scrollbar ">
           <Paper>
           <Table   {...getTableProps()} className='border-2 border-dark-blue bg-dark-blue'>
             <TableHead  className='bg-dark-blue bottom-2  '>
@@ -90,7 +92,14 @@ export const UserTable:React.FC = () => {
                   {headerGroup.headers.map(column => (
                     <TableCell style={{color:'white'}}    {...column.getHeaderProps()} key={column.id}>{column.render('Header')}</TableCell>
                   ))}
+                  <TableRow >
+                    <p className='text-dark-blue'>
+
+                    Action
+                    </p>
+                  </TableRow>
                 </TableRow>
+                
               ))}
             </TableHead>
             <TableBody {...getTableBodyProps()} className='bg-gray-200 '>
@@ -124,6 +133,7 @@ export const UserTable:React.FC = () => {
             <button onClick={()=>nextPage()} disabled={!canNextPage} className="bg-dark-blue text-white rounded-full sm:h-14 sm:w-14 h-8 w-8 ml-1 sm:mb-0 mb-5  font-bold ">{'>>'}</button>
           </div>
         </div>
+      </div>
            </> 
       );
 }

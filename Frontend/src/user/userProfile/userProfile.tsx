@@ -1,14 +1,22 @@
 import React, { useEffect, useRef, useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCircleUp, faCreditCard } from "@fortawesome/free-solid-svg-icons";
 import { districtsOfKerala } from "../../App";
 import "./userProfile.css";
 import { CountdownProfile } from "../Components/timer/CountdownProfile";
+import { Send, RotateCcw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { request } from "../../utils/axiosUtils";
 import { json, useNavigate } from "react-router-dom";
 import { alertWithOk, handleAlert } from "../../utils/alert/sweeAlert";
-import { getInputData } from "../../utils/getDateToDateInput";
+import { getInputDate } from "../../utils/getDateToDateInput";
 import { validateEditedData } from "../../Validators/editValidate";
 import { capitaliser } from "../../utils/capitalise";
+import { Navbar } from "../Components/User/navbar/Navbar";
 
+import { showToast } from "@/utils/toast";
+import { fetchBlankData, findChange } from "@/utils/dittectEditedDataChange";
+import { Loading } from "../Components/Loading/Loading";
 
 export type userData = {
   PersonalInfo: {
@@ -16,7 +24,7 @@ export type userData = {
     secondName: string;
     state: string;
     gender: string;
-    dateOfBirth: string;
+    dateOfBirth: string | Date;
     image?: File | string;
     interest?: string[] | null;
     photo: FormData | null;
@@ -57,30 +65,7 @@ export const UserProfile = () => {
     setEditUser(action);
   };
   //////////////////fetching data////////////
-  type fetchBlankData = {
-    PersonalInfo: {
-      firstName: string;
-      secondName: string;
-      state: string;
-      gender: string;
-      dateOfBirth: Date
-      interest: string[];
-      age: number;
-      image: string;
-    };
-    PartnerData: { gender: string };
-    Email: string;
-    subscriptionStatus: string;
-    currentPlan: {
-      amount: number;
-      connect: number;
-      avialbleConnect: number;
-      duration: number;
-      features: string[];
-      name: string;
-      Expiry: Date;
-    };
-  };
+  
   const [orginalData, setOrginalData] = useState<fetchBlankData>({
     PersonalInfo: {
       firstName: "",
@@ -105,7 +90,7 @@ export const UserProfile = () => {
       Expiry: new Date(),
     },
   });
-  interface fetchUerData {
+  interface fetchUserData {
     message: string;
     user: fetchBlankData;
   }
@@ -116,15 +101,15 @@ export const UserProfile = () => {
   useEffect(() => {
     async function fetchUserData() {
       try {
-        const userData: fetchUerData = await request({
+        const userData: fetchUserData = await request({
           url: "/user/getUserProfile",
-        });
-      
+        }); 
+
         const interest: {
           Data: { food: string[]; music: string[]; sports: string[] };
           message: string;
         } = await request({ url: "/user/getInterest" });
-      
+
         if (interest.Data) {
           setInterest([
             ...interest?.Data.food,
@@ -136,7 +121,28 @@ export const UserProfile = () => {
           throw new Error(userData.message);
         }
         setOrginalData(userData.user);
-        
+        setEditedData((el) => ({
+          ...el,
+          email: userData.user.Email,
+          PersonalInfo: {
+            ...el.PersonalInfo,
+            firstName: userData.user.PersonalInfo.firstName,
+            dateOfBirth: getInputDate(
+              "",
+              new Date(
+                userData.user.PersonalInfo.dateOfBirth
+              ).toLocaleDateString()
+            ),
+            gender: userData.user.PersonalInfo.gender,
+            interest: userData.user.PersonalInfo.interest,
+            secondName: userData.user.PersonalInfo.secondName,
+            state: userData.user.PersonalInfo.state,
+          },
+          partnerData: {
+            ...el.partnerData,
+            gender: userData.user.PartnerData.gender,
+          },
+        }));
       } catch (error: any) {
         alertWithOk(
           "UserData loading",
@@ -152,10 +158,10 @@ export const UserProfile = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     if (e.target.name === "firstName") {
-      const value=capitaliser(e.target.value)
+      const value = capitaliser(e.target.value);
       setEditedData((el) => ({
         ...el,
-        PersonalInfo: { ...el.PersonalInfo, firstName:value },
+        PersonalInfo: { ...el.PersonalInfo, firstName: value },
       }));
     } else if (e.target.name === "secondName") {
       setEditedData((el) => ({
@@ -175,6 +181,8 @@ export const UserProfile = () => {
           PersonalInfo: { ...el.PersonalInfo, gender: e.target.value },
         }));
     } else if (e.target.name === "dateOfBirth") {
+     
+      
       const inputDate = new Date(e.target.value);
       const formattedDate = inputDate.toISOString().split("T")[0];
       setEditedData((el) => ({
@@ -210,7 +218,7 @@ export const UserProfile = () => {
     }
   };
 
-  ///////////////handling phoot
+  ///////////////handling photo////////////////
   function handleFileInput(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files;
     if (file?.length) {
@@ -224,20 +232,16 @@ export const UserProfile = () => {
   }
   //////////////////handle remove interest///////////
 
-  function removeInterest(interest: string) {
-    setEditedData((el) => ({
-      ...el,
-      PersonalInfo: {
-        ...el.PersonalInfo,
-        interest: el.PersonalInfo.interest?.length
-          ? el.PersonalInfo.interest.filter((elem) => elem !== interest)
-          : orginalData.PersonalInfo.interest.filter(
-              (elem) => elem !== interest
-            ),
-      },
-    }));
-  }
+
   ///////////////////password reset//////////////////
+
+ interface FormWarning{
+    firstName: string;
+    secondName: string;
+    state: string;
+    dob: string;
+    email: string;
+  }
 
   const [openPopUp, setOpenPopUp] = useState<boolean>(false);
   const [otp, setOtp] = useState<number>();
@@ -247,6 +251,15 @@ export const UserProfile = () => {
   }>({ password: "", confirmPassword: "" });
   const [switchTopassword, setSwitchTopassword] = useState<boolean>(false);
   const [warnning, setWarning] = useState<string>();
+  const [formWarning, setFormWarning] = useState<FormWarning>({
+    firstName: "",
+    secondName: "",
+  
+    state: "",
+    dob: "",
+    email: "",
+
+  });
   interface IsValid {
     status: boolean;
     message: string;
@@ -318,6 +331,8 @@ export const UserProfile = () => {
         setOpenPopUp(false);
         setOtp(0);
         setEditUser(false);
+        setActive("info")
+        setSwitchTopassword(false)
         handleAlert("success", "Password changed successfully");
       }
     } catch (error: any) {
@@ -339,6 +354,7 @@ export const UserProfile = () => {
         method: "post",
         data: { OTP: otp },
       });
+      console.log(isValid)
       if (isValid.message) {
         throw new Error(isValid.message || "error on otp validation");
       }
@@ -392,223 +408,309 @@ export const UserProfile = () => {
       createOTP();
     }
   }, [openPopUp]);
-  
-
-
 
   ////////////////////////////// handle submit edited data//////////////////////
- 
+const [loading,setLoading]=useState<boolean>(false)
   async function submitEditedData() {
+    alert('here')
+    console.log(editedData)
+    setLoading(true)
+    const dataToFind=structuredClone(editedData)
+    findChange({dataToFind,orginalData})
     
-    const x=(validateEditedData(editedData))
-  
-    if(!x){
-      setEditedData(blanUserData)
-      setTempPhot('')
-    }else{
-      const formData=new FormData()
-      formData.append('file',editedData.PersonalInfo.image||'')
-      formData.append('data',JSON.stringify(editedData))
+    const validate = validateEditedData(dataToFind,setFormWarning);
+   
+   
+    if (!validate) {
+      setEditedData(blanUserData);
+      setTempPhot("");
+    } else {
+      const formData = new FormData();
+      formData.append("file", editedData.PersonalInfo.image || "");
+      formData.append("data", JSON.stringify(dataToFind));
       try {
-      const response:{newData:fetchBlankData,message:string}=await request({url:'/user/editProfile',method:'put',data:formData})
-      console.log(response)
-      if(response.message){
-        throw new Error(response.message||'error on updating')
-      }
-      
-      if(response){
-        if(response.newData){
-          setOrginalData(response.newData)
-          handleAlert('success','datas updated')
-        }else{
-          handleAlert('info','data not updated')
+        const response: { newData: fetchBlankData; message: string } =
+          await request({
+            url: "/user/editProfile",
+            method: "put",
+            data: formData,
+          });
+        console.log(response);
+        if (response.message) {
+          throw new Error(response.message || "error on updating");
         }
-      }else{
-        throw new Error('data not updated')
-      }
-      setEditedData(blanUserData)
-      setTempPhot('')
-      setEditUser(false)
 
-      } catch (error:any) {
-        alertWithOk('Update Error',error.message||'error on updata',"error")
+        if (response) {
+          if (response.newData) {
+            setOrginalData(response.newData);
+            handleAlert("success", "datas updated");
+          } else {
+            handleAlert("info", "data not updated");
+          }
+        } else {
+          throw new Error("data not updated");
+        }
+       setActive("info");
+        setTempPhot("");
+        setEditUser(false);
+        setLoading(false)
+      } catch (error: any) {
+        setLoading(false)
+        alertWithOk(
+          "Update Error",
+          error.message || "error on updata",
+          "error"
+        );
+      }
+    }
+    setLoading(false)
+  }
+
+  const [active, setActive] = useState<"info" | "edit Data" | "changePassword">(
+    "info"
+  );
+
+  const toggle = (from: "editInfo" | "personalInfo" | "changePassword") => {
+    if (from === "personalInfo") {
+      if (active !== "info") {
+        setActive("info");
+      }
+      if (editUser === true) {
+        setEditUser(false);
+      }
+    } else if (from === "editInfo") {
+      if (active !== "edit Data") {
+        setActive("edit Data");
+      }
+      if (editUser === false) {
+        setEditUser(true);
+      }
+    } else if (from === "changePassword") {
+      if (active !== "changePassword") {
+        setActive("changePassword");
+      }
+      if (editUser === true) {
+        setEditUser(false);
+      }
+    }
+  };
+  function handleReset() {
+    setEditedData((el) => ({
+      ...el,
+      PersonalInfo: {
+        ...el.PersonalInfo,
+        firstName: orginalData.PersonalInfo.firstName,
+        secondName: orginalData.PersonalInfo.secondName,
+        dateOfBirth: new Date(
+          orginalData.PersonalInfo.dateOfBirth
+        ).toLocaleDateString(),
+        gender: orginalData.PersonalInfo.gender,
+        image: "",
+        interest: orginalData.PersonalInfo.interest,
+        photo: null,
+        state: orginalData.PersonalInfo.state,
+      },
+      partnerData: {
+        ...el.partnerData,
+        gender: orginalData.PartnerData.gender,
+      },
+      email: orginalData.Email,
+    }));
+    handleRemovePhoto()
+  }
+
+  //////////////handle interst////////////////
+
+  function handleInterest(item: string) {
+    if (!editedData.PersonalInfo.interest?.length) {
+      setEditedData((el) => ({
+        ...el,
+        PersonalInfo: { ...el.PersonalInfo, interest: [item] },
+      }));
+    } else if (editedData.PersonalInfo.interest?.includes(item)) {
+      setEditedData((el) => ({
+        ...el,
+        PersonalInfo: {
+          ...el.PersonalInfo,
+          interest: el.PersonalInfo.interest?.filter((elm) => elm !== item),
+        },
+      }));
+    } else if (
+      editedData.PersonalInfo.interest?.length &&
+      editedData.PersonalInfo.interest.length >= 5
+    ) {
+      showToast("maximum interest choice is finished");
+    } else {
+      if (editedData.PersonalInfo.interest) {
+        setEditedData((el) => ({
+          ...el,
+          PersonalInfo: {
+            ...el.PersonalInfo,
+            interest: [...(el.PersonalInfo?.interest || ""), item],
+          },
+        }));
       }
     }
   }
   return (
-    <div className='flex  items-center flex-col   h-[1100px] bg-gradient-to-b from-theme-blue to-white theme-blue [--tw-gradient-stops:from-theme-blue,via-theme-blue-30%,to-white]"'>
-      {/* //////////////////passowordModal//////////////// */}
-      {openPopUp && (
-        <div className="w-full h-screen  z-[2] fixed flex justify-center items-center">
-          <div className="sm:w-[40%] w-[60%] h-[50%] shadow shadow-dark-blue bg-white rounded-xl flex flex-col  items-center">
-            <div className="w-full h-8  flex rounded-xl justify-end items-center px-4">
-              <p
-                onClick={() => (
-                  setOpenPopUp(false),
-                  setSwitchTopassword(false),
-                  setWarning("")
-                )}
-                className=" cursor-pointer font-bold text-theme-blue"
-              >
-                X
-              </p>
-            </div>
-            <div className="w-full h-10   flex justify-center items-center">
-              <p className="font-acme font-semibold sm:text-2xl text-sm text-theme-blue">
-                RESET PASSWORD
-              </p>
-            </div>
+    <>
+    
+      {loading&&<div className="w-full h-lvh  fixed z-10 ">
+        <Loading/>
+        </div>}
+    <div className="w-full flex   items-center justify-evenly  pb-12  md:min-h-[1100px]   bg-blue-100 ">
+      <Navbar active="profile setting" />
+      <div className="w-[90%] min-h-svh flex md:flex-row items-center flex-col md:items-start pt-36 gap-5   ">
+       
+       {openPopUp && (
+               <div className="w-full h-screen  z-[1] fixed -top-0 flex justify-center items-center">
 
-            {/* /////////////////////////passowrd part////////////////// */}
-            {!switchTopassword ? (
-              <>
-                <div className="w-full h-10   mt-3 flex justify-center items-center">
-                  <p className="font-acme sm:text-base text-xs  text-theme-blue">
-                    ENTER OTP
-                  </p>
-                </div>
-                <div className="w-full h-16  mt-2 flex justify-center items-center">
-                  <div className="sm:w-36 w-20 sm:h-14 h-10 border border-theme-blue">
-                    <input
-                      onChange={(t) => setOtp(parseInt(t.target.value))}
-                      min={1}
-                      max={1000000}
-                      type="number"
-                      className="h-full w-full px-2 outline-none text-center text-dark-blue "
-                    />
-                  </div>
-                </div>
-                <div className="sm:w-36 w-28 sm:h-6 h-5  text-center text-dark-blue">
-                  {warnning && warnning}
-                </div>
-                <div className="sm:w-36 text-theme-blue font-bold w-28 mt-1 sm:h-10 h-8  inline-flex justify-between">
-                  {openPopUp === true && (
-                    <CountdownProfile
-                      expiryTimeStamp={expiryTimeStamp}
-                      from="userProfile"
-                    />
-                  )}
-                </div>
-                <div className="sm:w-36 w-28 mt-2 sm:h-10 h-8 flex justify-center items-center ">
-                  <button
-                    onClick={handleOTPSent}
-                    className="cursor-pointer relative group  overflow-hidden border-2 sm:px-8 px-4 sm:py-1 border-theme-blue"
-                  >
-                    <span className="font-bold text-white  relative z-10 group-hover:text-theme-blue duration-500">
-                      SUBMIT
-                    </span>
-                    <span className="absolute top-0 left-0 w-full bg-theme-blue duration-500 group-hover:-translate-x-full h-full"></span>
-                    <span className="absolute top-0 left-0 w-full bg-theme-blue duration-500 group-hover:translate-x-full h-full"></span>
+                
+                 <div className="sm:w-[40%] w-[60%] h-[60%] shadow shadow-dark-blue border-4 border-blue-200 bg-white  rounded-3xl flex flex-col  items-center">
+                   <div className="w-full h-8  flex rounded-xl justify-end items-center px-4">
+                     <p
+                       onClick={() => (
+                         setOpenPopUp(false),
+                         setSwitchTopassword(false),
+                          setActive("info"), 
+                         setWarning("")
+                       )}
+                       className="text-xl cursor-pointer font-bold text-theme-blue"
+                     >
+                       X
+                     </p>
+                   </div>
+                   {/* <div className="w-full h-20 px-5 bg-green-500 pt-2  ">
+                   </div> */}
 
-                    <span className="absolute top-0 left-0 w-full bg-theme-blue duration-500 delay-300 group-hover:-translate-y-full h-full"></span>
-                    <span className="absolute delay-300 top-0 left-0 w-full bg-theme-blue duration-500 group-hover:translate-y-full h-full"></span>
-                  </button>
-                </div>
-              </>
-            ) : (
-              ///////////////////////// passsword Typing part/////////////////////////////
-              <div className="w-[95%] mt-5 h-[55%]   flex    items-center flex-col">
-                <div className="w-[60%]   flex  flex-col justify-between h-[45%] ">
-                  <label
-                    htmlFor=""
-                    className="text-theme-blue font-bold sm:text-base text-sm"
-                  >
-                    PASSWORD
-                  </label>
-                  <div className="mb-2 h-10 w- border border-theme-blue">
-                    <input
-                      onChange={inputPassword}
-                      name="password"
-                      className="w-full h-full text-gray-800 px-2"
-                      type="text"
-                    />
-                  </div>
-                  <div className="w-full h-6  text-dark_red sm:text-base text-xs">
-                    {PasswordWarnning.password}
-                  </div>
-                </div>
-                <div className="w-[60%] mt-2  flex  flex-col justify-between h-[45%] ">
-                  <label
-                    className="text-theme-blue font-bold sm:text-base text-sm"
-                    htmlFor=""
-                  >
-                    CONFIRM PASSWORD
-                  </label>
-                  <div className="mb-2 h-10 w- border border-theme-blue">
-                    <input
-                      name="confirmPassword"
-                      onChange={inputPassword}
-                      className="w-full h-full px-2 text-gray-800 "
-                      type="password"
-                    />
-                  </div>
-                  <div className="w-full h-6 text-dark_red sm:text-base text-xs ">
-                    {PasswordWarnning.confirmPassword}
-                  </div>
-                </div>
-                <div className="sm:w-[100%] w-28  mt-2 sm:h-10 h-8 flex justify-center items-center ">
-                  <button
-                    onClick={submitPassword}
-                    className="cursor-pointer relative group  overflow-hidden border-2 sm:px-8 px-4 sm:py-1 border-theme-blue"
-                  >
-                    <span className="font-bold text-white  relative z-10 group-hover:text-theme-blue duration-500">
-                      RESET
-                    </span>
-                    <span className="absolute top-0 left-0 w-full bg-theme-blue duration-500 group-hover:-translate-x-full h-full"></span>
-                    <span className="absolute top-0 left-0 w-full bg-theme-blue duration-500 group-hover:translate-x-full h-full"></span>
-
-                    <span className="absolute top-0 left-0 w-full bg-theme-blue duration-500 delay-300 group-hover:-translate-y-full h-full"></span>
-                    <span className="absolute delay-300 top-0 left-0 w-full bg-theme-blue duration-500 group-hover:translate-y-full h-full"></span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-      {/* \\\\\\\\\\\\\\\\\nav\\\\\\\\\\\\\\\\\\\\\\ */}
-      <div className="w-full h-[100px] flex items-center bg-[#318bf7]  justify-between px-2 fixed top-0 left-0 z-[1] right-0 ">
-        <div className="w-40 h-[50%] ">
-          <img
-            src="./logo-no-background.png"
-            className="w-full h-full"
-            alt=""
-          />
-        </div>
-        <div className="w-30 h-[40%]  flex justify-center">
-          <button
-            onClick={() => navigate("/loginLanding")}
-            className="relative py-2 px-8 text-black text-base font-bold nded-full overflow-hidden bg-white rounded-full transition-all duration-400 ease-in-out shadow-md hover:scale-105 hover:text-white hover:shadow-lg active:scale-90 before:absolute before:top-0 before:-left-full before:w-full before:h-full before:bg-gradient-to-r before:from-blue-500 before:to-blue-300 before:transition-all before:duration-500 before:ease-in-out before:z-[-1] before:rounded-full hover:before:left-0"
-          >
-            BACK
-          </button>
-        </div>
-      </div>
-
-      <div className="sm:w-[70%] w-[80%] md:w-[60%] mt-36 min-h-auto  rounded-3xl drop-shadow-2xl bg-white">
-        <div className="w-full h-[75px] flex justify-center items-center rounded-full ">
-          <p className="font-serif text-3xl text-dark-blue">PROFILE</p>
-        </div>
-        <div className="w-full h-20  flex items-center px-3">
-          {/* /////////////////////backbutton////////////////////////// */}
-          {editUser && (
-            <div
-              className="w-8 h-8 rounded-full cursor-pointer  "
-              onClick={() => (
-                setEditedData(blanUserData), handleTogleBetweenEdit(false)
-              )}
-            >
-              <img
-                src="./backForProfile.png"
-                className="w-full h-full"
-                alt=""
-              />
-            </div>
-          )}
-        </div>
-        {/* //////////////////////disply photo//////////////////////  */}
-        <div className="flex justify-center items-center w-full h-[175px]  ">
-          <div className="w-36 h-36 rounded-full bg-green-500">
+                   <div className='w-10 h-10 rounded-full'>
+                    <img src="/reset-password.png" className='w-full h-full rounded-full' alt="" />
+                   </div>
+                     <p className=" font-playfair font-semibold sm:text-3xl text-sm ">
+                       Forgot your Password ?
+                     </p>
+       
+                   {/* /////////////////////////passowrd part////////////////// */}
+                   {!switchTopassword ? (
+                     <>
+                       <div className="w-full h-10   mt-3 flex justify-center items-center">
+                         <p className="font-acme sm:text-base text-xs  text-theme-blue">
+                           ENTER OTP
+                         </p>
+                       </div>
+                       <div className="w-full h-16  mt-2 flex justify-center items-center">
+                         <div className="sm:w-36 w-20 sm:h-14 h-10 border ">
+                           <input
+                             onChange={(t) => setOtp(parseInt(t.target.value))}
+                             min={1}
+                             max={1000000}
+                             type="number"
+                             className="h-full font-bold w-full px-2 outline-none text-center text-dark-blue "
+                           />
+                         </div>
+                       </div>
+                       <div className="sm:w-36 w-28 sm:h-6 h-5 font-semibold text-center text-dark_red">
+                         {warnning && warnning}
+                       </div>
+                       <div className="sm:w-36  font-bold w-28 mt-1 sm:h-10 h-8  inline-flex justify-between">
+                         {openPopUp === true && (
+                           <CountdownProfile
+                             expiryTimeStamp={expiryTimeStamp}
+                             from="userProfile"
+                           />
+                         )}
+                       </div>
+                       <div className="sm:w-36 w-28 mt-2 sm:h-10 h-8 flex justify-center items-center ">
+                         <button
+                           onClick={handleOTPSent}
+                           className="cursor-pointer relative group  overflow-hidden border-2 sm:px-8 px-4 sm:py-1 border-theme-blue"
+                         >
+                           <span className="font-bold text-white  relative z-10 group-hover:text-theme-blue duration-500">
+                             SUBMIT
+                           </span>
+                           <span className="absolute top-0 left-0 w-full bg-theme-blue duration-500 group-hover:-translate-x-full h-full"></span>
+                           <span className="absolute top-0 left-0 w-full bg-theme-blue duration-500 group-hover:translate-x-full h-full"></span>
+       
+                           <span className="absolute top-0 left-0 w-full bg-theme-blue duration-500 delay-300 group-hover:-translate-y-full h-full"></span>
+                           <span className="absolute delay-300 top-0 left-0 w-full bg-theme-blue duration-500 group-hover:translate-y-full h-full"></span>
+                         </button>
+                       </div>
+                     </>
+                   ) : (
+                     ///////////////////////// passsword Typing part/////////////////////////////
+                     <div className="w-[95%] mt-5 h-[55%]   flex    items-center flex-col">
+                       <div className="w-[60%]   flex  flex-col justify-between h-[45%] ">
+                         <label
+                           htmlFor=""
+                           className="text-slate-700 font-bold sm:text-sm text-sm "
+                         >
+                           PASSWORD
+                         </label>
+                         <div className="mb-2 h-8 mt-1 w- border rounded-md">
+                           <input
+                             onChange={inputPassword}
+                             name="password"
+                             className="w-full font-semibold h-full border rounded-md text-black px-2"
+                             type="text"
+                           />
+                         </div>
+                         <div className="w-full h-6  text-dark_red sm:text-base text-xs">
+                           {PasswordWarnning.password}
+                         </div>
+                       </div>
+                       <div className="w-[60%] mt-2  flex  flex-col justify-between h-[45%] ">
+                         <label
+                           className="text-slate-700 font-bold sm:text-sm text-sm"
+                           htmlFor=""
+                         >
+                           CONFIRM PASSWORD
+                         </label>
+                         <div className="mb-2 h-8 mt-1 w- border rounded-md">
+                           <input
+                             name="confirmPassword"
+                             onChange={inputPassword}
+                             className="w-full h-full px-2 border rounded-md text-gray-800 "
+                             type="password"
+                           />
+                         </div>
+                         <div className="w-full h-6 text-dark_red sm:text-base text-xs ">
+                           {PasswordWarnning.confirmPassword}
+                         </div>
+                       </div>
+                       <div className="sm:w-[100%] w-28  mt-2 sm:h-10 h-8 flex justify-center items-center ">
+                         <button
+                           onClick={submitPassword}
+                           className="cursor-pointer relative group  overflow-hidden border-2 sm:px-8 px-4 sm:py-1 border-theme-blue"
+                         >
+                           <span className="font-bold text-white  relative z-10 group-hover:text-theme-blue duration-500">
+                             RESET
+                           </span>
+                           <span className="absolute top-0 left-0 w-full bg-theme-blue duration-500 group-hover:-translate-x-full h-full"></span>
+                           <span className="absolute top-0 left-0 w-full bg-theme-blue duration-500 group-hover:translate-x-full h-full"></span>
+       
+                           <span className="absolute top-0 left-0 w-full bg-theme-blue duration-500 delay-300 group-hover:-translate-y-full h-full"></span>
+                           <span className="absolute delay-300 top-0 left-0 w-full bg-theme-blue duration-500 group-hover:translate-y-full h-full"></span>
+                         </button>
+                       </div>
+                     </div>
+                   )}
+                 </div>
+               </div>
+             )}
+        {/* ////////////////menuBar///////////////// */}
+        <div className="md:w-[20%] w-[70%]  md:h-[400px] h-[500px]  pt-6 flex flex-col items-center   bg-white border-2 rounded-lg">
+          <div className="w-[80%] h-[40%]   rounded-xl relative">
+            {/* ////////////////profile picture///////////////// */}
+            <img
+              className="w-full h-full rounded-xl"
+              src={
+                editUser
+                  ? tempPhoto ||
+                    orginalData.PersonalInfo.image ||
+                    "photoUpload.png"
+                  : orginalData.PersonalInfo.image || "photoUpload.png"
+              }
+            />
             <input
               type="file"
               ref={profileRef}
@@ -617,447 +719,732 @@ export const UserProfile = () => {
               className="hidden"
               accept="image/*"
             />
-            <img
-              className="w-full  h-full rounded-full"
-              src={
-                tempPhoto ||
-                orginalData.PersonalInfo?.image ||
-                "./photoUpload.png"
-              }
-              alt=""
-            />
             {editUser && (
-              <div>
+              <div className="w-full h-full flex justify-center items-center absolute bg-[rgba(0,0,0,.4)] rounded-lg top-0">
                 {tempPhoto ? (
-                  <div
+                  <img
+                    src="/forbidden.png"
                     onClick={handleRemovePhoto}
-                    className="w-8 h-8 left-24 bottom-6 rounded-full cursor-pointer  relative"
-                  >
-                    <img
-                      src="./deleteRemove.png"
-                      className="w-full h-full"
-                      alt=""
-                    />
-                  </div>
+                    className="w-10 h-10 cursor-pointer rounded-full"
+                    alt=""
+                  />
                 ) : (
-                  <div
+                  <button
                     onClick={handleClick}
-                    className="w-8 h-8 left-24 bottom-6 rounded-full cursor-pointer relative"
+                    className="w-[50%] h-8 bg-transparent border border-white rounded-full text-white"
                   >
-                    <img src="./pen.png" className="w-full h-full" alt="" />
-                  </div>
+                    CHANGE
+                  </button>
                 )}
               </div>
             )}
           </div>
-        </div>
-
-        <div className="h-auto w-full grid p-4 sm:grid-cols-2 grid-cols-1  gap-2">
-          {/* ///////////////////////Personal data///////////////////////// */}
-          <div className="sm:w-[90%] w-[99%]  h-[400px] shadow-md  shadow-theme-blue   rounded-3xl">
-            <div className="w-full h-12  justify-center   flex items-center rounded-full">
-              <p className="font-raleway font-bold text-[#1a27a1]">
-                Personal Details
-              </p>
+          {/* ////////////////profile menu///////////////// */}
+          <div className="w-[80%] h-[60%]  font-popin space-y-3 text-sm mt-5  font-semibold">
+            <div
+              onClick={() => toggle("personalInfo")}
+              className={
+                active === "info"
+                  ? "bg-gradient-to-r from-[#b2f17f] rounded-r-full to-[#e9f5ff]  text-amber-950  w-full flex h-[20%] gap-4  items-center  px-4 py-3 cursor-pointer "
+                  : "hover:bg-gray-200  rounded-r-full cursor-pointer w-full flex h-[20%] gap-4  items-center  px-4 py-3"
+              }
+            >
+              <img src="/profileDash.png" className="w-6 h-6" alt="" />
+              <p>Profile info</p>
             </div>
-            <div className="w-[100%] px-2 py-4 h-[250px]  ">
-              <ul className="font-roboto grid gap-y-4 text-sm">
-                <li>
-                  {" "}
-                  <span className="font-medium text-gray-500">NAME:</span>
-                  {editUser ? (
-                    <span className="ml-2 ">
-                      <input
-                        value={
-                          editedData.PersonalInfo?.firstName ||
-                          orginalData.PersonalInfo.firstName
-                        }
-                        name="firstName"
-                        onChange={handleInputData}
-                        className="px-2 text-gray-800 outline-none border border-[#a3a3f7]"
-                        type="text"
-                      />
-                    </span>
-                  ) : (
-                    <span className="ml-10 text-gray-800">
-                      {orginalData.PersonalInfo.firstName}
-                    </span>
-                  )}{" "}
-                </li>
-                <li>
-                  {" "}
-                  <span className="font-medium text-gray-500">SEC.NAME:</span>
-                  {editUser ? (
-                    <span className="sm:ml-2">
-                      <input
-                        value={
-                          editedData.PersonalInfo?.secondName ||
-                          orginalData.PersonalInfo.secondName
-                        }
-                        name="secondName"
-                        onChange={handleInputData}
-                        className="px-2 text-gray-800 outline-none border border-[#a3a3f7]"
-                        type="text"
-                      />
-                    </span>
-                  ) : (
-                    <span className="ml-4 text-gray-800">
-                      {orginalData.PersonalInfo.secondName}
-                    </span>
-                  )}
-                </li>
-                <li>
-                  {" "}
-                  <span className="font-medium text-gray-500">DST:</span>{" "}
-                  {editUser ? (
-                    <select
-                      className="outline-none border text-sm  text-gray-800"
-                      name="district"
-                      onChange={handleInputData}
-                      value={
-                        editedData.PersonalInfo.state
-                          ? editedData.PersonalInfo.state
-                          : orginalData.PersonalInfo.state
-                      }
-                      id=""
-                    >
-                      {districtsOfKerala.map((el, index) => {
-                        return (
-                          <option
-                            className="text-dark-blue"
-                            key={index}
-                            value={el}
-                          >
-                            {el}
-                          </option>
-                        );
-                      })}
-                      <option value=""></option>
-                    </select>
-                  ) : (
-                    <span className="ml-10 text-gray-800">
-                      {orginalData.PersonalInfo.state}
-                    </span>
-                  )}
-                </li>
-                <li>
-                  {" "}
-                  <span className="font-medium text-gray-500">GENDER:</span>
-                  {editUser ? (
-                    <span className="ml-5 text-gray-800">
-                      <select
-                        name="gender"
-                        className="outline-none border text-sm ml-2  text-gray-800"
-                        value={
-                          editedData.PersonalInfo.gender ||
-                          orginalData.PersonalInfo.gender
-                        }
-                        onChange={handleInputData}
-                        id=""
-                      >
-                        <option value="male">male</option>
-                        <option value="female">female</option>
-                      </select>
-                    </span>
-                  ) : (
-                    <span className="ml-5 text-gray-800">
-                      {orginalData.PersonalInfo.gender}
-                    </span>
-                  )}
-                </li>
-                <li>
-                  {" "}
-                  <span className="font-medium text-gray-500">DOB:</span>
-                  {editUser ? (
-                    <input
-                      name="dateOfBirth"
-                      value={
-                        editedData.PersonalInfo.dateOfBirth ||
-                        getInputData(orginalData.PersonalInfo.dateOfBirth)
-                      }
-                      onChange={handleInputData}
-                      className="text-gray-800 ml-2"
-                      type="date"
-                    />
-                  ) : (
-                    <span className="ml-10 text-gray-800">
-                      {getInputData(orginalData.PersonalInfo.dateOfBirth)}
-                      {` (${orginalData.PersonalInfo.age} age)`}
-                    </span>
-                  )}
-                </li>
-                <li>
-                  <span className="font-medium text-gray-500">EMAIL:</span>{" "}
-                  {editUser ? (
-                    <input
-                      value={editedData.email || orginalData.Email}
-                      name="email"
-                      onChange={handleInputData}
-                      className="px-2 text-gray-800 outline-none border border-[#a3a3f7]"
-                      type="email"
-                    />
-                  ) : (
-                    <span className="ml-5 text-gray-800">
-                      {orginalData.Email}
-                    </span>
-                  )}{" "}
-                </li>
-              </ul>
+            <div
+              onClick={() => toggle("editInfo")}
+              className={
+                active === "edit Data"
+                  ? "bg-gradient-to-r from-[#b2f17f] rounded-r-full to-[#e9f5ff]  text-amber-950  w-full flex h-[20%] gap-4  items-center  px-4 py-3 cursor-pointer "
+                  : "rounded-r-full hover:bg-gray-200 cursor-pointer w-full flex h-[20%] gap-4  items-center  px-4 py-3"
+              }
+            >
+              <img src="/pen.png" className="w-6 h-6" alt="" />
+              <p>Edit info</p>
             </div>
-            <div className="w-full h-[20%]  justify-center items-center flex">
-              {editUser && (
-                <button
-                  onClick={() => setOpenPopUp(true)}
-                  className="relative   px-4 py-1 rounded-md bg-white isolation-auto z-10 
-                border-2 border-theme-blue before:absolute before:w-full before:transition-all before:duration-700 before:hover:w-full hover:text-white before:-right-full before:hover:right-0 before:rounded-full before:bg-theme-blue before:-z-10 before:aspect-square before:hover:scale-150 overflow-hidden before:hover:duration-700 inline-flex items-center justify-center px-4 py-1 text-sm font-semibold text-black bg-white border border-gray-200 rounded-lg shadow-sm gap-x-2 hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none"
-                >
-                  change passoword
-                </button>
-              )}
+            <div
+              onClick={() => (toggle("changePassword"),setOpenPopUp(true))}
+              
+              className={
+                active === "changePassword"
+                  ? "bg-gradient-to-r from-[#b2f17f] rounded-r-full to-[#e9f5ff]  text-amber-950  w-full flex h-[20%] gap-4  items-center  px-4 py-3 cursor-pointer"
+                  : "rounded-r-full hover:bg-gray-200 cursor-pointer w-full flex h-[20%] gap-4  items-center  px-4 py-3"
+              }
+            >
+              <img src="/reset.png" className="w-6 h-6" alt="" />
+              <p >Reset Password</p>
             </div>
           </div>
-          {/* //////////////////////subscription Data/////////////////////// */}
-          <div className="sm:w-[90%] w-[99%]  h-[400px] shadow-md  shadow-theme-blue   rounded-3xl">
-            <div className="w-full h-12  justify-center   flex items-center rounded-full">
-              <p className="font-raleway font-bold text-[#1a27a1]">
-                Subscription Details
-              </p>
-            </div>
-            <div className="w-[100%] px-2  py-4 h-[200px] ">
-              {orginalData.currentPlan?.name? (
-                <ul className="font-roboto grid gap-y-4 text-sm break-keep">
-                  <li>
-                    <span className="font-medium text-gray-500">STATUS:</span>
-                    <span className="ml-2 text-gray-800">
-                      {orginalData.subscriptionStatus}
-                    </span>{" "}
-                  </li>
-                  <li>
-                    {" "}
-                    <span className="font-medium text-gray-500">
-                      NAME:
-                    </span>{" "}
-                    <span className="ml-2 text-gray-800">
-                      {orginalData.currentPlan.name}
-                    </span>{" "}
-                  </li>
-                  <li>
-                    {" "}
-                    <span className="font-medium text-gray-500">
-                      AMOUNT:
-                    </span>{" "}
-                    <span className="ml-2 text-gray-800">
-                      {orginalData.currentPlan.amount}
-                    </span>{" "}
-                  </li>
-                  <li>
-                    {" "}
-                    <span className="font-medium text-gray-500">
-                      CONNECT:
-                    </span>{" "}
-                    <span className="ml-1 text-gray-800">
-                      {orginalData.currentPlan.connect}
-                    </span>{" "}
-                  </li>
-                  <li className="inline-flex">
-                    {" "}
-                    <span className="font-medium text-gray-500 ">
-                      Feature
-                    </span>{" "}
-                    <span className="ml-10 text-gray-800">
-                      <ol type="1" className=" break-keep">
-                        {orginalData.currentPlan.features?.map((el, index) => {
-                          return <li key={index}>{el}</li>;
-                        })}
-                      </ol>
-                    </span>{" "}
-                  </li>
-                  <li>
-                    {" "}
-                    <span className="font-medium text-gray-500">
-                      Expiry:
-                    </span>{" "}
-                    <span className="ml-5 text-gray-800">
-                      {new Date(orginalData.currentPlan.Expiry).toDateString()}
-                    </span>{" "}
-                  </li>
-                </ul>
-              ) : (
-                <div className="w-full h-full flex justify-center items-center">
-                  <p className="font-acme md:text-2xl text-theme-blue">
-                    NO PLAN
+        </div>
+        <div className="sm:w-[70%] md:pt-20 pt-10  md:px-16 px-8 w-[100%] md:w-[80%]  md:h-[1900px] h-[2900px]  rounded-lg drop-shadow-2xl bg-white">
+          <div className="w-[100%] h-[90%] ">
+            <div>
+              {/* title */}
+
+              <div className="w-full h-[72px]   ">
+                <p className="text-2xl text-[#333333] font-playfair  font-bold">
+                  {editUser ? "Edit My Profile" : "My Profile"}
+                </p>
+              </div>
+              {/* personal info */}
+              <div className="w-full mt-5 h-[50px] border-b pb-10  mb-4">
+                <p className="font-playfair text-amber-950 font-semibold">
+                  Personal info
+                </p>
+              </div>
+              <div className="personal info grid md:grid-cols-3 grid-cols-1 h-auto gap-1  pb-20 border-b-4 border-black ">
+                <div className="w-full h-[120px] font-semibold  relative  md:col-span-2  ">
+                  <div className="border h-10 rounded-md mt-7 ">
+                    <input
+                      type="text"
+                      id="fname"
+                      name="firstName"
+                      disabled={!editUser}
+                      onChange={editUser ? handleInputData : undefined}
+                      value={
+                        editUser
+                          ? editedData.PersonalInfo?.firstName
+                          : orginalData.PersonalInfo.firstName
+                      }
+                      className="profileInputs px-4  font-popin text-sm  rounded-md w-[100%] active:border-2 h-full "
+                    />
+                    {editUser && (
+                      <img
+                        src="/undo.png"
+                        className="w-4 h-4 cursor-pointer absolute right-3 top-10 "
+                        onClick={() =>
+                          setEditedData((el) => ({
+                            ...el,
+                            PersonalInfo: {
+                              ...el.PersonalInfo,
+                              firstName: orginalData.PersonalInfo.firstName,
+                            },
+                          }))
+                        }
+                        alt=""
+                      />
+                    )}
+                  </div>
+                  <label
+                    className="block absolute -top-1 cursor-pointer peer-placeholder-shown:uppercase"
+                    htmlFor="fname"
+                  >
+                    First name:
+                  </label>
+                  <p className="text-sm mt-2 ml-2 text-dark_red">
+                    {formWarning.firstName}
                   </p>
                 </div>
-              )}
-            </div>
-          </div>
-          {/* ////////////////////partner details///////////////////// */}
-          <div
-            className={
-              editUser
-                ? "sm:w-[90%] w-[100%]   h-[300px] shadow-md  shadow-theme-blue   rounded-3xl"
-                : "sm:w-[90%] w-[100%]   h-[200px] shadow-md  shadow-theme-blue   rounded-3xl"
-            }
-          >
-            <div className="w-full h-12  justify-center   flex items-center rounded-full">
-              <p className="font-raleway font-bold text-[#1a27a1]">
-                Partner Details
-              </p>
-            </div>
-            <div className="w-[100%] px-2 py-4 h-[200px] ">
-              <ul className="font-roboto  text-sm">
-                <li>
-                  <span className="font-medium text-gray-500">GENDER:</span>
-                  {editUser ? (
-                    <span className="sm:ml-10 text-gray-800">
-                      <select
-                        value={
-                          editedData.partnerData.gender ||
-                          orginalData.PartnerData.gender
+
+                <div className="w-full relative h-[120px] ">
+                  <div className="border h-10 rounded-md mt-7 font-semibold ">
+                    <input
+                      type="text"
+                      id="sname"
+                      disabled={!editUser}
+                      value={
+                        editUser
+                          ? editedData.PersonalInfo?.secondName
+                          : orginalData.PersonalInfo.secondName
+                      }
+                      name="secondName"
+                      onChange={editUser ? handleInputData : undefined}
+                      className="profileInputs px-4  font-popin  rounded-md w-[100%] active:border-2 h-full "
+                    />
+                    {editUser && (
+                      <img
+                        src="/undo.png"
+                        className="w-4 h-4 cursor-pointer absolute right-3 top-10 "
+                        onClick={() =>
+                          setEditedData((el) => ({
+                            ...el,
+                            PersonalInfo: {
+                              ...el.PersonalInfo,
+                              secondName: orginalData.PersonalInfo.secondName,
+                            },
+                          }))
                         }
-                        onChange={handleInputData}
-                        name="partnerGender"
-                        className="outline-none border  border-[#a3a3f7]"
+                        alt=""
+                      />
+                    )}
+                  </div>
+                  <label
+                    className="block font-semibold  absolute -top-1 cursor-pointer peer-placeholder-shown:uppercase"
+                    htmlFor="sname"
+                  >
+                    Last name:
+                  </label>
+                  <p className="text-sm mt-2 ml-2 font-semibold text-dark_red">
+                    {formWarning.secondName}
+                  </p>
+                </div>
+                <div className="w-full h-[120px] relative  font-semibold">
+                  <div>
+                    <div className="border h-10 rounded-md mt-7 w-[100%]">
+                      <input
+                        type="text"
+                        id="age"
+                        disabled={editUser}
+                        value={orginalData.PersonalInfo.age}
+                        className="profileInputs px-4  font-popin text-sm  rounded-md w-[100%] active:border-2 h-full "
+                      />
+                    </div>
+                    <label
+                      className="block absolute -top-1 cursor-pointer peer-placeholder-shown:uppercase"
+                      htmlFor="age"
+                    >
+                      Age:
+                    </label>
+                  </div>
+                </div>
+                <div className="w-full h-[120px]  relative">
+                  <div>
+                    <div className="border h-10 px-2 rounded-md mt-7 w-[100%] font-semibold">
+                      {editUser ? (
+                        <select
+                          className="w-full h-full  outline-none"
+                          name="gender"
+                          onChange={handleInputData}
+                          disabled={!editUser}
+                          value={editedData.PersonalInfo.gender}
+                          id="gender"
+                        >
+                          <option value="male">Male</option>
+                          <option value="female">Female</option>
+                        </select>
+                      ) : (
+                        <input
+                          type="text"
+                          
+                          name="firstName"
+                         
+                          value={orginalData.PersonalInfo.gender}
+                          className="profileInputs px-4  font-popin text-sm  rounded-md w-[100%] active:border-2 h-full "
+                        />
+                      )}
+                      {editUser && (
+                        <div className="w-4 h-4 cursor-pointer absolute right-8 top-10 ">
+                          <img
+                            src="/undo.png"
+                            className=""
+                            onClick={() =>
+                              setEditedData((el) => ({
+                                ...el,
+                                PersonalInfo: {
+                                  ...el.PersonalInfo,
+                                  gender: orginalData.PersonalInfo.gender,
+                                },
+                              }))
+                            }
+                            alt=""
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <label
+                      className="block font-semibold absolute -top-1 cursor-pointer peer-placeholder-shown:uppercase"
+                      htmlFor="gender"
+                    >
+                      Gender:
+                    </label>
+                  </div>
+                </div>
+                <div className="w-full h-[120px]  relative">
+                  <div>
+                    <div className="border h-10 px-2 rounded-md mt-7 font-semibold w-[100%]">
+                      {editUser ? (
+                        <select
+                          className="w-full h-full outline-none"
+                          name="district"
+                          id="district"
+                          onChange={handleInputData}
+                          value={editedData.PersonalInfo.state}
+                          
+                        >
+                          <option value="">select state</option>
+                          {districtsOfKerala?.map((el, index) => (
+                            <option className="text-sm " key={index} value={el}>
+                              {el}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type="text"
+                          id=""
+                          name=""
+                          disabled={!editUser}
+                          value={orginalData.PersonalInfo.state}
+                          className="profileInputs px-4  font-popin text-sm  rounded-md w-[100%] active:border-2 h-full "
+                        />
+                      )}
+                    </div>
+                    <label
+                      className="font-semibold block absolute -top-1 cursor-pointer peer-placeholder-shown:uppercase"
+                      htmlFor="district"
+                    >
+                      District:
+                    </label>
+                    {editUser && (
+                      <img
+                        src="/undo.png"
+                        className="w-4 h-4 cursor-pointer absolute right-8 top-10 "
+                        onClick={() =>
+                          setEditedData((el) => ({
+                            ...el,
+                            PersonalInfo: {
+                              ...el.PersonalInfo,
+                              state: orginalData.PersonalInfo.state,
+                            },
+                          }))
+                        }
+                        alt=""
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* //////////////////date of birth/////////////// */}
+                <div className="w-full h-[120px] relative ">
+                  {editUser ? (
+                    <div>
+                      <div className="border font-semibold   h-10 rounded-md mt-7 w-[100%]">
+                        <input
+                          type="date"
+                          id="date"
+                          name="dateOfBirth"
+                          onChange={editUser ? handleInputData : undefined}
+                          value={getInputDate(
+                            "intoInput",
+                            new Date(
+                              editedData.PersonalInfo.dateOfBirth
+                            ).toDateString()
+                          )}
+                          className="profileInputs px-4  font-popin text-sm  rounded-md w-[100%] active:border-2 h-full "
+                        />
+                        {editUser && (
+                          <img
+                            src="/undo.png"
+                            className="w-4 h-4 cursor-pointer absolute right-10 top-10 "
+                            onClick={() =>
+                              setEditedData((el) => ({
+                                ...el,
+                                PersonalInfo: {
+                                  ...el.PersonalInfo,
+                                  dateOfBirth: new Date(
+                                    orginalData.PersonalInfo.dateOfBirth
+                                  ).toDateString(),
+                                },
+                              }))
+                            }
+                            alt=""
+                          />
+                        )}
+                      </div>
+                      <label
+                        className="block absolute font-semibold -top-1 cursor-pointer peer-placeholder-shown:uppercase"
+                        htmlFor="date of birth "
                       >
-                        <option value="">Gender</option>
-                        <option value="male">male</option>
-                        <option value="female">female</option>
-                      </select>
-                    </span>
+                        Date of birth{" "}
+                        <span className="text-gray-700"> (MM-DD-YYYY)</span> :
+                      </label>
+                      <p className="text-sm mt-2 ml-2 font-semibold text-dark_red">
+                        {formWarning.dob}
+                      </p>
+                    </div>
                   ) : (
-                    <span className="ml-10 text-gray-800">
-                      {orginalData.PartnerData.gender}
-                    </span>
+                    <div>
+                      <div className="border font-semibold  h-10 rounded-md mt-7 w-[100%]">
+                        <input
+                          type="text"
+                         
+                          disabled={!editUser}
+                          name="dateOfBirth"
+                          
+                          value={getInputDate(
+                            "",
+                            orginalData.PersonalInfo.dateOfBirth
+                          )}
+                          className="profileInputs px-4  font-popin text-sm  rounded-md w-[100%] active:border-2 h-full "
+                        />
+                      </div>
+                      <label
+                        className="block absolute font-semibold -top-1 cursor-pointer peer-placeholder-shown:uppercase"
+                        htmlFor="age"
+                      >
+                        Date of birth:
+                      </label>
+                    </div>
                   )}
-                </li>
-              </ul>
-            </div>
-          </div>
+                </div>
 
-          {/* //////////////////////////////interest datatil////////////////////////////// */}
-          <div
-            className={
-              editUser
-                ? "sm:w-[90%] w-[99%]  h-[300px] shadow-md  shadow-theme-blue   rounded-3xl"
-                : "sm:w-[90%] w-[99%]  h-[200px] shadow-md  shadow-theme-blue   rounded-3xl"
-            }
-          >
-            <div className="w-full h-12  justify-center   flex items-center rounded-full">
-              <p className="font-raleway font-bold text-[#1a27a1]">
-                Interest Details
-              </p>
-            </div>
-            {editUser && (
-              <div className="w-full h-[20%]  flex items-center">
-                <select
-                  onChange={handleInputData}
-                  disabled={
-                    (orginalData?.PersonalInfo.interest.length ?? 0) >= 5 ||
-                    (editedData?.PersonalInfo.interest?.length ?? 0) >= 5
-                  }
-                  className="mx-2 outline-none border border-theme-blue "
-                  name="interest"
-                >
-                  {interest.map((el, index) => {
-                    return (
-                      <option key={index} value={el}>
-                        {el}
-                      </option>
-                    );
-                  })}
-                </select>
+                {/* //////////////////email/////////////// */}
+
+                <div className="w-full h-[120px] relative  md:col-span-2 ">
+                  <div>
+                    <div className="border h-10 rounded-md mt-7 w-[100%] relative">
+                      <input
+                        disabled={!editUser}
+                        type="email"
+                        id="email"
+                        name="email"
+                        onChange={editUser ? handleInputData : undefined}
+                        value={editUser ? editedData.email : orginalData.Email}
+                        className="profileInputs font-semibold px-4  font-popin text-sm  rounded-md w-[100%] active:border-2 h-full 
+                        outline-none 
+                        "
+                      />
+                      {editUser && (
+                        <img
+                          src="/undo.png"
+                          className="w-4 h-4 cursor-pointer absolute right-3 top-3"
+                          onClick={() =>
+                            setEditedData((el) => ({
+                              ...el,
+                              email: orginalData.Email,
+                            }))
+                          }
+                          alt=""
+                        />
+                      )}
+                    </div>
+                    <label
+                      className="block font-semibold absolute -top-1 cursor-pointer peer-placeholder-shown:uppercase "
+                      htmlFor="email"
+                    >
+                      Email:
+                    </label>
+                    <div className="w-full flex mt-2 px-2 justify-between items-center">
+                      <p className=" text-sm font-s   font-semibold text-dark_red">
+                        {formWarning.email}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
-            )}
-            <div className=" w-[98%] ml-1 px-2 py-4 ] grid grid-cols-2  rounded-3xl h-[150px]  ">
-              {editedData.PersonalInfo.interest !== null
-                ? editedData.PersonalInfo.interest?.map((el, index) => {
-                    return (
-                      <div
-                        key={index}
-                        className=" text-sm w-28 h-8 rounded-full border flex   font-roboto font-bold text-gray-800 items-center border-theme-blue"
-                      >
-                        <div className="rounded-3xl h-full w-[80%]  flex justify-center items-center">
-                          {el}
-                        </div>
-                        {editUser ? (
-                          <div
-                            onClick={() => removeInterest(el)}
-                            className="rounded-3xl cursor-pointer h-[60%] w-[15%] "
-                          >
+
+              {/* Partner info */}
+              <div className="pb-6 border-b-4 border-black">
+                <div className="w-full mt-5 h-[50px] border-b pb-10  mb-4">
+                  <p className="font-playfair  text-amber-950 font-semibold">
+                    Partner gender
+                  </p>
+                </div>
+                <div className="w-full h-[120px]  ">
+                  <div>
+                    <label
+                      className="block  font-semibold  -top-1 cursor-pointer peer-placeholder-shown:uppercase "
+                      htmlFor="partnerGender"
+                    >
+                      Gender:
+                    </label>
+
+                   
+                      {editUser ? (
+                         <div className="border h-10 rounded-md mt-5 w-[100%] relative">
+                        <select
+                          className="w-full h-full  outline-none"
+                          name="partnerGender"
+                          onChange={handleInputData}
+                          disabled={!editUser}
+                          value={editedData.partnerData.gender}
+                          
+                          id="partnerGender"
+                        >
+                          <option value="male">Male</option>
+                          <option value="female">Female</option>
+                        </select>
+                        {editUser && (
                             <img
-                              src="./minus-button.png"
-                              className="w-full h-full"
+                              src="/undo.png"
+                              className="w-4 h-4 cursor-pointer top-3 right-6 absolute "
+                              onClick={() =>
+                                setEditedData((el) => ({
+                                  ...el,
+                                  partnerData:{...el.partnerData,gender:orginalData.PartnerData.gender},
+                                }))
+                              }
                               alt=""
                             />
-                          </div>
-                        ) : (
-                          ""
-                        )}
-                      </div>
-                    );
-                  })
-                : orginalData.PersonalInfo.interest.map((el, index) => {
-                    return (
-                      <div
-                        key={index}
-                        className=" text-sm w-28 h-8 rounded-full border flex   font-roboto font-bold text-gray-800 items-center border-theme-blue"
-                      >
-                        <div className="rounded-3xl h-full w-[80%]  flex justify-center items-center">
-                          {el}
+                          )}
+                         </div>
+                      ) : (
+                        <div className="border  h-10 rounded-md mt-5 w-[100%] relative">
+                          <input
+                            disabled={!editUser}
+                            type="text"
+                            id="partnerGender2"
+                            name="partnerGender"
+                            onChange={editUser ? handleInputData : undefined}
+                            value={
+                              editUser
+                                ? editedData.partnerData.gender
+                                : orginalData.PartnerData.gender
+                            }
+                            className="profileInputs font-semibold px-4  font-popin text-sm  rounded-md w-[100%] active:border-2 h-full 
+                        outline-none 
+                        "
+                          />
+                          
                         </div>
-                        {editUser ? (
+                      )}
+                   
+                  </div>
+                </div>
+              </div>
+
+              {/* PLAN INFO */}
+              <div className="w-full mt-5 h-[50px] border-b pb-10  mb-4">
+                <p className="font-playfair text-amber-950 font-semibold">
+                  Plan info
+                </p>
+              </div>
+              {!orginalData.currentPlan?.name ? (
+                <div className="w-full h-[500px] relative border flex justify-center  flex-col items-center">
+                  <div className="w-full h-[9%] absolute  bottom-0 right-0 left-0 bg-black flex justify-center items-center">
+                    <p className=" text-white font-bold font-playfair">
+                      NO PLAN AVAILBLE
+                    </p>
+                  </div>
+                  <FontAwesomeIcon
+                    icon={faCreditCard}
+                    beatFade
+                    size="6x"
+                    style={{ color: "#d10e00", cursor: "pointer" }}
+                  />
+                  <p className="text-sm text-amber-950 font-extrabold font-playfair mt-4">
+                    BUY A PLAN
+                  </p>
+                </div>
+              ) : (
+                <div className="personal info    grid  sm:grid-cols-1 md:grid-cols-3 h-auto gap-2  pb-20 border-b-4 border-black ">
+                  <div className="w-full h-[120px] flex justify-center flex-col items-center border rounded-xl">
+                    <p className="font-semibold  mb-2  text-xs">NAME:</p>
+                    <p className="md:text-xl font-popin text-amber-950 font-bold">
+                      {orginalData.currentPlan?.name}
+                    </p>
+                  </div>
+                  <div className="w-full h-[120px] flex justify-center flex-col items-center border rounded-xl">
+                    <p className="font-semibold  mb-2  text-xs">STATUS:</p>
+                    <p className="md:text-xl font-popin text-amber-950 font-bold">
+                      {orginalData?.subscriptionStatus}
+                    </p>
+                  </div>
+                  <div className="w-full h-[120px] flex justify-center flex-col items-center border rounded-xl">
+                    <p className="font-semibold  mb-2  text-xs">AMOUNT:</p>
+                    <p className="md:text-xl font-popin text-amber-950 font-bold">
+                      {orginalData?.currentPlan?.amount}
+                    </p>
+                  </div>
+
+                  <div className="w-full h-[120px] flex justify-center flex-col items-center border rounded-xl">
+                    <p className="font-semibold  mb-2  text-xs">CONNECT:</p>
+                    <p className="md:text-xl font-popin text-amber-950 font-bold">
+                      {orginalData?.currentPlan?.connect}
+                    </p>
+                  </div>
+                  <div className="w-full h-[120px] flex justify-center flex-col items-center border rounded-xl">
+                    <p className="font-semibold  mb-2  text-xs">
+                      AVAILABLE CONNECT:
+                    </p>
+                    <p className="md:text-xl font-popin text-amber-950 font-bold">
+                      {orginalData.currentPlan?.avialbleConnect}
+                    </p>
+                  </div>
+                  <div className="w-full h-[120px] flex justify-center flex-col items-center border rounded-xl">
+                    <p className="font-semibold  mb-2  text-xs">
+                      AVAILABLE CONNECT:
+                    </p>
+                    <p className="md:text-xl font-popin text-amber-950 font-bold">
+                      {getInputDate(
+                        "",
+                        new Date(orginalData.currentPlan?.Expiry).toDateString()
+                      )}
+                    </p>
+                  </div>
+                  <div className="w-full flex md:h-[150px] sm:[200px]  flex-col h-[200px] rounded-2xl   gap-4 border md:col-span-3 col-span-1">
+                    <div className="w-full h-[10%] font-semibold pt-2 pl-6">
+                      Feature
+                    </div>
+                    <div className="w-full h-[90%] flex p-4 flex-wrap ">
+                      {orginalData.currentPlan?.features.map((el, index) => {
+                        return (
+                          <>
+                            <div
+                              key={index}
+                              className=" text-white ml-2 md:text-base text-xs flex justify-center items-center bg-black rounded-full h-10 "
+                            >
+                              {" "}
+                              <span className=" px-5 py-10 ">{el}</span>
+                            </div>
+                          </>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* //////////////interest///////////////// */}
+              <div className="w-full mt-5 h-[50px] border-b pb-10  mb-4">
+                <p className="font-playfair  font-semibold ">Interest</p>
+              </div>
+              <div className="w-full flex flex-col mt-5    md:h-[190px]  mb-4  max-h-[190px] bg-gray-200 rounded-md">
+                <div className="w-full px-2 pt-4 gap-4  flex justify-evenly overflow-y-auto   pb-11 content-around h-[85%] flex-wrap ">
+                  {editUser &&
+                    interest?.map((el, index) => {
+                      return (
+                        <>
+                          {editedData.PersonalInfo?.interest?.includes(el) ? (
+                            <div
+                              onClick={() => handleInterest(el)}
+                              key={`edited-${index}`}
+                              className="min-h-10 md:w-[20%] w-[30%]  cursor-pointer   rounded-full text-white flex justify-center items-center bg-black  "
+                            >
+                              {el}
+                            </div>
+                          ) : (
+                            <div
+                              onClick={() => handleInterest(el)}
+                              key={`edited-2-${index}`}
+                              className="min-h-10 md:w-[20%] w-[30%] cursor-pointer  rounded-full text-black flex justify-center items-center font-semibold bg-white border  "
+                            >
+                              {el}
+                            </div>
+                          )}
+                        </>
+                      );
+                    })}
+                  {!editUser &&
+                    orginalData.PersonalInfo?.interest?.map((el, index) => {
+                      return (
+                        <>
                           <div
-                            onClick={() => removeInterest(el)}
-                            className="rounded-3xl cursor-pointer h-[60%] w-[15%] "
+                            key={`view-${index}`}
+                            className="min-h-10 md:w-[20%] w-[30%]  hover:bg-stone-700 transition-colors duration-500 ease-in-out rounded-full text-white flex justify-center items-center bg-black  "
                           >
-                            <img
-                              src="./minus-button.png"
-                              className="w-full h-full "
-                              alt=""
-                            />
+                            {el}
                           </div>
-                        ) : (
-                          ""
-                        )}
-                      </div>
-                    );
-                  })}
+                        </>
+                      );
+                    })}
+                </div>
+                <div className="w-full h-[15%]  px-5 font-semibold flex justify-between items-center ">
+                {editUser && (
+                      <img
+                        src="/undo.png"
+                        className="w-4 h-4 cursor-pointer  right-3 top-10 "
+                        onClick={() =>
+                          setEditedData((el) => ({
+                            ...el,
+                            PersonalInfo: {
+                              ...el.PersonalInfo,
+                              interest: orginalData.PersonalInfo.interest,
+                            },
+                          }))
+                        }
+                        alt=""
+                      />
+                    )}
+                  {editUser ? (
+                    <p className="">
+                      {editedData.PersonalInfo.interest?.length || 0}
+                      {"/"}5
+                    </p>
+                  ) : (
+                    <p className=" text-red-600">
+                      {orginalData.PersonalInfo.interest?.length || 0}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* /////////////////buttong/////////////////////////// */}
+
+              <div className="w-full h-[100px] mt-5  flex justify-center items-center">
+                {!editUser && (
+                  <FontAwesomeIcon
+                    icon={faCircleUp}
+                    onClick={() =>
+                      window.scrollTo({ top: 0, behavior: "smooth" })
+                    }
+                    bounce
+                    size="3x"
+                    style={{ color: "#700000", cursor: "pointer" }}
+                  />
+                )}
+
+                {editUser && (
+                  <Button
+                    onClick={() => submitEditedData()}
+                    className="
+        group 
+        relative 
+        mr-4
+       md:px-24 
+        md:py-6
+        px-16
+        py-6  
+        overflow-hidden 
+        rounded-full 
+        bg-gradient-to-r 
+        from-blue-500 
+        to-blue-600 
+        text-white 
+        shadow-lg 
+        hover:shadow-xl 
+        transition-all 
+        duration-300 
+        ease-in-out 
+        transform 
+        hover:-translate-y-1 
+        hover:scale-105
+      "
+                  >
+                    <span className="absolute inset-0 bg-blue-700 opacity-0 group-hover:opacity-20 transition-opacity"></span>
+                    <div className="flex items-center space-x-2">
+                      <Send className="w-5 h-5" />
+                      <span>Submit</span>
+                    </div>
+                  </Button>
+                )}
+
+                {editUser && (
+                  <Button
+                    onClick={() => handleReset()}
+                    className="
+          group 
+          relative 
+          md:px-24 
+          md:py-6
+          px-16
+          py-6 
+          rounded-full 
+          border-2 
+          border-gray-300 
+          text-gray-500
+          hover:bg-gray-100 
+          transition-all 
+          duration-300 
+          ease-in-out 
+          flex 
+          items-center 
+          space-x-2
+        "
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RotateCcw className="w-5 h-5 transition-transform group-hover:rotate-180" />
+                      <span>Reset</span>
+                    </div>
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-
-        <div className=" w-full h-20  flex items-center justify-center rounded-full">
-          {editUser ? (
-            <button
-              onClick={() => (
-                handleTogleBetweenEdit(false), submitEditedData()
-              )}
-              className="overflow-hidden relative w-32 p-2 h-10 bg-dark-blue text-white border-none rounded-md text-xl font-bold cursor-pointer relative z-10 group"
-            >
-              Submit
-              <span className="absolute w-36 h-32 -top-8 -left-2 bg-white rotate-12 transform scale-x-0 group-hover:scale-x-100 transition-transform group-hover:duration-500 duration-1000 origin-left"></span>
-              <span className="absolute w-36 h-32 -top-8 -left-2 bg-theme-blue rotate-12 transform scale-x-0 group-hover:scale-x-100 transition-transform group-hover:duration-700 duration-700 origin-left"></span>
-              <span className="absolute w-36 h-32 -top-8 -left-2 bg-theme-blue rotate-12 transform scale-x-0 group-hover:scale-x-100 transition-transform group-hover:duration-1000 duration-500 origin-left"></span>
-              <span className="group-hover:opacity-100 group-hover:duration-1000 duration-100 opacity-0 absolute top-2.5 left-9 z-10">
-                DATA
-              </span>
-            </button>
-          ) : (
-            <button
-              onClick={() => handleTogleBetweenEdit(true)}
-              className="overflow-hidden relative w-32 p-2 h-10 bg-dark-blue text-white border-none rounded-md text-xl font-bold cursor-pointer relative z-10 group"
-            >
-              UPDATE
-              <span className="absolute w-36 h-32 -top-8 -left-2 bg-white rotate-12 transform scale-x-0 group-hover:scale-x-100 transition-transform group-hover:duration-500 duration-1000 origin-left"></span>
-              <span className="absolute w-36 h-32 -top-8 -left-2 bg-theme-blue rotate-12 transform scale-x-0 group-hover:scale-x-100 transition-transform group-hover:duration-700 duration-700 origin-left"></span>
-              <span className="absolute w-36 h-32 -top-8 -left-2 bg-theme-blue rotate-12 transform scale-x-0 group-hover:scale-x-100 transition-transform group-hover:duration-1000 duration-500 origin-left"></span>
-              <span className="group-hover:opacity-100 group-hover:duration-1000 duration-100 opacity-0 absolute top-2.5 left-9 z-10">
-                DATA
-              </span>
-            </button>
-          )}
         </div>
       </div>
     </div>
+    </>
   );
 };

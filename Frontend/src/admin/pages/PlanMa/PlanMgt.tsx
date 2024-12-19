@@ -223,24 +223,24 @@ const handleNameChange=(t:React.ChangeEvent<HTMLInputElement>)=>{
     }
   }
   return (
-    <div className="w-screen h-full  overflow-hidden ">
+    <div className="w-[80%] h-svh">
+
+    <div className="w-full h-full lg:mt-0 mt-10  overflow-hidden ">
       
 
       
         <div className="w-full h-[25%]  flex justify-center items-center">
           
           {!toggle && (
-        <div className="w-24 bg-white  h-20 font-bold flex justify-center items-end">
-          <p
-            onClick={() => setToggle(true)}
-            className=" text-dark-blue cursor-pointer"
-          >
-            BACK
-          </p>
+        <div className="w-24   h-20 font-bold cursor-pointer flex justify-center items-center">
+          <div onClick={() => setToggle(true)} className="w-10 h-10 ">
+              <img src="/backPlan.png" className="h-full w-full" alt="" />
+          </div>
+         
         </div>
       )}
 
-          <div className="w-[90%] h-5/6 drop-shadow-lg bg-white rounded-lg flex justify-between items-center">
+          <div className=" w-[90%] h-5/6 drop-shadow-lg bg-white transform transition-transform duration-300 ease-in-out hover:scale-105 rounded-lg flex justify-between items-center">
             <p className=" ml-5 font-extrabold sm:text-base text-xs  font-inter text-dark-blue">
               PLAN MANAGEMENT
             </p>
@@ -263,7 +263,7 @@ const handleNameChange=(t:React.ChangeEvent<HTMLInputElement>)=>{
             AVAILABLE PLAN
           </p>
         </div>
-        <div className="w-full h-[85%] flex justify-start p-1  overflow-x-auto  no-scrollbar">
+        <div className="w-[90%] ml-10 h-[85%]  flex justify-start p-1  overflow-x-auto  no-scrollbar">
           <div className="flex space-x-4 ">
             
             {datas.map((el,index)=>{
@@ -271,7 +271,7 @@ const handleNameChange=(t:React.ChangeEvent<HTMLInputElement>)=>{
                 <div
               key={index}
 
-              className= "ml-5 sm:w-64 w-44 rounded-xl h-[95%] sm:h-[90%] hover:bg-[#000080] drop-shadow-xl  bg-dark-blue mr-2"
+              className= "ml-5 sm:w-64 w-44 rounded-xl h-[80%] sm:h-[90%] hover:bg-[#000080] drop-shadow-xl  bg-dark-blue mr-2"
             >
               <div  className=" w-[90%] h-[10%] text-end rounded-full font-bold text-white text-lg">
                 <p onClick={()=>handleRemovePlan(el._id,el.name)}>
@@ -279,7 +279,7 @@ const handleNameChange=(t:React.ChangeEvent<HTMLInputElement>)=>{
                 </p>
                 
               </div>
-              <div  className=" w-[100%] rounded-xl h-[90%] font-inter     text-white text-lg">
+              <div  className=" w-[100%]  rounded-xl h-[90%] font-inter     text-white text-lg">
                <div className="flex justify-center w-full  h-[15%] ">
                 <p className="sm:text-2xl text-base font-bold">{el.name}</p>
                </div>
@@ -319,7 +319,7 @@ const handleNameChange=(t:React.ChangeEvent<HTMLInputElement>)=>{
     
       <div className="w-[100%] h-[75%]  flex justify-center items-center">
       {!toggle && currentData && (
-      <div className="sm:w-[60%] bg w-[95%] sm:h-[98%] md:w-[40%]  h-[90%] rounded-3xl border border-dark-blue border-b-2 bg-white sm:px-10 px-3 items-center flex flex-col">
+      <div className="sm:w-[60%] bg w-[95%] sm:h-[98%] md:w-[40%]  h-[90%] rounded-3xl shadow-3xl shadow-theme-blue border-b-2 bg-white sm:px-10 px-3 items-center flex flex-col">
    
       <div className="h-full w-full justify-center flex flex-col items-center">
         <h1 className="font-bold text-2xl text-theme-blue mt-2 mb-5">EDIT</h1>
@@ -420,102 +420,8 @@ const handleNameChange=(t:React.ChangeEvent<HTMLInputElement>)=>{
     
     
     </div>
-//     <div className={!toggle ? "w-full h-[95%]  flex justify-center items-center" : "w-full h-[75%] flex justify-center items-center"}>
-//   <div className="sm:w-[40%] bg w-[80%] sm:h-[90%]  h-[90%] rounded-3xl border border-dark-blue hover:border-b-2 bg-white px-10 items-center flex flex-col">
-//     {!toggle && currentData && (
-//       <div className="h-full w-full justify-center flex flex-col items-center">
-//         <h1 className="font-bold text-2xl text-theme-blue mt-2 mb-5">EDIT</h1>
-//         <div className="w-[100%] h-[15%] justify-between mb-2">
-//           <label htmlFor="name" className="block font-inter font-bold text-dark-blue">
-//             NAME
-//           </label>
-//           <input
-//             id="name"
-//             // value={editData.name}
-//             value={'hiii'}
-//             onChange={(t) => setEditData((el) => ({ ...el, name: t.target.value }))}
-//             type="text"
-//             className="w-[90%] border-b border-theme-blue outline-none"
-//           />
-//           <p className="mt-1">{warning.name || ""}</p>
-//         </div>
-//         <div className="w-[100%] h-[20%] mb-2 flex justify-between">
-//           <div className="w-[33%] h-full">
-//             <label className="text-dark_red font-bold">AMOUNT</label>
-//             <input
-//               onChange={(t) => setEditData((el) => ({ ...el, amount: parseInt(t.target.value) || 0 }))}
-//               id="amount"
-//               value={editData.amount}
-//               type="number"
-//               className="mt-1 w-[60%] outline-none"
-//               min={1}
-//               max={10000}
-//             />
-//             <p className="mt-1">{warning.amount || ""}</p>
-//           </div>
-//           <div className="w-[33%] h-full">
-//             <label className="text-dark_red font-bold">CONNECT</label>
-//             <input
-//               value={editData.connect}
-//               onChange={(t) => setEditData((el) => ({ ...el, connect: parseInt(t.target.value) || 0 }))}
-//               type="number"
-//               className="mt-1 w-[80%] outline-none"
-//               min={1}
-//               max={10000}
-//             />
-//             <p className="mt-1">{warning.connect || ""}</p>
-//           </div>
-//           <div className="w-[33%] h-full">
-//             <label className="text-dark_red font-bold">DURATION</label>
-//             <select
-//               value={editData.duration}
-//               onChange={(t) => setEditData((el) => ({ ...el, duration: parseInt(t.target.value) || 0 }))}
-//               className="h-8 outline-none border-b border-dark_red"
-//             >
-//               <option value="">Month</option>
-//               {months.map((el, index) => (
-//                 <option key={index} value={el}>
-//                   {el} month
-//                 </option>
-//               ))}
-//             </select>
-//             <p className="mt-1">{warning.duration || ""}</p>
-//           </div>
-//         </div>
-//         <div className="w-full h-10 mb-2">
-//           <select
-//             onChange={(t) => changeOnfeature(t)}
-//             className="w-[40%] outline-none rounded-xl sm:h-[80%] h-[50%] sm:text-base text-xs bg-dark_red text-white"
-//           >
-//             <option value="">Features</option>
-//             <option value="Video call">VIDEO CALL</option>
-//             <option value="Unlimited message">UNLIMITED MESSAGE</option>
-//             <option value="Suggestion">SUGGESTION BY US</option>
-//             <option value="Priority">GET PRIORITY</option>
-//           </select>
-//         </div>
-//         <div className="w-[100%] h-[30%] bg-gray-400">
-//           {editData.features.map((el, index) => (
-//             <div key={index} className="w-full h-[20%] mt-2 bg-dark_red flex">
-//               <div className="w-[90%] h-full flex items-center text-white px-2">
-//                 <p>
-//                   {index + 1}.<span className="pl-2">{el}</span>
-//                 </p>
-//               </div>
-//               <div onClick={() => handleClose(el)} className="w-[10%] h-full text-center cursor-pointer text-white font-black">
-//                 X
-//               </div>
-//             </div>
-//           ))}
-//         </div>
-//         <button onClick={handleSubmission} className="bg-gray-600 mt-2 px-8 py-2 rounded-lg font-medium text-white hover:bg-input_dark">
-//           SUBMIT
-//         </button>
-//       </div>
-//     )}
-    
-//   </div>
-// </div>
+    </div>
+
 
   );
 };

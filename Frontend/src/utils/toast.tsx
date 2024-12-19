@@ -22,7 +22,12 @@ export const showToast = (message: string, type: "success" | "error" | "info" | 
       });
       break;
     case "warning":
-      toast.warn(message);
+      toast.warn(message,{
+        style: {
+          backgroundColor: "black",
+          color: "white",
+        },
+      });
       break;
     default:
       toast(message);

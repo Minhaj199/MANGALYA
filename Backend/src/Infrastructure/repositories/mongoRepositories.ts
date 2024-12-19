@@ -269,7 +269,7 @@ export class MongoUserRepsitories implements UserRepository {
             boys: [
               { $match: { "PersonalInfo.gender": "male" } },
               { $sort: { _id: -1 } },
-              { $limit: 2 },
+              { $limit:2 },
             ],
             girls: [
               { $match: { "PersonalInfo.gender": "female" } },
@@ -412,32 +412,23 @@ export class MongoUserRepsitories implements UserRepository {
       throw new Error(error.message||'error on update')
     }
   }
-  async getRevenue(): Promise<{ month: number[], revenue:number[] }> {
-    const monthlyRevenue = await planOrderModel.aggregate([
-      {
-        $group: {
-          _id: {
-            year: { $year: "$created" }, 
-            month: { $month: "$created" }
-          },
-          totalRevenue: { $sum: "$amount" } 
-        }
-      },
-      {
-        $sort: { "_id.year": 1, "_id.month": 1 } 
-      }
-    ]);
-    const month:number[]=[]
-    const revenue:number[]=[]
-    if(monthlyRevenue){
-      monthlyRevenue?.forEach(element => {
-        month.push(element?._id.month)
-        revenue.push(element?.totalRevenue)
-      });
+  async getRevenue(): Promise<{ month: string[], revenue:number[] }> {
+    
+    const result=await planOrderModel.aggregate([{$group:{_id:{'$dateToString':{format: "%Y-%m-%d", date: "$created"}},total:{$sum:'$amount'}}},
+      {$sort:{_id:-1}},
+      {$limit:7}
+    ])
+    console.log(result)
+    const month:string[]=[]
+    const total:number[]=[]
+    if(result.length){
+      result.forEach((el)=>{
+          month.push(el?._id.slice(5))
+          total.push(el?.total)
+      },[])
     }
-    console.log(month)
-    console.log(revenue)
-    return { month: month, revenue:revenue }
+   
+    return { month:month, revenue:total }
   }
   async getSubcriberCount(): Promise<number[]> {
     try {
@@ -455,7 +446,7 @@ export class MongoUserRepsitories implements UserRepository {
       const response=[]
       response[0]=parseFloat (((ans.subscriber/(ans.notSubscriber+ans.subscriber))*100).toFixed(2))
       response[1]= parseFloat(((ans.notSubscriber/(ans.notSubscriber+ans.subscriber))*100).toFixed(2))
-      console.log(response)
+    
       return response
     } catch (error:any) {
       throw new Error(error.message)

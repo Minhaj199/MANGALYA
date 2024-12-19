@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Bar } from "react-chartjs-2";
+import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  BarElement,
+  LineElement,
+  PointElement,
   Title,
   Tooltip,
   Legend,
@@ -12,33 +13,40 @@ import {
 import { request } from "../../../../utils/axiosUtils";
 
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Title, Tooltip, Legend);
 
-const BarChart = () => {
-    const [datas,setData]=useState<{month:number[],revenue:number[]}>()
-    useEffect(()=>{
-        console.log(datas)
-    },[])
-  useEffect(()=>{
-    async function FetchData(){
-        try {
-            const response:{month:number[],revenue:number[]}=await request({url:'/admin/getDataToDash?from=Revenue'})
-            console.log(response.month)
-            setData({month:response.month,revenue:response.revenue})
-        } catch (error) {
-            
-        }
-        
+const LineChart = () => {
+  const [datas, setData] = useState<{ month: number[]; revenue: number[] }>();
+
+  
+
+  useEffect(() => {
+    async function FetchData() {
+      try {
+        const response: { month: number[]; revenue: number[] } = await request({
+          url: "/admin/getDataToDash?from=Revenue",
+        });
+        console.log(response.month);
+        setData({ month: response.month, revenue: response.revenue });
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
     }
-    FetchData()
-  },[])
+    FetchData();
+  }, []);
+
+  
   const data = {
-    labels: datas?.month, 
+    labels: datas?.month,
     datasets: [
       {
         label: "Revenue",
         data: datas?.revenue,
-        backgroundColor: ["#FF5733", "#FF6347", "#C70039", "#1B1464"], 
+        borderColor: "#007bff",
+        backgroundColor: "rgba(255, 87, 51, 0.2)",
+        tension: 0.4, 
+        pointBackgroundColor: "#990000", 
+        pointRadius: 5, 
       },
     ],
   };
@@ -48,37 +56,42 @@ const BarChart = () => {
     responsive: true,
     plugins: {
       legend: {
-        display: false, 
+        display: false,
       },
       title: {
         display: true,
-        text: "Revenue",
+        text: "Revenue of last 7 days",
         align: "start",
-        font: { size: 20, weight: "bold" }, 
+        font: { size: 20, weight: "bold" },
       },
+      
     },
     scales: {
       y: {
         beginAtZero: true,
         ticks: {
-          stepSize: 200, 
+          stepSize: 250,
         },
       },
+    },
+    animation: {
+      duration: 2000, 
+      easing: "easeInOutQuart", 
     },
   };
 
   return (
-    <div style={{ width: "400px", margin: "auto", padding: "20px" }}>
+    <div  className="w-[100%] m-auto p-4">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2 style={{ fontWeight: "bold", margin: 0 }}>Revenue 2024 year</h2>
+        <h2 style={{ fontWeight: "bold", margin: 0 ,color:'teal' }}></h2>
         {/* <select style={{ padding: "5px" }}>
           <option>Monthly</option>
           <option>Quarterly</option>
         </select> */}
       </div>
-      <Bar data={data} options={options} />
+      <Line data={data} options={options} />
     </div>
   );
 };
 
-export default BarChart;
+export default LineChart;

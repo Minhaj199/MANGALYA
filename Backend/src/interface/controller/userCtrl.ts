@@ -120,6 +120,7 @@ export const fetechProfileData=async(req:Request,res:Response)=>{
             }])
             
             let currntPlan=await UserModel.aggregate([{$match:{_id:idd}},{$project:{_id:0,CurrentPlan:1}}])
+            console.log(currntPlan)
             let interest:unknown[]=await InterestModel.aggregate([
                 {
                     $project: {
@@ -413,11 +414,11 @@ export const resetPassword=async(req:Request,res:Response)=>{
 }
 export const editProfile=async(req:Request,res:Response)=>{
    
-   
+   console.log(req.file)
+   console.log(req.body)
     try {
         if(req.file){    
             const response=await uploadImage(req.file,req.userID?.slice(1,25))
-            console.log(response)
             const updateDetail=await updateData(JSON.parse (req.body.data),req.userID)
                 res.json({status:true, newData:updateDetail})
         }else{

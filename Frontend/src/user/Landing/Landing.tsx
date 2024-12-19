@@ -1,14 +1,15 @@
 import "./Landing.css";
 
 import { Footer } from "../Components/User/Footer/Footer";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Forgot_first } from "../Components/User/Forgot/Forgot_first";
 import { Forgot_second } from "../Components/User/Forgot/Forgot_second copy"; 
 import { Forgot_Final } from "../Components/User/Forgot/Forgot_final";
 import { Login } from "../Components/User/Login/Login";
-
-import { Search } from "../Components/User/HomeCards/HomeCards";
+import { Send } from 'lucide-react';
+import { HomeCards } from "../Components/User/HomeCards/HomeCards";
 import { useDispatch } from "react-redux";
+import { Info } from "../Components/User/HomeInfo/Info";
 
 export const Landing = () => {
   const [loginTogle, changeTogle] = useState<string>("1");
@@ -19,11 +20,11 @@ export const Landing = () => {
   },[])
   
   
-
+  
   return (
     <div>
-      <div className="w-[100%] h-svh bg-cover bg-center first_part">
-        <div className={loginTogle !== "1" ? "hidden" : "w-full h-full"}>
+      <div className="w-[100%]  h-svh bg-cover bg-center first_part" >
+        <div  className={loginTogle !== "1" ? "hidden" : "w-full h-full"}>
           <div className="w-full h-20   flex justify-between items-center p-5 ">
             <div className=" sm:h-16 sm:w-18 h-12 w-18">
             
@@ -60,9 +61,16 @@ export const Landing = () => {
         {loginTogle === "4" ? <Forgot_second changeToggle={changeTogle} /> : ""}
         {loginTogle === "5" ? <Forgot_Final changeToggle={changeTogle} /> : ""}
       </div>
-      <div className="w-[100%] h-auto  sm:h-auto lg:h-svh ">
+      <div className="w-[100%] relative h-auto bg-[#f0f5f9]  sm:h-auto lg:h-svh ">
         
-       <Search />
+       <HomeCards setToggle={changeTogle} />
+       <div onClick={()=> window.scrollTo({ top: 0, behavior: "smooth" })} className='w-16 cursor-pointer p-2 h-16 bottom-2 rounded-full right-2 bg-blue-400 absolute'>
+            <img src="./up-arrow.gif" className='w-full h-full rounded-full' alt="" />
+        </div>
+      </div>
+      <div className="w-[100%] min-h-lvh bg-white  sm:h-auto lg:h-svh ">
+        
+       <Info  setToggle={changeTogle} />
       </div>
       <Footer />  
     </div>

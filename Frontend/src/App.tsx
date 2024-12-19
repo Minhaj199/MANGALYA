@@ -20,6 +20,9 @@ import { UserProfile } from "./user/userProfile/userProfile";
 
 import { Credentials } from "./user/Signup/Credentials";
 import { Dash } from "./admin/pages/Dash/Dash";
+import { Suggestion } from "./user/suggetionPage/Suggestion";
+import { UserSearchPage } from "./user/search/Search";
+import { Matched } from "./user/MatchedProfile/Matched";
 
 export const districtsOfKerala = [
   "Alappuzha",
@@ -33,10 +36,11 @@ export const districtsOfKerala = [
   "Malappuram",
   "Palakkad",
   "Pathanamthitta",
-  "Thiruvananthapuram",
+  "Trivandrum",
   "Thrissur",
   "Wayanad"
 ];
+
 const App: React.FC = () => {
     const context=useContext(SignupContext)
    
@@ -69,6 +73,7 @@ const App: React.FC = () => {
         <Route path="subscriber" element={<SubscriberTable/>} />
         <Route path="Dash" element={<Dash/>} />
       </Route>
+      {/* <Route path="/admin" element={<Layout/>}> */}
       </Route>
         <Route path="/PlanDetails" element={<PlanRouteUser/>}>
         <Route path="" element={<PlanPurchase/>}/>
@@ -82,6 +87,9 @@ const App: React.FC = () => {
       <Route element={<ProtectRouteUser/>}>
       <Route path="/loginLanding" element={<LoginLanding active={'profile'}/>} />
       <Route path="/userProfile" element={<UserProfile/>} />
+      <Route path="/suggestion" element={<Suggestion/>} />
+      <Route path="/search" element={<UserSearchPage/>} />
+      <Route path="/match" element={<Matched/>} />
       </Route>
     </Routes>
   );

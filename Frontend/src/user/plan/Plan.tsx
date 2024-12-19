@@ -18,6 +18,7 @@ export type PlanData={
   amount:number
   avialbleConnect?:number
   _id:string
+  Expiry?:Date
 }
 const PlanPurchase = () => {
   
