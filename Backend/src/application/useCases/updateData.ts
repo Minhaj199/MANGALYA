@@ -69,9 +69,11 @@ export async function updateData(data:updateData,id:unknown){
             }
             return data
         }else{
-           return getUserProfileUseCase(id)
+            const mongoId=(id.length!==24)?id.slice(1,25):id
+           return getUserProfileUseCase(mongoId)
         }
     } catch (error:any) {
+        console.log('updateData function')
         throw new Error(error.message)
     }
 }

@@ -362,6 +362,7 @@ export const LoginLanding = ({ active }: { active: string }) => {
   function handleClose(e: React.MouseEvent<HTMLDivElement>) {
     if (e.target === e.currentTarget) {
       setSearchData({ minAge: 18, maxAge: 60, district: "", interest: [] });
+      
       setOpenSearch(false);
     }
   }

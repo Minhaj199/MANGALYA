@@ -120,7 +120,7 @@ export const fetechProfileData=async(req:Request,res:Response)=>{
             }])
             
             let currntPlan=await UserModel.aggregate([{$match:{_id:idd}},{$project:{_id:0,CurrentPlan:1}}])
-            console.log(currntPlan)
+            
             let interest:unknown[]=await InterestModel.aggregate([
                 {
                     $project: {
@@ -376,7 +376,7 @@ export const fetchInterest=async (req:Request,res:Response):Promise<void>=>{
 export const getUserProfile=async(req:Request,res:Response)=>{
     
     try {
-        const user=await getUserProfileUseCase(req.userID)
+        const user=await getUserProfileUseCase(req.userID?.slice(1,25))
         res.json({user})
     } catch (error:any) {
         res.json({message:error.message})
@@ -414,8 +414,7 @@ export const resetPassword=async(req:Request,res:Response)=>{
 }
 export const editProfile=async(req:Request,res:Response)=>{
    
-   console.log(req.file)
-   console.log(req.body)
+   
     try {
         if(req.file){    
             const response=await uploadImage(req.file,req.userID?.slice(1,25))
@@ -430,6 +429,7 @@ export const editProfile=async(req:Request,res:Response)=>{
             }
         }
     } catch (error:any) {
+        console.log('user controll no data dittected')
         console.log(error)
         res.json({message:error.messaeg||'error on update'})
     }

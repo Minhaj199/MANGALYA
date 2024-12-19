@@ -107,7 +107,7 @@ export const Navbar = ({ openSearchModalFunc,resetProfilePage,active }: { active
         
       </nav>
       {menuOpen && (
-          <div className="fixed top-20 left-4 rounded-2xl w-[50%] border-l border-r border-b bg-white z-0 text-black p-4 lg:hidden">
+          <div className="fixed top-20 left-4 rounded-2xl w-[50%] border-l border-r border-b bg-white z-[1] text-black p-4 lg:hidden">
             <ul className="flex flex-col items-start w-full h-full ">
               <li className="cursor-pointer py-2 text-sm hover:text-blue-500  " onClick={()=>(toggleMenu(),navigate('/loginLanding'))}>
                 Profiles

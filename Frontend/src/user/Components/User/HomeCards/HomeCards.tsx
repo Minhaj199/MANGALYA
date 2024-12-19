@@ -30,7 +30,7 @@ export const HomeCards = ({ setToggle }: Toggle) => {
     <>
       <div className="w-[100%]   h-[100px] bg-[#f0f5f9] flex justify-center items-center">
         <p className="text-base sm:text-xl lg:text-3xl text-[#0b3e80] fin font-aborato">
-          Last Added Profiles
+          OUR NEW MEMBERS
         </p>
       </div>
       <div className=" px-10 py-10 bg-center grid grid-cols-1 bg-[#f0f5f9]   md:grid-cols-2  sm:grid-cols-2 lg:grid-cols-4 gap-10  ">

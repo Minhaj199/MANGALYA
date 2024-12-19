@@ -387,13 +387,14 @@ export class MongoUserRepsitories implements UserRepository {
   }
   async getUserProfile(id: string): Promise<UserWithID> {
     try {
-      const user:unknown=await UserModel.findOne({_id:id.slice(1,25)}).lean()
+      const user:unknown=await UserModel.findOne({_id:id}).lean()
       if(user){
         return user as UserWithID 
       }else{
         throw new Error('user not found')
       }
     } catch (error:any) {
+      console.log('mongo repo here')
       console.log(error)
       throw new Error(error.message||'error on profile fetching')
     }

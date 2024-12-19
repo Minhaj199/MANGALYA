@@ -8,7 +8,8 @@ export async function getUserProfileUseCase(id:unknown){
    
     try {
         if(typeof id==='string'){
-           const data:UserWithID=await userRepo.getUserProfile(id)
+       
+               const data:UserWithID=await userRepo.getUserProfile(id)
            const useFullData={
                 PersonalInfo:{...data.PersonalInfo,age:getAge(data.PersonalInfo.dateOfBirth)},
                 PartnerData:data.partnerData,
@@ -23,7 +24,7 @@ export async function getUserProfileUseCase(id:unknown){
             throw new Error('id not found')
         }    
     } catch (error:any) {
-        
+      console.log('get profile here')
         throw new Error(error.message||'id not fount')
     }
     

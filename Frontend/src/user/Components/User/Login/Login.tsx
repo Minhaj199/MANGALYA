@@ -163,8 +163,9 @@ export const Login:React.FC<userLoginProp> = ({changeToggle,loginTogle}) => {
               {warning.password ? warning.password :null}
             </p>
           </div>
-          <div className="w-full h-8 mt-5 flex justify-end text-sm "  onClick={() => changeToggle("3")}>
+          <div  onClick={() => changeToggle("3")}  className=" cursor-pointer w-full h-8 mt-5 flex justify-end text-sm  "  >
             <p
+           
               className="font-aborato text-white mr-12 sm:mr-24 cursor-pointer "
              
             >

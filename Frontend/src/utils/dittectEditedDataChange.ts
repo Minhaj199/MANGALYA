@@ -2,6 +2,7 @@ import { userData } from "@/user/userProfile/userProfile";
 import { Dispatch, SetStateAction } from "react";
 import { getDateFromAge } from "./getDateFromAge";
 import { getInputDate } from "./getDateToDateInput";
+import { original } from "@reduxjs/toolkit";
 export type fetchBlankData = {
     PersonalInfo: {
       firstName: string;
@@ -33,10 +34,12 @@ export type fetchBlankData = {
   }
 
 export function findChange({dataToFind,orginalData}:FindChange){
-  
-    
-    if(dataToFind.PersonalInfo.firstName===orginalData.PersonalInfo.firstName){
-        dataToFind.PersonalInfo.firstName=''
+      
+  console.log(dataToFind)
+       
+       if(dataToFind.PersonalInfo.firstName===orginalData.PersonalInfo.firstName){
+           dataToFind.PersonalInfo.firstName=''
+           
       
         
     }
@@ -55,12 +58,19 @@ export function findChange({dataToFind,orginalData}:FindChange){
        
         
     }
-    if(dataToFind.PersonalInfo.interest?.length===orginalData.PersonalInfo.interest?.length){
-        
-            if(dataToFind.PersonalInfo.interest?.length&&dataToFind.PersonalInfo.interest?.length){
-
+    if(dataToFind.PersonalInfo.interest?.length===0 && orginalData.PersonalInfo.interest?.length===0){
+       alert('hii')
+        dataToFind.PersonalInfo.interest=null
+    }
+    
+            if(dataToFind.PersonalInfo.interest?.length&&dataToFind.PersonalInfo.interest?.length>0&&dataToFind.PersonalInfo.interest?.length&&dataToFind.PersonalInfo.interest?.length>0
+                &&dataToFind.PersonalInfo.interest.length===orginalData.PersonalInfo.interest.length
+            ){
+              alert('2')  
                 const sortedArr1 = [...dataToFind.PersonalInfo.interest]?.sort();
-                const sortedArr2 = [...dataToFind.PersonalInfo.interest]?.sort();
+                const sortedArr2 = [...orginalData.PersonalInfo.interest]?.sort();
+               console.log(sortedArr1)
+               console.log(sortedArr2)
                 if( sortedArr1?.every((value, index) => value === sortedArr2[index])){
                     
                     dataToFind.PersonalInfo.interest=null
@@ -70,7 +80,8 @@ export function findChange({dataToFind,orginalData}:FindChange){
                 
            
             
-        }
+    
+        
         
         if(getInputDate('intoInput',new Date (dataToFind.PersonalInfo.dateOfBirth).toDateString())===getInputDate ('intoInput',new Date(orginalData.PersonalInfo.dateOfBirth).toDateString())){
             dataToFind.PersonalInfo.dateOfBirth=''
@@ -87,8 +98,10 @@ export function findChange({dataToFind,orginalData}:FindChange){
            
             
         }
-        console.log(dataToFind)
+        
        return dataToFind
+  
+    
         
 
 }

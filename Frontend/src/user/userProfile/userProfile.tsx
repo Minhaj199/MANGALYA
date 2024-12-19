@@ -354,7 +354,7 @@ export const UserProfile = () => {
         method: "post",
         data: { OTP: otp },
       });
-      console.log(isValid)
+     
       if (isValid.message) {
         throw new Error(isValid.message || "error on otp validation");
       }
@@ -412,19 +412,26 @@ export const UserProfile = () => {
   ////////////////////////////// handle submit edited data//////////////////////
 const [loading,setLoading]=useState<boolean>(false)
   async function submitEditedData() {
-    alert('here')
-    console.log(editedData)
+    setFormWarning({
+      firstName: "",
+      secondName: "",
+    
+      state: "",
+      dob: "",
+      email: "",
+  
+    })
     setLoading(true)
     const dataToFind=structuredClone(editedData)
+    
     findChange({dataToFind,orginalData})
+ 
     
     const validate = validateEditedData(dataToFind,setFormWarning);
    
    
-    if (!validate) {
-      setEditedData(blanUserData);
-      setTempPhot("");
-    } else {
+    
+     if(validate) {
       const formData = new FormData();
       formData.append("file", editedData.PersonalInfo.image || "");
       formData.append("data", JSON.stringify(dataToFind));
@@ -435,7 +442,7 @@ const [loading,setLoading]=useState<boolean>(false)
             method: "put",
             data: formData,
           });
-        console.log(response);
+        
         if (response.message) {
           throw new Error(response.message || "error on updating");
         }
@@ -454,6 +461,7 @@ const [loading,setLoading]=useState<boolean>(false)
         setTempPhot("");
         setEditUser(false);
         setLoading(false)
+        window.scroll({top:0,behavior:"smooth"})
       } catch (error: any) {
         setLoading(false)
         alertWithOk(
@@ -520,14 +528,23 @@ const [loading,setLoading]=useState<boolean>(false)
   }
 
   //////////////handle interst////////////////
-
+  useEffect(()=>{
+    console.log(editedData)
+  },[editUser])
   function handleInterest(item: string) {
+      
+    
     if (!editedData.PersonalInfo.interest?.length) {
+      alert(1)
       setEditedData((el) => ({
         ...el,
         PersonalInfo: { ...el.PersonalInfo, interest: [item] },
       }));
-    } else if (editedData.PersonalInfo.interest?.includes(item)) {
+    } 
+    
+    else if (editedData.PersonalInfo.interest?.includes(item)) {
+     
+      
       setEditedData((el) => ({
         ...el,
         PersonalInfo: {
@@ -536,20 +553,24 @@ const [loading,setLoading]=useState<boolean>(false)
         },
       }));
     } else if (
+      
       editedData.PersonalInfo.interest?.length &&
       editedData.PersonalInfo.interest.length >= 5
     ) {
+      
       showToast("maximum interest choice is finished");
     } else {
-      if (editedData.PersonalInfo.interest) {
+      
+     
+      
         setEditedData((el) => ({
           ...el,
           PersonalInfo: {
             ...el.PersonalInfo,
-            interest: [...(el.PersonalInfo?.interest || ""), item],
+            interest: [...(el.PersonalInfo.interest || []), item],
           },
         }));
-      }
+      
     }
   }
   return (
@@ -1208,6 +1229,7 @@ const [loading,setLoading]=useState<boolean>(false)
                     </p>
                   </div>
                   <FontAwesomeIcon
+                  onClick={()=>navigate('/PlanDetails')}
                     icon={faCreditCard}
                     beatFade
                     size="6x"
@@ -1290,6 +1312,8 @@ const [loading,setLoading]=useState<boolean>(false)
               <div className="w-full mt-5 h-[50px] border-b pb-10  mb-4">
                 <p className="font-playfair  font-semibold ">Interest</p>
               </div>
+
+
               <div className="w-full flex flex-col mt-5    md:h-[190px]  mb-4  max-h-[190px] bg-gray-200 rounded-md">
                 <div className="w-full px-2 pt-4 gap-4  flex justify-evenly overflow-y-auto   pb-11 content-around h-[85%] flex-wrap ">
                   {editUser &&
