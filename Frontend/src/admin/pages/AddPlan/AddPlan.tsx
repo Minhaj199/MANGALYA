@@ -76,20 +76,20 @@ export const AddPlan = () => {
         
     }
   return (
-    <div className='w-[90%] h-svh '>
+    <div className='w-[90%]  h-svh '>
 
     <div className='w-full lg:mt-0 mt-10 h-full '>
-        <div className='w-full h-14 px-6 py-4 cursor-pointer  '>
+        <div className='w-full md:h-10 h-12 px-6 md:py-0 py-4  cursor-pointer  '>
             <div className='w-10 h-10 '>
             <img onClick={()=>navigate('/admin/Plan')} src="/backPlan.png" className="h-full w-full" alt="" />
             </div>
             
         </div>
-        <div className='w-full h-[90%]   flex justify-center items-center'>
-            <div className='sm:w-[40%]  w-[90%] sm:h-[95%] h-[84%] rounded-3xl border shadow-3xl shadow-theme-blue bg-white sm:px-10 px-5 items-center flex flex-col'>
+        <div className='w-full h-[90%]  md:ml-0 ml-5 flex justify-center items-center'>
+            <div className='md:w-[40%] w-[100%]  sm:w-[90%]  sm:h-[95%] h-[84%] rounded-3xl border shadow-3xl shadow-theme-blue bg-white sm:px-10 px-5 items-center flex flex-col'>
                 <h1 className='font-bold text-2xl text-dark-blue mt-2 mb-5'>ADD PLAN</h1>
                 <div className='sm:w-[100%] w-[100%] h-[15%] sm:h-[20%]     justify-between mb-2'>
-                    <label htmlFor="" className='block font-inter font-bold text-dark-blue'>NAME</label>
+                    <label htmlFor="" className='block font-inter font-bold md:text-base text-sm text-dark-blue'>NAME</label>
 
 
                     <input id='name' onChange={(t)=>handleNameChange(t)} type="text" value={datas.name} className=' w-[90%]  text-sm  outline-none' />

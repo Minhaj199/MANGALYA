@@ -22,7 +22,7 @@ export async function updateData(data:updateData,id:unknown){
     if(typeof id!=='string'){
         throw new Error('id not found')
     }
-    console.log(id)
+   
     const updateData:{
         [key: string]: any;
       }={}

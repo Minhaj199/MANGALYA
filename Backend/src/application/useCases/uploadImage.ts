@@ -13,7 +13,7 @@ export async function uploadImage(file:any,id:unknown){
         }    
         
         const email:any=await userRepo.findEmailByID(id)
-        console.log(email)
+       
         if(!email){
             throw new Error('error on image upload')
         }

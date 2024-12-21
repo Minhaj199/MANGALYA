@@ -3,7 +3,7 @@ import { MongoOtpRepository } from "../../Infrastructure/repositories/mongoRepos
 const userRepo=new MongoUserRepsitories()
 const otpRepo=new MongoOtpRepository()
 export  async function Validate(id:unknown,otp:unknown){
-    console.log(typeof id,typeof otp)
+   
     if(typeof id!=='string'||typeof otp!=='string'){
     throw new Error('error on validation')
     }

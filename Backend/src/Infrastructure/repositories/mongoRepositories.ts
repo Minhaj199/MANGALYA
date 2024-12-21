@@ -51,7 +51,7 @@ export class MongoUserRepsitories implements UserRepository {
         return false;
       }
     } catch (error: any) {
-      console.log('here at 54')
+      
       return error;
     }
   }
@@ -338,7 +338,7 @@ export class MongoUserRepsitories implements UserRepository {
                 photo:'$PersonalInfo.image',match:'$match'}},{$sort:{_id:-1}}
         
         ])
-        // console.log(responseDB)
+        
         return responseDB
       }else if(datas.district){
         
@@ -394,16 +394,16 @@ export class MongoUserRepsitories implements UserRepository {
         throw new Error('user not found')
       }
     } catch (error:any) {
-      console.log('mongo repo here')
+      
       console.log(error)
       throw new Error(error.message||'error on profile fetching')
     }
   }
   async update(user: updateData,id:string): Promise<UserWithID> {
-    console.log(id.length+' i am')
+   
     try {
       const response:unknown=await UserModel.findOneAndUpdate({_id:id},{$set:user}, { new: true })   
-      console.log(response)
+      
       if(response){
         return response as UserWithID
       }else{
@@ -419,7 +419,7 @@ export class MongoUserRepsitories implements UserRepository {
       {$sort:{_id:-1}},
       {$limit:7}
     ])
-    console.log(result)
+  
     const month:string[]=[]
     const total:number[]=[]
     if(result.length){
@@ -478,7 +478,7 @@ export class MongoUserRepsitories implements UserRepository {
         }
       }
     ])
-    console.log(revenue)
+  
     let ans={subscriber:0,notSubscriber:0}
     if(data?.length){
       data[0].subscriberGroups.forEach((el: { _id: string, count: number })=>{

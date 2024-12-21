@@ -223,7 +223,7 @@ const handleNameChange=(t:React.ChangeEvent<HTMLInputElement>)=>{
     }
   }
   return (
-    <div className="w-[80%] h-svh">
+    <div className="md:w-[80%] overflow-hidden  h-svh">
 
     <div className="w-full h-full lg:mt-0 mt-10  overflow-hidden ">
       
@@ -240,7 +240,7 @@ const handleNameChange=(t:React.ChangeEvent<HTMLInputElement>)=>{
         </div>
       )}
 
-          <div className=" w-[90%] h-5/6 drop-shadow-lg bg-white transform transition-transform duration-300 ease-in-out hover:scale-105 rounded-lg flex justify-between items-center">
+          <div className={toggle?" w-[90%] h-5/6 drop-shadow-lg bg-white transform transition-transform duration-300 ease-in-out hover:scale-105 rounded-lg flex justify-between items-center":" w-[90%] h-5/6 drop-shadow-lg bg-white  rounded-lg flex justify-between items-center"}>
             <p className=" ml-5 font-extrabold sm:text-base text-xs  font-inter text-dark-blue">
               PLAN MANAGEMENT
             </p>
@@ -317,7 +317,7 @@ const handleNameChange=(t:React.ChangeEvent<HTMLInputElement>)=>{
     
     
     
-      <div className="w-[100%] h-[75%]  flex justify-center items-center">
+      <div className="w-[100%] h-[75%]   flex justify-center items-center">
       {!toggle && currentData && (
       <div className="sm:w-[60%] bg w-[95%] sm:h-[98%] md:w-[40%]  h-[90%] rounded-3xl shadow-3xl shadow-theme-blue border-b-2 bg-white sm:px-10 px-3 items-center flex flex-col">
    

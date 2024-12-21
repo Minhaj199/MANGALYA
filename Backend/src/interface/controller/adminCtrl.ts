@@ -79,7 +79,7 @@ export const userBlockAndUnblock=async(req:Request,res:Response)=>{
     try {
       
        const response= await UserModel.findByIdAndUpdate(req.body.id,{$set:{block:req.body.updateStatus}})
-        console.log
+       
        if(response){
             res.json({message:'updated'})
         }
@@ -139,7 +139,7 @@ export const fetchFeature=async(req:Request,res:Response)=>{
         
         const response:{features:Features}|null=await featureModel.findOne({},{_id:0,features:1})
         if(response){
-            console.log(response)
+           
             res.json({features:response.features})
         }else{
             throw new Error("feature not found");

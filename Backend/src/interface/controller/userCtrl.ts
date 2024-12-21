@@ -354,24 +354,7 @@ export const fetchInterest=async (req:Request,res:Response):Promise<void>=>{
         res.json({message:error.message||'Error on message interest getting'})
     }
 }
-// export const subscriptionPayment=async (req:Request,res:Response):Promise<void>=>{
-//     console.log('i am at subscription route')
-    
-//     try {
-//         const plan:SubscriptionPlan={
-//             amount:'200',
-//             connect:'100',
-//             duration:6,
-//             features:[],
-//             name:'sample'
-//         }
-     
-//       console.log(result)
-//       res.json({result})
-//     } catch (error:any) {
-//         res.status(500).json({message:error.message})
-//     }
-// }
+
 
 export const getUserProfile=async(req:Request,res:Response)=>{
     
@@ -429,7 +412,7 @@ export const editProfile=async(req:Request,res:Response)=>{
             }
         }
     } catch (error:any) {
-        console.log('user controll no data dittected')
+        
         console.log(error)
         res.json({message:error.messaeg||'error on update'})
     }

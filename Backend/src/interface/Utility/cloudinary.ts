@@ -15,7 +15,7 @@ export class Cloudinary{
         const result=await cloudinary.v2.uploader.upload(path,{
             folder:'mangalya'
         })
-        console.log(result)
+       
         fs.unlink(path,()=>{})
         if(result.secure_url){
             return result.secure_url

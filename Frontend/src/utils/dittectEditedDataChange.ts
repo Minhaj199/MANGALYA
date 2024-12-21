@@ -59,14 +59,14 @@ export function findChange({dataToFind,orginalData}:FindChange){
         
     }
     if(dataToFind.PersonalInfo.interest?.length===0 && orginalData.PersonalInfo.interest?.length===0){
-       alert('hii')
+    
         dataToFind.PersonalInfo.interest=null
     }
     
             if(dataToFind.PersonalInfo.interest?.length&&dataToFind.PersonalInfo.interest?.length>0&&dataToFind.PersonalInfo.interest?.length&&dataToFind.PersonalInfo.interest?.length>0
                 &&dataToFind.PersonalInfo.interest.length===orginalData.PersonalInfo.interest.length
             ){
-              alert('2')  
+             
                 const sortedArr1 = [...dataToFind.PersonalInfo.interest]?.sort();
                 const sortedArr2 = [...orginalData.PersonalInfo.interest]?.sort();
                console.log(sortedArr1)

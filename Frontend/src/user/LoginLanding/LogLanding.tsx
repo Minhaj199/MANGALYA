@@ -207,7 +207,7 @@ export const LoginLanding = ({ active }: { active: string }) => {
 
         setProfiles(res[0].profile);
         if (searchData.district && searchData.interests.length !== 0) {
-          console.log(209);
+         
           const profile = res[0]?.profile.filter((el: profileType) => {
             return (
               searchData.minAge <= el.age &&
@@ -219,12 +219,12 @@ export const LoginLanding = ({ active }: { active: string }) => {
               )
             );
           });
-          console.log(221);
+         
           if (!profile.length) {
             alertWithOk("No result found", "Enjoy availables  ", "warning");
             return;
           }
-          console.log(profile);
+          alertWithOk('search Data',`${profile?.length} profiles found`,"success")
           setProfiles(profile);
         } else if (!searchData.district && searchData.interests.length === 0) {
           const profile = res[0]?.profile.filter((el: profileType) => {
@@ -234,6 +234,7 @@ export const LoginLanding = ({ active }: { active: string }) => {
             alertWithOk("no result found", "Please enjoy availables", "warning");
             return;
           }
+          alertWithOk('search Data',`${profile?.length} profiles found`,"success")
           setProfiles(profile);
         } else if (searchData.district) {
           const profile = res[0]?.profile.filter((el: profileType) => {
@@ -248,6 +249,7 @@ export const LoginLanding = ({ active }: { active: string }) => {
             return;
           }
           // showToast(`${profile?.length} profiles found`)
+          alertWithOk('search Data',`${profile?.length} profiles found`,"success")
           setProfiles(profile);
         } else if (searchData.interests?.length !== 0) {
           
@@ -264,6 +266,7 @@ export const LoginLanding = ({ active }: { active: string }) => {
             alertWithOk("no result found", "Please enjoy availables", "warning");
             return;
           }
+          alertWithOk('search Data',`${profile?.length} profiles found`,"success")
           setProfiles(profile);
         }
 

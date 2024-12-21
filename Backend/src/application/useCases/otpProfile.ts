@@ -15,7 +15,7 @@ export async function otpProfile(id:unknown){
         if(!getEmail){
             throw new Error('email not found')
         }  
-        console.log(getEmail)
+       
         const sentEmail=await  authService.otpVerificationForForgot(getEmail?.email)
         Promise.all([getEmail,sentEmail]).then((result)=>{
             return true

@@ -746,7 +746,7 @@ const [loading,setLoading]=useState<boolean>(false)
                   <img
                     src="/forbidden.png"
                     onClick={handleRemovePhoto}
-                    className="w-10 h-10 cursor-pointer rounded-full"
+                    className="w-10 h-10 mt-20 cursor-pointer rounded-full"
                     alt=""
                   />
                 ) : (
@@ -798,7 +798,9 @@ const [loading,setLoading]=useState<boolean>(false)
             </div>
           </div>
         </div>
-        <div className="sm:w-[70%] md:pt-20 pt-10  md:px-16 px-8 w-[100%] md:w-[80%]  md:h-[1900px] h-[2900px]  rounded-lg drop-shadow-2xl bg-white">
+        <div className={orginalData.currentPlan?.name?"sm:w-[70%] md:pt-20 pt-10  md:px-16 px-8 w-[100%] md:w-[80%]  md:h-[1900px] h-[2900px]  rounded-lg drop-shadow-2xl bg-white"
+          :"sm:w-[70%] md:pt-20 pt-10  md:px-16 px-8 w-[100%] md:w-[80%]  md:h-[1900px] h-[2350px]  rounded-lg drop-shadow-2xl bg-white"
+        }>
           <div className="w-[100%] h-[90%] ">
             <div>
               {/* title */}
@@ -1225,7 +1227,7 @@ const [loading,setLoading]=useState<boolean>(false)
                 <div className="w-full h-[500px] relative border flex justify-center  flex-col items-center">
                   <div className="w-full h-[9%] absolute  bottom-0 right-0 left-0 bg-black flex justify-center items-center">
                     <p className=" text-white font-bold font-playfair">
-                      NO PLAN AVAILBLE
+                      NO PLAN AVAILABLE
                     </p>
                   </div>
                   <FontAwesomeIcon
