@@ -5,6 +5,7 @@ import {
   faCircleCheck,
   faCircleXmark,
   faChevronLeft,
+  faAward
 } from "@fortawesome/free-solid-svg-icons";
 
 import "./LogLanding.css";
@@ -13,14 +14,16 @@ import {
   alertWithOk,
   handleAlert,
   simplePropt,
+  
 } from "../../utils/alert/sweeAlert";
 import { PlanData } from "../plan/Plan";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { ReduxState } from "../../Redux/ReduxGlobal";
+import socket from '../../socketConnection'
 import { showToast } from "@/utils/toast";
 
-type profileType = {
+export type profileType = {
   _id: string;
   interest: string[];
   photo: string;
@@ -32,12 +35,22 @@ type profileType = {
   age: number;
   gender: string;
   dateOfBirth: Date | string;
+  matchStatics?:string
 };
 
 export const LoginLanding = ({ active }: { active: string }) => {
   const navigate = useNavigate();
   const [planData, setPlanData] = useState<PlanData | null>(null);
   const location = useLocation();
+//   useEffect(() => {
+//     socket.on('receive_request', (data) => {
+//         console.log('New request received:', data);
+//         alert('hiiii');
+//     });
+//     return () => {
+//         socket.off('receive_request');
+//     };
+// }, []);
 
   const [requestProfile, setRequest] = useState<profileType[]>([
     {
@@ -57,7 +70,7 @@ export const LoginLanding = ({ active }: { active: string }) => {
 
   ///////////////////accept request/////////////////
 
-  const acceptRequest = async (id: string) => {
+  const acceptRequest = async (id: string,name:string) => {   
     try {
       if (planData?.name) {
         const response = await request({
@@ -68,6 +81,7 @@ export const LoginLanding = ({ active }: { active: string }) => {
 
         if (typeof response === "object") {
           handleAlert("success", "Request accepted");
+          socket.emit('userRequestSocket',{partnerId:id,from:'accept',name:name})
           setRequest((el) => el.filter((el) => el._id !== id));
         } else {
           throw new Error("error on requeset");
@@ -80,7 +94,9 @@ export const LoginLanding = ({ active }: { active: string }) => {
     }
   };
 
-  const rejectRequest = async (id: string) => {
+  const rejectRequest = async (id: string,name:string) => {
+    
+    
     try {
       if (planData?.name) {
         const response = await request({
@@ -91,6 +107,7 @@ export const LoginLanding = ({ active }: { active: string }) => {
 
         if (typeof response === "object") {
           handleAlert("warning", "Request rejected");
+          socket.emit('userRequestSocket',{partnerId:id,from:'reject',name:name})
           setRequest((el) => el.filter((el) => el._id !== id));
         } else {
           throw new Error("error on requeset");
@@ -102,6 +119,39 @@ export const LoginLanding = ({ active }: { active: string }) => {
       alertWithOk("Plan insertion", error || "Error occured", "error");
     }
   };
+
+  ////////////////new connect//////////////
+  useEffect(()=>{
+    function handleFuncton(data:{name:string,from:'accept'|'reject'}){
+      if(data.from==='accept'){
+        showToast(`${data.name?data.name:'partner'} accepted request`)
+      }else{
+        showToast(`${data.name?data.name:'partner'} declined request`,'warning')
+      }
+    }
+    socket.on('requestStutus',handleFuncton)
+    return ()=>{
+     socket.off('requestStutus',handleFuncton)
+   }
+  },[])
+  useEffect(()=>{
+     socket.emit('register_user',{userId:localStorage.getItem('userToken')})
+    socket.on('new_connect',((data:{data:profileType,note:string})=>{
+      console.log(data)
+      if(data.data){
+        console.log(data.data)
+        showToast('new request arraive',"info")
+        setRequest(el=>([...el,data.data]))
+      }
+    
+    }))
+    
+   
+
+    return ()=>{
+       socket.off('new_connect')
+    }
+  },[])
 
   ///////////handle matching
   const dispatch = useDispatch();
@@ -115,6 +165,7 @@ export const LoginLanding = ({ active }: { active: string }) => {
     }
     if (planData) {
       if (planData.avialbleConnect && planData.avialbleConnect > 0) {
+        socket.emit('request_send',{sender:localStorage.getItem('userToken'),reciever:id,})
         try {
           const response: boolean = await request({
             url: "/user/addMatch",
@@ -131,6 +182,7 @@ export const LoginLanding = ({ active }: { active: string }) => {
                   : el.amount,
               };
             });
+          
             setProfiles((el) => el?.filter((element) => element._id !== id));
           }
         } catch (error) {}
@@ -157,10 +209,10 @@ export const LoginLanding = ({ active }: { active: string }) => {
   const useData = useSelector((state: ReduxState) => state.userData);
   ////////pagination
 
-  const [interest, setInterest] = useState<string[]>();
+  // const [interest, setInterest] = useState<string[]>();
   //////////profile and plan fetching///////
   useEffect(() => {
-    if (location?.state?.data) {
+    if (location?.state?.data&&location?.state?.from==='search') {
       let minAge = location.state.data.minAge;
       let maxAge = location.state.data.maxAge;
       if (!minAge || !maxAge) {
@@ -274,7 +326,38 @@ export const LoginLanding = ({ active }: { active: string }) => {
       }
 
       handleSearch();
-    } else {
+    }
+    else if(location?.state?.from==='suggestion'){
+      
+      async function fetch() {
+        const response: {
+          datas: profileType[];
+          currntPlan: PlanData;
+          interest: string[];
+        } = await request({
+          url: `/user/fetchSuggestion`,
+        });
+        
+       if(Array.isArray(response)){
+        handleAlert('info','suggestion not available')
+        navigate('/loginLanding')
+       }
+      
+        const res: any = response.datas ?? { profile: [], request: [] };
+        
+        if (res[0]?.profile) setProfiles(res[0].profile);
+        if (res[0]?.request) setRequest(res[0]?.request);
+        if (
+          response.currntPlan &&
+          typeof response.currntPlan === "object" &&
+          Object.keys(response.currntPlan).length
+        ) {
+          setPlanData(response.currntPlan);
+        }
+      }
+      fetch();
+    }
+    else {
      
       async function fetch() {
         const response: {
@@ -284,8 +367,8 @@ export const LoginLanding = ({ active }: { active: string }) => {
         } = await request({
           url: `/user/fetchProfile`,
         });
-        setInterest(response.interest);
-
+        // setInterest(response.interest);
+        console.log(response)
         const res: any = response.datas ?? { profile: [], request: [] };
 
         if (res[0]?.profile) setProfiles(res[0].profile);
@@ -351,35 +434,35 @@ export const LoginLanding = ({ active }: { active: string }) => {
     const res: any = response.datas ?? { profile: [], request: [] };
     if (res[0]?.profile) setProfiles(res[0].profile);
   }
-  function handleInterest(e: React.ChangeEvent<HTMLSelectElement>) {
-    if (
-      !searchData.interest.includes(e.target.value) &&
-      e.target.value !== ""
-    ) {
-      setSearchData((el) => ({
-        ...el,
-        interest: [...el.interest, e.target.value],
-      }));
-    }
-  }
-  function handleClose(e: React.MouseEvent<HTMLDivElement>) {
-    if (e.target === e.currentTarget) {
-      setSearchData({ minAge: 18, maxAge: 60, district: "", interest: [] });
+  // function handleInterest(e: React.ChangeEvent<HTMLSelectElement>) {
+  //   if (
+  //     !searchData.interest.includes(e.target.value) &&
+  //     e.target.value !== ""
+  //   ) {
+  //     setSearchData((el) => ({
+  //       ...el,
+  //       interest: [...el.interest, e.target.value],
+  //     }));
+  //   }
+  // }
+  // function handleClose(e: React.MouseEvent<HTMLDivElement>) {
+  //   if (e.target === e.currentTarget) {
+  //     setSearchData({ minAge: 18, maxAge: 60, district: "", interest: [] });
       
-      setOpenSearch(false);
-    }
-  }
-  function handleChild(e: React.MouseEvent<HTMLDivElement>): void {
-    e.stopPropagation();
-  }
-  function removeInterest(index: number) {
-    if (interest) {
-      setSearchData((el) => ({
-        ...el,
-        interest: el.interest.filter((el) => el !== searchData.interest[index]),
-      }));
-    }
-  }
+  //     setOpenSearch(false);
+  //   }
+  // }
+  // function handleChild(e: React.MouseEvent<HTMLDivElement>): void {
+  //   e.stopPropagation();
+  // }
+  // function removeInterest(index: number) {
+  //   if (interest) {
+  //     setSearchData((el) => ({
+  //       ...el,
+  //       interest: el.interest.filter((el) => el !== searchData.interest[index]),
+  //     }));
+  //   }
+  // }
   
 
   useEffect(() => {
@@ -629,7 +712,7 @@ export const LoginLanding = ({ active }: { active: string }) => {
         active={
           location?.state?.from && location?.state?.from === "search"
             ? "search"
-            : "profile"
+            :(location.state?.from==='suggestion')?'suggestion':"profile"
         }
         openSearchModalFunc={openSearchModalFunc}
         resetProfilePage={resetProfilePage}
@@ -716,16 +799,15 @@ export const LoginLanding = ({ active }: { active: string }) => {
                     </div>
                     <div className="w-[30%]  flex md:flex-row md:gap-y-0 gap-y-3 flex-col md:py-3 h-full justify-around items-center ">
                       <div
-                        onClick={() => acceptRequest(el._id)}
-                        className="sm:w-5 w-4 h-4 sm:h-5 cursor-pointer  "
-                      >
+                        onClick={() => acceptRequest(el._id,el.name)}
+                        className="sm:w-5 w-4 h-4 sm:h-5 cursor-pointer">
                         <FontAwesomeIcon
                           icon={faCircleCheck}
                           style={{ color: "#74C0FC", fontSize: "18px" }}
                         />
                       </div>
                       <div
-                        onClick={() => rejectRequest(el._id)}
+                        onClick={() => rejectRequest(el._id,el.name)}
                         className="sm:w-5 w-4 h-4 sm:h-5 cursor-pointer "
                       >
                         <FontAwesomeIcon
@@ -748,10 +830,33 @@ export const LoginLanding = ({ active }: { active: string }) => {
               <div
                
                 key={index}
-                className="border drop-shadow-sm sm:w-[90%] flex flex-col items-center shadow-2xl sm:h-[250px] w-[200px] h-[250px]   rounded-2xl bg-white p-1
+                className="overflow-hidden border drop-shadow-sm sm:w-[90%] relative flex flex-col items-center shadow-2xl sm:h-[250px] w-[200px] h-[250px]   rounded-2xl bg-white p-1
                hover:shadow-[0px_0px_10px_2px_rgba(0,200,255,0.6)]  transition-shadow duration-300  
                 "
               >
+                {location.state?.from==='suggestion'&&el.matchStatics==='hr'&&
+                <FontAwesomeIcon icon={faAward}size="xl"  beat style={{color: "#B197FC", position:'absolute',left:10,top:10}} />
+                }
+                {(location.state?.from==='suggestion')&&<img src="/recommendation.png" className="w-10 h-10 absolute top-1 right-1" alt="" />}
+            {(location.state?.from==='suggestion')&&(el.matchStatics==='rc')?<div className="h-5 w-full   bottom-0 b text-dark-blue font-bold absolute inline-flex justify-center items-center  bg-blue-300 text-xs ">
+            Strongly Recommended
+            </div>:
+            (el.matchStatics==='hr')?
+            <div className="h-5 w-full   bottom-0 b text-white font-jakarta font-bold absolute inline-flex justify-center items-center  bg-green-700 text-xs ">
+            Highly Recommended
+
+            </div>
+            : (el.matchStatics==='phr')?
+            <div className="h-5 w-full   bottom-0 b text-white font-jakarta font-bold absolute inline-flex justify-center items-center  bg-yellow-400 text-xs ">
+            Moderately Recommended
+
+            </div>:
+            (el.matchStatics==='np')?
+            <div className="h-5 w-full   bottom-0 b text-white font-jakarta font-bold absolute inline-flex justify-center items-center  bg-red-300 text-xs ">
+            Lightly Recommended
+
+            </div>:''
+            }
                 {/* ////////imageDiv/////////// */}
                 <div className="w-[100px] flex justify-center overflow-hidden items-center h-[100px] border-[3px] border-blue-300 rounded-full mt-4 ">
                   <img

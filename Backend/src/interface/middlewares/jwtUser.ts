@@ -21,22 +21,19 @@ const token=req.headers['authforuser']
 if(token&&typeof token==='string'){
     try {
         const decode= jwtAdmpter.verifyTock(token,'user')
-
         if(typeof decode==='string'){
             res.json({message:'token is not valid'})
         }
         const isValid=decode as jwtInterface
-        
         const currentTime = Math.floor(Date.now() / 1000);
                 if(isValid&&isValid.role==='user'){
                     if(isValid.exp&&isValid.exp>currentTime){  
                         req.userID=isValid.id 
                         req.gender=isValid.gender
                         req.preferedGender=isValid.preferedGender                 
-                    //    console.log(isValid)
                         next()
                     }else{
-                        res.json({message:'validation Faild'})
+                        res.status(401).json({message:'Token expired'})
                     }
                 }
                 else{
@@ -46,7 +43,6 @@ if(token&&typeof token==='string'){
     } catch (error:any) {
         res.json({message:error?.TokenExpiredError||'validation Faild'})
     }
-
     }else{
         res.status(500).json({message:'validation Faild'})
     

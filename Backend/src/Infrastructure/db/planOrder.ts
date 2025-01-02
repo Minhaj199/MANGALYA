@@ -19,7 +19,7 @@ const PlanOrderSchema=new Schema<PlanOrder>({
     avialbleConnect:Number,
     duration:Number,
     features:[String],
-    name:String,
+    name:String, 
     Expiry:Date,
     created:{type:Date,default:new Date()}
    

@@ -3,7 +3,6 @@ import { MongoUserRepsitories } from "../../Infrastructure/repositories/mongoRep
 const userRepo=new MongoUserRepsitories()
 export async function getDashData(from:unknown){
     try {
-        
         if(typeof from!=='string'){
             throw new Error('Error on dash data fetching ')
         }
@@ -12,7 +11,6 @@ export async function getDashData(from:unknown){
             const userCount=await userRepo.getDashCount()
             return userCount
         }else if(route==='SubscriberCount'){
-
             const getSubscriber=await userRepo.getSubcriberCount()
             return getSubscriber
         }else if(route==='Revenue'){

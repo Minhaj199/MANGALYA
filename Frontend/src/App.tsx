@@ -23,6 +23,8 @@ import { Dash } from "./admin/pages/Dash/Dash";
 import { Suggestion } from "./user/suggetionPage/Suggestion";
 import { UserSearchPage } from "./user/search/Search";
 import { Matched } from "./user/MatchedProfile/Matched";
+import { Abuse } from "./admin/pages/Abuse/Abuse";
+import ChatInterface from "./user/chatPage/ChatPag";
 
 export const districtsOfKerala = [
   "Alappuzha",
@@ -72,6 +74,7 @@ const App: React.FC = () => {
         <Route path="Plan" element={<PlanDetails />} />
         <Route path="subscriber" element={<SubscriberTable/>} />
         <Route path="Dash" element={<Dash/>} />
+        <Route path="Abuse" element={<Abuse/>} />
       </Route>
       {/* <Route path="/admin" element={<Layout/>}> */}
       </Route>
@@ -87,9 +90,10 @@ const App: React.FC = () => {
       <Route element={<ProtectRouteUser/>}>
       <Route path="/loginLanding" element={<LoginLanding active={'profile'}/>} />
       <Route path="/userProfile" element={<UserProfile/>} />
-      <Route path="/suggestion" element={<Suggestion/>} />
+      <Route path="/suggestion" element={<LoginLanding active=""/>} />
       <Route path="/search" element={<UserSearchPage/>} />
       <Route path="/match" element={<Matched/>} />
+      <Route path="/chat" element={<ChatInterface/>} />
       </Route>
     </Routes>
   );

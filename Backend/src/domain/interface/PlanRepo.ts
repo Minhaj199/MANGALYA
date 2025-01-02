@@ -5,4 +5,5 @@ export interface SubscriptionPlanRepo{
     getAllPlans():Promise<SubscriptionPlanDocument[]|[]>
     editPlan(data:SubscriptionPlanDocument):Promise<boolean>
     softDlt(id:string):Promise<true>
+    
 }

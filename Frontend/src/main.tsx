@@ -9,7 +9,8 @@ import { PersistGate } from 'redux-persist/integration/react'
 import store,{persistor} from './Redux/ReduxGlobal.ts'
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Sample } from './Sample.tsx'
+import ChatInterface from './user/chatPage/ChatPag.tsx'
+
 
 
 
@@ -24,7 +25,6 @@ createRoot(document.getElementById('root')!).render(
       <PersistGate loading={<div>Loading...</div>} persistor={persistor}>
       <ToastContainer/> 
         <App/>
-      
       </PersistGate>
     </Provider>
   </SignupProvider>
@@ -33,4 +33,7 @@ createRoot(document.getElementById('root')!).render(
  
  
   </StrictMode>,
+  
+ 
+  
 )

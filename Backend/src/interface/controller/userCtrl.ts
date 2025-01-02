@@ -1,4 +1,4 @@
-import { Response,Request, response, json } from "express";
+import { Response,Request, response } from "express";
 import { AuthService } from "../../application/user/auth/authService"; 
 import { MongoUserRepsitories,MongoOtpRepository, MongodbPlanRepository} from "../../Infrastructure/repositories/mongoRepositories"; 
 import { EmailService } from "../../application/emailService";
@@ -9,17 +9,25 @@ import { Types } from "mongoose";
 import { profileTypeFetch } from "../../application/types/userTypes";
 import { MongoPurchasedPlan } from "../../Infrastructure/repositories/mongoRepositories";
 import { InterestModel } from "../../Infrastructure/db/signupInterest";
-import { searchOnProfile } from "../../application/useCases/searchOnProfiles";
 import { doStripePayment } from "../../application/paymentSerivice";
-import { SubscriptionPlan } from "../../domain/entity/PlanEntity";
-import { Token } from "@stripe/stripe-js";
 import { getUserProfileUseCase } from "../../application/useCases/getUserProfile";
 import { otpProfile } from "../../application/useCases/otpProfile";
 import { Validate } from "../../application/useCases/validateOTP";
 import { changePasswordProfile } from "../../application/useCases/resetPassoword";
-import { upload } from "../Utility/multer";
 import { uploadImage } from "../../application/useCases/uploadImage";
 import { updateData } from "../../application/useCases/updateData";
+import { matchedUsers } from "../../application/useCases/matchedUsers";
+import { MatchedProfile } from "../../application/types/userTypes"; 
+import { deleteMatchedUser } from "../../application/useCases/delelteMatchedUser";
+import { Abuse, getAllMessages } from "../../application/useCases/reportAbuse";
+import { reportUser } from "../../Infrastructure/db/reportedUser";
+import { AbuserReport } from "../../domain/entity/abuse";
+import axios from "axios";
+import { getSuggstion } from "../../application/useCases/getSuggestion";
+import { getOrCreatechat } from "../../application/useCases/getOrCreatechat";
+import { createText } from "../../application/useCases/createText";
+import { get_userForChat } from "../../application/useCases/get_userForChat";
+import { getMessgesUsecase } from "../../application/useCases/getMessgesUsecase";
 
 
 const emailService=new EmailService()
@@ -33,7 +41,7 @@ const orderRepo=new MongoPurchasedPlan()
 export const signup=async (req:Request,res:Response)=>{
     try {
         const user=await authService.signupFirstBatch(req.body)
-        res.status(201).json({message:'sign up completed',token:user?.token}) 
+        res.status(201).json({message:'sign up completed',token:user?.token,id:user?.id}) 
     } catch (error:any) {
         
         if(error){
@@ -76,7 +84,6 @@ export const otpCreation=async(req:Request,res:Response)=>{
     
 }
 export const login=async(req:Request,res:Response)=>{
-    
     const {email,password}=req.body
     try {
         const response=await authService.login(email,password)
@@ -84,9 +91,7 @@ export const login=async(req:Request,res:Response)=>{
             
         res.json({message:'password matched',token,name,photo,partner,gender,id,subscriptionStatus})
    
-    } catch (error:any) {
-      
-        
+    } catch (error:any) {   
         res.json({message:error.message})
     }
 }
@@ -102,7 +107,7 @@ export const fetechProfileData=async(req:Request,res:Response)=>{
           
           
 
-                        let datas:{profile:profileTypeFetch,request:profileTypeFetch}[]=await UserModel.aggregate([{
+             let datas:{profile:profileTypeFetch,request:profileTypeFetch}[]=await UserModel.aggregate([{
                 $facet:{
                     profile:[{$match:{$and:[{'PersonalInfo.gender':req.preferedGender},{'partnerData.gender':req.gender},{match:{$not:{$elemMatch:{_id:idd}}}}]}},{$project:{name:'$PersonalInfo.firstName',
                     lookingFor:'$partnerData.gender',secondName:'$PersonalInfo.secondName',
@@ -417,4 +422,96 @@ export const editProfile=async(req:Request,res:Response)=>{
         res.json({message:error.messaeg||'error on update'})
     }
 }
+export const matchedUser=async(req:Request,res:Response)=>{
+    try {
+        type Extented= MatchedProfile&{age:number}
+        const fetchMatchedUsers=await matchedUsers(req.userID)
+        if(fetchMatchedUsers){  
+            res.json({fetchMatchedUsers})
+        }
+    } catch (error) {
+        res.status(500).json({message:error})
+    }
+}
+export const deleteMatched=async(req:Request,res:Response)=>{
+    try {
+        const {id}=req.body
+        const response=await deleteMatchedUser(req.userID,id)
+        res.json({status:response})
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({message:error})
+    }
+}
+export const reportAbuse=async(req:Request,res:Response)=>{
+    try {   
+        
+    
+        if(!req.body.reason||!req.body.moreInfo||!req.body.profileId){
+            throw new Error('In suficient data error')
+        }
+        const check:AbuserReport[]|[]=await reportUser.find({reporter:new Types.ObjectId(req.userID?.slice(1,25)),reported:new Types.ObjectId(req.body.profileId),reason:req.body.reason })
+     
+        if(check?.length>=1){
+            throw new Error('complaint already taken on specified reason')
+        }
+        const response=await Abuse(req.userID,req.body.profileId,req.body.reason,req.body.moreInfo)
+        
+        if(typeof response==='boolean'){  
+            res.json({data:response})
+        }else{
+            res.json({data:[]})
+
+        }
+    } catch (error:any) {
+        res.json({message:error.message})
+    }
+  
+}
+export const fetchSuggestion=async(req:Request,res:Response)=>{
+    try {
+     
+        const result=await getSuggstion(req.userID,req.preferedGender,req.gender)
+        res.json(result)
+    } catch (error:any) {
+        res.json({message:error.messaeg||'error on suggestion fetching'})
+    }
+}
+export const getChats=async(req:Request,res:Response)=>{
+    try {
+        const response=await getOrCreatechat(req.body.id,req.userID)
+        res.json(response)
+    } catch (error:any) {
+        res.json({message:error.messaeg||'error on chat fetching'})
+    }
+}
+export const createTexts=async(req:Request,res:Response)=>{
+    
+    try { 
+        const response=await createText(req.body.chatId,req.body.senderIdString,req.body.text)
+       
+        res.json({status:response})
+    } catch (error:any) {
+        res.json({message:error.messaeg||'error chat'})
+    }
+}
+export const getMessages=async(req:Request,res:Response)=>{
+    try {
+        const response=await getMessgesUsecase(req.params.id)
+        res.json(response)
+    } catch (error:any) {
+        res.json({message:error.messaeg||'error on chat fetching'})
+    }
+}
+export const getuserForChat=async(req:Request,res:Response)=>{
+    try {
+        const response=await get_userForChat(req.params.id)
+        res.json(response)
+    } catch (error:any) {
+        res.json({message:error.messaeg||'error on chat fetching'})
+    }
+}
+
+
+
 

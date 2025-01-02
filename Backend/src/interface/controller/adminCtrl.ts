@@ -8,6 +8,13 @@ import { SubscriptionPlan } from "../../domain/entity/PlanEntity";
 import { featureModel, Features } from "../../Infrastructure/db/featureModel";
 import { planModel } from "../../Infrastructure/db/planModel";
 import { getDashData } from "../../application/useCases/getDashData";
+import { sendWarningMail } from "../../application/useCases/SendWarning";
+import { getAllMessages } from "../../application/useCases/reportAbuse";
+import { abuserBlocker } from "../../application/useCases/abuserBlocker";
+import { reportRejection } from "../../application/useCases/rejecReport";
+import { toggleReportRead } from "../../application/useCases/toggleReportRead";
+import { msgDeletion } from "../../application/useCases/msgDeletion";
+
 
 const adminAuthentication=new AdminAuth()
 const planRepo=new MongodbPlanRepository()
@@ -158,7 +165,65 @@ export const fetchDashData=async(req:Request,res:Response)=>{
     }
 
 }
+export const sendWarningMails=async(req:Request,res:Response)=>{
+    try {
+      
+       const sendWarningMale=await sendWarningMail(req.body.reporter,req.body.reported,req.body.docId)
+       res.json({data:sendWarningMale})
+    } catch (error:any) {
+        res.json({message:error.message})
+    }
+  
+}
+export const getReports=async(req:Request,res:Response)=>{
+    try {
+       const fetchReport=await getAllMessages()
+       res.json({data:fetchReport})
+    } catch (error:any) {
+        res.json({message:error.message})
+    }
+  
+}
+export const blockAbuser=async(req:Request,res:Response)=>{
+    try {
+        const fetchReport=await abuserBlocker(req.body.reporter,req.body.reported,req.body.docId)
+        res.json({data:fetchReport})
+    } catch (error:any) {
+        res.json({message:error.message})
+    }
+   
 
+}
+export const rejecReport=async(req:Request,res:Response)=>{
+    try {
+        const fetchReport=await reportRejection(req.body.reporter,req.body.reported,req.body.docId)
+        res.json({data:fetchReport})
+    } catch (error:any) {
+        res.json({message:error.message})
+    }
+   
+
+}
+export const reportToggle=async(req:Request,res:Response)=>{
+    try {
+        const fetchReport=await toggleReportRead(req.body.id,req.body.status)
+        res.json({data:fetchReport})
+    } catch (error:any) {
+        res.json({message:error.message})
+    }
+   
+
+}
+export const deleteMsg=async(req:Request,res:Response)=>{
+    try {
+        const response=await msgDeletion(req.body.id)
+        res.json({data:response})
+    } catch (error:any) {
+        res.json({message:error.message})
+    }
+   
+
+}
 // export const tokenAuthenticated=(req:Request,res:Response)=>{
 //     if(!req.headers['authorizationforuser']){
 //          res.json({auth:false,message:'authetication failed'})

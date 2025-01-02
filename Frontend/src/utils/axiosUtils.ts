@@ -23,7 +23,15 @@ client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 
 
 client.interceptors.response.use(
-  (response: AxiosResponse) => response.data,
+  (response: AxiosResponse) =>{
+    if(response.status===401){
+      throw new Error('token expired')
+    }
+    return response.data
+  
+  }, 
+  
+    
   (error) => {
     return Promise.reject(new Error(error.response?.data?.message || error.message));
   }

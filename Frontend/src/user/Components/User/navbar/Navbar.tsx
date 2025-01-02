@@ -4,6 +4,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { alertWithOk, handleAlert } from "../../../../utils/alert/sweeAlert";
 import { useDispatch, useSelector } from "react-redux";
 import { ReduxState } from "../../../../Redux/ReduxGlobal";
+import socket from '../../../../socketConnection'
+
 
 export const Navbar = ({ openSearchModalFunc,resetProfilePage,active }: { active: string,openSearchModalFunc?:()=>void ,resetProfilePage?:()=>void}) => {
 
@@ -21,8 +23,11 @@ export const Navbar = ({ openSearchModalFunc,resetProfilePage,active }: { active
   }, []);
   const dispatch=useDispatch();
   const userData=useSelector((state:ReduxState)=>state.userData)
+
+ 
   function handleLogout() {
     setImage("");
+    socket.emit('userLoggedOut',{id:localStorage.getItem('userToken')})
     localStorage.removeItem('userToken');
     dispatch({type:'CLEAR_DATA'})
     handleAlert("warning", "User logged out");
@@ -34,11 +39,18 @@ export const Navbar = ({ openSearchModalFunc,resetProfilePage,active }: { active
   }
   
   function Protect(){
-    if(userph&&userph==="Not subscribed "){
+    if(userData?.subscriptionStatus&&userData.subscriptionStatus==="Not subscribed"){
       alertWithOk('Subscritpion','Your are not subscribed!!! you cannot use this option',"info")
       return
     }
     navigate('/search')
+  }
+  function ProtectSuggestion(){
+    if(userData?.subscriptionStatus&&userData.subscriptionStatus==="Not subscribed"){
+      alertWithOk('Subscritpion','Your are not subscribed!!! you cannot use this option',"info")
+      return
+    }
+    navigate('/suggestion',{state:{from:'suggestion'}})
   }
  
   
@@ -70,9 +82,9 @@ export const Navbar = ({ openSearchModalFunc,resetProfilePage,active }: { active
               >
                 Profiles
               </li>
-              {/* <li onClick={()=>navigate('/suggestion')} className={active==='suggestion'?"transform transition-transform duration-300 ease-in-out hover:scale-105  cursor-pointer   text-xs text-dark-blue font-semibold bg-blue-300 rounded-full w-32 h-10 inline-flex justify-center items-center  font-inter":" hover:bg-slate-300 transform transition-transform duration-300 ease-in-out hover:scale-105 hover:rounded-full cursor-pointer w-32 h-10 inline-flex justify-center items-center  text-xs  font-inter"}>
+              <li onClick={ProtectSuggestion} className={active==='suggestion'?"transform transition-transform duration-300 ease-in-out hover:scale-105  cursor-pointer   text-xs text-dark-blue font-semibold bg-blue-300 rounded-full w-32 h-10 inline-flex justify-center items-center  font-inter":" hover:bg-slate-300 transform transition-transform duration-300 ease-in-out hover:scale-105 hover:rounded-full cursor-pointer w-32 h-10 inline-flex justify-center items-center  text-xs  font-inter"}>
                 suggestion
-              </li> */}
+              </li>
               
 
               <li onClick={Protect} className={active==='search'?" transform transition-transform duration-300 ease-in-out hover:scale-105  cursor-pointer font-semibold text-dark-blue w-32 h-10 inline-flex justify-center items-center bg-blue-300 rounded-full    text-xs  font-inter":" hover:bg-slate-300 transform transition-transform duration-300 ease-in-out hover:scale-105 hover:rounded-full cursor-pointer w-32 h-10 inline-flex justify-center items-center   text-xs  font-inter"} >
@@ -87,7 +99,7 @@ export const Navbar = ({ openSearchModalFunc,resetProfilePage,active }: { active
         </div>
         <div className="sm:w-[40%] w-[70%]  justify-end mr-1 flex items-center flex-row">
           {userData.subscriptionStatus&&userData.subscriptionStatus!==''&&userData.subscriptionStatus!=='subscribed'&&<button type="button" onClick={()=>navigate('/PlanDetails')} className="mr-10 text-white bg-gradient-to-br from-pink-500 to-orange-400 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-pink-200 dark:focus:ring-pink-800 font-medium rounded-lg text-sm px-5 py-2.5 my-2 text-center me-2 mb-2">PREMIUM</button>}
-          
+         
           <p
             className="transform transition-transform duration-300 ease-in-out hover:scale-105 font-aborato font-extrabold mr-1 text-xs  cursor-pointer sm:mb-0"
             onClick={handleLogout}

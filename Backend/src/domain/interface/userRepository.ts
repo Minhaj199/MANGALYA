@@ -1,6 +1,8 @@
 import {User,UserWithID} from "../entity/userEntity";
-import { profileTypeFetch, userForLanding } from "../../application/types/userTypes";
+import { MatchedProfile, profileTypeFetch, userForLanding } from "../../application/types/userTypes";
 import { updateData } from "../../application/useCases/updateData";
+
+
 
 export interface UserRepository{
     create(user:User):Promise<UserWithID>;
@@ -17,4 +19,6 @@ export interface UserRepository{
     getDashCount():Promise<{MonthlyRevenue:number,SubscriberCount:number,UserCount: number}>
     getSubcriberCount():Promise<number[]>
     getRevenue():Promise<{ month: string[], revenue:number[]}>
+    getMatchedRequest(id:string):Promise<MatchedProfile[]|[]>
+    deleteMatched(id:string,matched:string):Promise<Boolean>
 }

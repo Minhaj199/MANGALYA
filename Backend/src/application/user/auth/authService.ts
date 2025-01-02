@@ -8,6 +8,8 @@ import { EmailService } from "../../emailService"
 import { UserWithID } from "../../../domain/entity/userEntity"
 
 
+
+
 interface FirstBatch{
       
     'SECOND NAME':string;
@@ -62,7 +64,7 @@ export class AuthService{
                 const id=JSON.stringify(response._id)||'123'
                 const preferedGender=response.partnerData.gender
                 const gender=response.PersonalInfo.gender
-                const token=this.jwtGenerator.createToken({id:id,role:'user',preferedGender,gender},key,{expiresIn:'1 hour'})
+                const token=this.jwtGenerator.createToken({id:id,role:'user',preferedGender,gender},key,{expiresIn:'10 seconds'})
                 return {user,token,id:response._id}
             }   
         } catch (error:any) {

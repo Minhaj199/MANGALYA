@@ -15,11 +15,16 @@ import { planModel } from "../db/planModel";
 import { Types } from "mongoose";
 import { PlanOrder, planOrderModel } from "../db/planOrder";
 import { subscriptionPlanModel } from "../db/planModel";
-import { profileTypeFetch, userForLanding } from "../../application/types/userTypes";
+import { MatchedProfile, profileTypeFetch, userForLanding } from "../../application/types/userTypes";
 import { getAge } from "../../interface/Utility/ageCalculator";
 import { GetExpiryPlan } from "../../interface/Utility/getExpiryDateOfPlan";
 import { getDateFromAge } from "../../interface/Utility/getDateFromAge";
 import { updateData } from "../../application/useCases/updateData";
+import { match } from "assert";
+import { response } from "express";
+import { Abuser } from "../../domain/interface/abuse";
+import { AbuserMongoDoc, AbuserReport } from "../../domain/entity/abuse";
+import { reportUser } from "../db/reportedUser";
 
 
 export class MongoUserRepsitories implements UserRepository {
@@ -493,6 +498,41 @@ export class MongoUserRepsitories implements UserRepository {
    
     return { MonthlyRevenue:revenue[0].totalAmount, SubscriberCount: ans.subscriber, UserCount:data[0].totalCount[0].totalCount }
   }
+  async getMatchedRequest(id: string):Promise<MatchedProfile[]|[]> {
+    const cropedId=id.slice(1,25)
+    
+    if(cropedId.length!==24){
+      throw new Error('id length miss match')
+    }
+   
+    try {
+      const profiles=await UserModel.aggregate([{$match:{_id:new Types.ObjectId(cropedId)}},{$project:{match:1,_id:0}},{$unwind:'$match'},
+       {$lookup:{from:'users',localField:'match._id',foreignField:'_id',as:'datas'}},{$unwind:'$datas'},{$match:{'match.status':'accepted'}},
+       {$project:{_id:'$datas._id',photo:'$datas.PersonalInfo.image',firstName:'$datas.PersonalInfo.firstName',secondName:'$datas.PersonalInfo.secondName',state:'$datas.PersonalInfo.state',dateOfBirth:'$datas.PersonalInfo.dateOfBirth'}}
+     
+      ])
+      
+      return profiles
+    } catch (error:any) {
+      throw new Error(error.message||'error on Fetching profile-MngRepos')
+    }
+  }
+  async deleteMatched(id: string, matched: string): Promise<boolean> {
+    try {
+      const response:{acknowledged:boolean,modifiedCount:number,matchedCount:number}=await UserModel.updateOne({_id:new Types.ObjectId(id.slice(1,25))},{$pull:{match:{_id:matched}}})
+      const response2:{acknowledged:boolean,modifiedCount:number,matchedCount:number}=await UserModel.updateOne({_id:new Types.ObjectId(matched)},{$pull:{match:{_id:id.slice(1,25)}}})
+     if(response&&response.acknowledged&&response.modifiedCount===1){
+
+          return true
+        }else{
+          throw new Error('not deleted')
+        }
+    } catch (error:any) {
+      console.log(error)
+      throw new Error(error.message||'error on deletion')
+    }
+  }
+  
 }
 export class MongoOtpRepository implements OTPrespository {
   async create(otpData: OtpEntity): Promise<OTPWithID> {
@@ -626,5 +666,67 @@ export class MongoPurchasedPlan {
       throw new Error('Error on purchase')
     }
     }
+}
+
+export class ReportUser implements Abuser{
+  async create(data:AbuserReport): Promise<boolean> {
+    try {
+      
+      const obj=new reportUser(data)
+      const sav= await obj.save()
+      console.log(sav)
+      return true
+    } catch (error:any) {
+      console.log(error)
+      throw new Error(error.message)
+    }
+  }
+  async getMessages(): Promise<AbuserReport[]|[]> {
+    try {
+      const response=await reportUser.find().populate('reporter','PersonalInfo.firstName').populate('reported','PersonalInfo.firstName')
+      console.log(response)
+      return response
+    } catch (error:any) {
+      console.log(error)
+      throw new Error(error.message||'error on data fetching')
+    }
+  
+  }
+  async markAsReaded(reportedId: string): Promise<boolean> {
+    return true
+  }
+  async delete(id: string): Promise<boolean> {
+   try {
+     const response=await reportUser.deleteOne({_id:new Types.ObjectId(id)})
+      if(response){
+        return true
+      }else{
+        throw new Error('error on deletion')
+      }
+   } catch (error:any) {
+    throw new Error(error.message)
+   }
+   
+  }
+  async update(id:string,field:string,change:string|boolean): Promise<boolean> {
+    
+    
+    try {
+      
+     const response=await reportUser.updateOne({_id:new Types.ObjectId(id)},{$set:{[field]:change}})
+    console.log(response)
+     if(response){
+       return true
+ 
+     }else{
+    
+      throw new Error('error on setWaring')
+     }
+   } catch (error:any) {
+    console.log(error)
+    throw new Error(error.message||'error on message')
+   }
+  }
+
 }
 

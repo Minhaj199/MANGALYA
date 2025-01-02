@@ -45,7 +45,7 @@ useEffect(()=>{
               <img src="/menu-button.png" className=" w-4 h-4" alt="" />
             </div>
             <div onClick={()=>navigate('/admin/dash')} className="w-[70%]  h-full flex  items-center ">
-              <p className="ml-3 text-[12px] font-inter font-semibold ">
+              <p className="ml-2 text-[12px] font-inter font-semibold ">
                 DASHBOARD
               </p>
             </div>
@@ -57,7 +57,7 @@ useEffect(()=>{
               <img src="/userDash.png" className=" w-4 h-4" alt="" />
             </div>
             <div className="w-[70%]  h-full flex  items-center">
-              <p className="ml-3 text-[12px] font-inter font-semibold ">
+              <p className="ml-2 text-[12px] font-inter font-semibold ">
                 USER
               </p>
             </div>
@@ -69,7 +69,7 @@ useEffect(()=>{
               <img src="/money-flow.png" className="w-4 h-4" alt="" />
             </div>
             <div className="w-[70%]  h-full flex  items-center">
-              <p className="ml-3 text-[12px] font-inter font-semibold ">
+              <p className="ml-2 text-[12px] font-inter font-semibold ">
                 PLAN
               </p>
             </div>
@@ -82,19 +82,19 @@ useEffect(()=>{
               <img src="/press-button.png" className=" w-5 h-5" alt="" />
             </div>
             <div className="w-[70%]  h-full flex  items-center">
-              <p className=" text-[12px]  font-inter font-semibold ">
+              <p className=" text-[12px] ml-1  font-inter font-semibold ">
                 SUBSCRIBERS
               </p>
             </div>
           </div>
 
-          <div className="cursor-pointer  transform transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-3xl w-full h-16  mt-1 flex justify-center items-center ">
+          <div onClick={()=>navigate('/admin/Abuse')} className="cursor-pointer  transform transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-3xl w-full h-16  mt-1 flex justify-center items-center ">
           <div className="w-[30%] h-full  flex justify-center items-center ">
               <img src="/account.png" className=" w-5 h-5" alt="" />
             </div>
             <div className="w-[70%]  h-full flex  items-center">
-            <p className="text-[12px]  font-inter font-semibold ">
-              REPORT USER
+            <p className="text-[12px] ml-1  font-inter font-semibold ">
+              ABUSE
             </p>
             </div>
           </div>
@@ -105,7 +105,7 @@ useEffect(()=>{
               <img src="/logout.png" className=" w-5 h-5" alt="" />
             </div>
             <div className="w-[70%]  h-full flex  items-center">
-            <p className="text-[12px]  font-inter font-semibold ">
+            <p className="text-[12px] ml-1  font-inter font-semibold ">
               LOGOUT
             </p>
             </div>

@@ -20,4 +20,13 @@ export type userForLanding={
     name:string
     age:number
     image:string
+
+}
+export type MatchedProfile={
+    _id:string 
+    state:string
+    photo:string|undefined,
+    dateOfBirth:Date
+    firstName:string
+    lastName:string
 }

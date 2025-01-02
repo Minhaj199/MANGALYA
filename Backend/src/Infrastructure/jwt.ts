@@ -11,8 +11,7 @@ export class JWTAdapter{
     }
     verifyTock(token:string,from:string){
         try {
-            if(from==='admin'){
-                
+            if(from==='admin'){ 
                 const decode=jwt.verify(token,process.env.JWT_SECRET_ADMIN||'123')
                 return decode
             }else if(from==='user'){

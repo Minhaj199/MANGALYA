@@ -535,7 +535,7 @@ const [loading,setLoading]=useState<boolean>(false)
       
     
     if (!editedData.PersonalInfo.interest?.length) {
-      alert(1)
+     
       setEditedData((el) => ({
         ...el,
         PersonalInfo: { ...el.PersonalInfo, interest: [item] },
