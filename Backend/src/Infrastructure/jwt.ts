@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
+import { jwtInterface } from '../interface/middlewares/jwtUser'
 
-import { JwtPayload } from 'jsonwebtoken'
-import { Types } from 'mongoose'
+
 
 export class JWTAdapter{
     createToken(information:{id:string,role:string,preferedGender?:string,gender?:string},key:string,option:{expiresIn:string}){
@@ -23,6 +23,19 @@ export class JWTAdapter{
         } catch (error:any) {
            throw new Error(error?.TokenExpiredError||'validation Faild') 
         }
+    }
+    decode(token:string){
+        try {
+            const data:unknown=jwt.decode(token)
+            if(typeof data==='object'){
+                const parsed=data as jwtInterface
+                return parsed.id.slice(1,25)
+            }else{
+             throw new Error('error on id exraction')
+            }
+         } catch (error) {
+             throw new Error('error on id exraction')
+         }
     }
     
 }

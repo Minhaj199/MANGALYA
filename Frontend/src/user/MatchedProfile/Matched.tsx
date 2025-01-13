@@ -1,6 +1,7 @@
 import React, { ForwardRefExoticComponent, useEffect, useRef } from 'react'
 import { Navbar } from '../Components/User/navbar/Navbar'
 import  { useState } from 'react';
+import store, { ReduxState } from '../../Redux/ReduxGlobal'; 
 import {
   Card,
   CardContent,
@@ -41,8 +42,12 @@ import { MessageCircle, Trash2, Flag, Search } from 'lucide-react';
 import { request } from '@/utils/axiosUtils';
 import { alertWithOk, handleAlert } from '@/utils/alert/sweeAlert';
 import { useNavigate } from 'react-router-dom';
+import { useSocket } from '@/globalSocket';
+import { useSelector } from 'react-redux';
  
 export const Matched = () => {
+  const onliners=useSelector((state:ReduxState)=>state.onlinePersons)
+ 
   const [showToast, setShowToast] = useState(false);
   const [reportModalOpen,setReportModalOpen]=useState<boolean>(false)
   const [toastMessage, setToastMessage] = useState("");
@@ -51,7 +56,7 @@ export const Matched = () => {
   const [currentItems,setCurrentItems]=useState<MatchedProfileType[]>([])
   const [place,setPlaces]=useState<string[]>([]) 
   const [reportedId,setReportedId]=useState<string>('')
-
+  const [onliner,setOnliner]=useState<string[]>([])
   const navigate=useNavigate()
 type MatchedProfileType={
   firstName:string
@@ -68,17 +73,31 @@ type MatchedProfileType={
     fetchMatchedUsers:{
       formatedResponse:MatchedProfileType[],
       Places:string[]
+      onlines:string[]
     }|[]
     message:string
   }
 const ref=useRef(0)
+let [unreadedMessage,setUnreadedMessages]=useState<UnreadMessage[]>([])
+interface UnreadMessage {
+  chatRoomId: string;
+  unreadCount: number;
+  matchedUser: string;
+}
 useEffect(()=>{
+ 
    const fetchData=async()=>{
     if(ref.current===0){
      
       ref.current++
       try {
+
           const response:Response=await request({url:'/user/matchedUsers'})
+          console.log(response)
+          // const allMessage:{status:UnreadMessage[]}=await request({url:'/user/getAllmessagCount'})
+          // console.log(allMessage)
+          // setUnreadedMessages(allMessage.status)
+        
           if(response.message){
             throw new Error(response.message)
           }
@@ -86,10 +105,12 @@ useEffect(()=>{
             setFetchedProfiles([])
             setCurrentItems([])
           }else{
-            
             setFetchedProfiles(response.fetchMatchedUsers.formatedResponse)
             setCurrentItems(response.fetchMatchedUsers.formatedResponse)
             setPlaces(response.fetchMatchedUsers.Places)
+            setOnliner(response.fetchMatchedUsers.onlines)
+           
+            store.dispatch({type:'SET_ONLINERS',payload:response.fetchMatchedUsers.onlines})
           }
           
           
@@ -136,8 +157,24 @@ useEffect(()=>{
     
     if(currentPage>1)setCurrentPage(prev=>prev-1)
   }
+const socket=useSocket()
+  useEffect(()=>{
+    socket?.on('newUserOnline',data=>{
+      if(data.id&&!onliner.includes(data.id)){
+        store.dispatch({type:'ADD_NEW_ONLINER',payload:data.id})
+       
+      }
+    })
+    socket?.on('user_loggedOut',(data:{id:string})=>{
 
-  
+      store.dispatch({type:'SET_ONLINERS',payload:onliners.filter(el=>el!==data.id)})
+  })
+  return ()=>{
+    socket?.off('newUserOnline')
+    socket?.off('user_loggedOut')
+
+  }
+  },[])
   
 
   const showNotification = (message:string) => {
@@ -195,6 +232,8 @@ useEffect(()=>{
       setCurrentItems(fetchedProfiles.filter(el=>el.firstName.toLowerCase().includes(e.target.value)))
   }
 
+  const getUnReadedMessage=(id:string)=>{
+    return unreadedMessage.find((msg) => msg.matchedUser === id)?.unreadCount || 0;  }
   //////////////////handling reporting//////////////////
 
   
@@ -240,14 +279,7 @@ useEffect(()=>{
             </SelectContent>
           </Select>
 
-          {/* <select  onChange={handleSorting} className='flex h-9 w-[150px] bg-white items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1' name="" id="">
-            <option value="">District sort</option>
-            {place.map((el,index)=>{
-                
-              return(<option key={index} value={el}>{el}</option>)
-            })}
-            
-          </select> */}
+          
           
           <Button
             variant="outline"
@@ -273,7 +305,9 @@ useEffect(()=>{
         {currentItems?.length>0&&currentItems?.map((user) => (
          <>
          
-         <Card key={user._id} className="hover:shadow-2xl transition-shadow  shadow-blue-300">
+         <Card key={user._id} className="hover:shadow-2xl transition-shadow  relative shadow-blue-300">
+           {/* <div className='w-6 h-6 rounded-full bg-blue-400 absolute top-2 left-2 inline-flex justify-center items-center font-semibold text-white'>{getUnReadedMessage(user._id)}</div> */}
+           {onliners.includes(user._id)&&<div className="absolute top-4 right-4 w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>}
             <CardHeader className="flex flex-row items-center gap-4">
               <div className="h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
                 <img

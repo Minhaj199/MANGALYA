@@ -1,4 +1,4 @@
-import {ObjectId} from 'mongoose'
+
 export interface SubscriptionPlan{
 name:string
 duration:number
@@ -7,8 +7,3 @@ amount:string
 connect:string
 }
 
-export interface SubscriptionPlanDocument extends SubscriptionPlan{
-
-    _id:ObjectId
-    delete:boolean
-}

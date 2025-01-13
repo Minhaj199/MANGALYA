@@ -1,5 +1,6 @@
 import { UserModel } from "../../Infrastructure/db/userModel"
-import { MongoUserRepsitories,ReportUser } from "../../Infrastructure/repositories/mongoRepositories"
+import {UserRepsitories as MongoUserRepsitories, } from "../../Infrastructure/repositories/userRepository"
+import { ReportUser } from "../../Infrastructure/repositories/reportUser"
 import { EmailService } from "../emailService"
 export async function abuserBlocker(reporter:string,reported:string,docId:string){
     const userRepo=new MongoUserRepsitories()

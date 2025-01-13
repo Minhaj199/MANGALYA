@@ -1,0 +1,43 @@
+import { InterestRepo } from "../../Infrastructure/repositories/otherRepo"; 
+import { FeaturesRepository } from "../../Infrastructure/repositories/otherRepo";
+import { FixedDataServiceInterface } from "../../types/serviceLayerInterfaces";
+
+export class FixedDataService implements FixedDataServiceInterface{
+    private interestRepo:InterestRepo
+    private featureRepo:FeaturesRepository
+
+    constructor(interestRepo:InterestRepo,featureRepo:FeaturesRepository){
+        this.interestRepo=interestRepo
+        this.featureRepo=featureRepo
+    }
+
+    async creatInterest(){
+        const interestData={
+            sports:['Football','Cricket','Hockey'],
+            music:['Hollywood','Bollywood','Molywood'],
+            food:['Biryani', 'Sadya']
+        }
+        try {
+            const isExist=await this.interestRepo.isExist()
+             if(!isExist){
+                await this.interestRepo.create(interestData)
+                        console.log('Interest data seeded successfully')
+            }
+        } catch (error) {
+            
+        }
+    }
+    async createFeatures(){
+        const features=['Video call','Unlimited message','Suggestion','Priority']
+        try {
+
+            const isExist=await this.featureRepo.isExits()
+        if(!isExist){
+         await this.featureRepo.create({features})
+         console.log('features added')
+         }
+        } catch (error) {
+            
+        }
+    }
+}

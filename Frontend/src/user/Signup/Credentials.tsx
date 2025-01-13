@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { credential_validation } from "../../Validators/signupValidator";
-// import axios from "axios";
+
 import { useNavigate } from "react-router-dom";
 import './Credential.css'
 import { Inputs } from "../Components/User/signupInputs/Inputs";
@@ -8,8 +8,9 @@ import { SignupContext } from "../../GlobalContext/signupData";
 import { request } from "../../utils/axiosUtils";
 import { Loading } from "../Components/Loading/Loading";
 import { PhotAndInt } from "./PhotoAndInterest.tsx/PhotAndInt";
-import { handleAlert } from "../../utils/alert/sweeAlert";
-import { districtsOfKerala } from "../../App";
+import { alertWithOk, handleAlert } from "../../utils/alert/sweeAlert";
+
+import { useDispatch } from "react-redux";
 
 
 
@@ -35,7 +36,7 @@ export const Credentials:React.FC<InputArrayProbs> = ({inputFields,toggle}) => {
   const context =useContext(SignupContext)
   const [inputToggle,setIputToggle]=useState<number>(toggle)
   const [photoAndInter,setPhotAndInter]=useState<PhotoAndInterest>({photo:null,interest:[]})
-  
+  const dispatch=useDispatch()
   useEffect(()=>{
     const handleScroll=()=>{
       if(window.scrollY>50){
@@ -77,8 +78,9 @@ export const Credentials:React.FC<InputArrayProbs> = ({inputFields,toggle}) => {
           'FIRST NAME':credentialData['FIRST NAME']
         }
         setLoding(true)
-        const Response=await request({url:'/user/otpCreation',method:'post',data:{email:credentialData.EMAIL}})
         try {
+          const Response=await request({url:'/user/otpCreation',method:'post',data:{email:credentialData.EMAIL,from:'signup'}})
+         
       if(Response&&typeof Response==='object'&&Object.values(Response).includes('Email send successfull')){
          setCredentialData({})
          navigate("/otpVerification")
@@ -87,8 +89,8 @@ export const Credentials:React.FC<InputArrayProbs> = ({inputFields,toggle}) => {
           
      }
       
-    } catch (error) {
-      
+    } catch (error:any) {
+      alertWithOk('signup',error.message||'error on signup',"error")
     } 
       setSignupFirst(signupFirst) 
     }
@@ -118,7 +120,7 @@ try {
    if(response){
     setSignupFirst({"FIRST NAME":'',"SECOND NAME":'',"DATE OF BIRTH":'',"GENDER OF PARTNER":'',"STATE THAT YOU LIVE":'',"YOUR GENDER":'','EMAIL':'','PASSWORD':''})
     if(response.responseFromAddinInterest||response.url){
-      
+      dispatch({type:'SET_DATA',payload:{photo:response.url||'',subscriptionStatus:'Not subscribed'}})
       handleAlert('success','Data Added')
       setTimeout(() => {
    

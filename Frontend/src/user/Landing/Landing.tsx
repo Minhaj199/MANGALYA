@@ -3,7 +3,7 @@ import "./Landing.css";
 import { Footer } from "../Components/User/Footer/Footer";
 import React, { useEffect, useState } from "react";
 import { Forgot_first } from "../Components/User/Forgot/Forgot_first";
-import { Forgot_second } from "../Components/User/Forgot/Forgot_second copy"; 
+import { Forgot_second } from "../Components/User/Forgot/Forgot_second"; 
 import { Forgot_Final } from "../Components/User/Forgot/Forgot_final";
 import { Login } from "../Components/User/Login/Login";
 import { Send } from 'lucide-react';

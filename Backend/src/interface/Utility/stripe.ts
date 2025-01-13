@@ -2,13 +2,15 @@ import { v4 as uuidv4 } from 'uuid';
 import Stripe from 'stripe';
 import { Token } from '@stripe/stripe-js';
 
-import { SubscriptionPlan } from '../domain/entity/PlanEntity';
-import { fetchINRtoUSDRate } from '../interface/Utility/currencyUtils';
+
+import { PlanOrdersEntity, UserCurrentPlan } from '../../types/TypesAndInterfaces';
+
 const publicshKey=process.env.STRIPE_PUBLISH_KEY||''
 const stripe=new Stripe(publicshKey)
 
-export async function doStripePayment(plan:SubscriptionPlan,token:unknown,email:unknown){
-    let changedToken:Token=token as Token
+export async function doStripePayment(plan:UserCurrentPlan,token:Token,email:string){
+
+    
     if(!email){
         throw new Error('email not found')
     }
@@ -21,7 +23,7 @@ export async function doStripePayment(plan:SubscriptionPlan,token:unknown,email:
         
         const result=await stripe.customers.create({
             email:changedEmail,
-            source:changedToken?.id
+            source:token?.id
         })
         const result2=await stripe.charges.create({
             amount:parseInt(plan.amount)*100,
@@ -30,10 +32,10 @@ export async function doStripePayment(plan:SubscriptionPlan,token:unknown,email:
             description:plan.name
             
         },{idempotencyKey})
-      
+        console.log(result2.status)
         return(result2.status)
     } catch (error:any) {
         console.log(error)
-        // throw new Error(error)
+        throw new Error(error)
     }
 }

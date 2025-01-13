@@ -30,7 +30,7 @@ export const Forgot_second:React.FC<Forgot_Props> = ({changeToggle}) => {
       try {
         const resonse=async()=>{
           setLoading(true)
-          return await request({url:'/user/otpValidation',method:'post',data:{otp,email:forgotEmail}})
+          return await request({url:'/user/otpValidation',method:'post',data:{otp,email:forgotEmail,from:'forgot'}})
         }
         resonse().then((value:unknown)=>{
           let result=value as {message:string}|false

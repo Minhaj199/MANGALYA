@@ -141,9 +141,7 @@ export const PhotAndInt:React.FC<PhotAndIntInterface> = ({probSetter}) => {
                 </div>
             })}      
         </div>
-        {/* <input type="text" className='bg-red-300' />
-        <input type="text" />
-        <div className='w-[80%] h-28 bg-white'></div> */}
+        
         </div>
     </div>
   )

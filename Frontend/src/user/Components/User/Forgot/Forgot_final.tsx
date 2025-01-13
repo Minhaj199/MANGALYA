@@ -21,7 +21,7 @@ export const Forgot_Final:React.FC<Forgot_Props> = ({changeToggle}) => {
   const [loading,setLoading]=useState<boolean>(false)
   const [warning,setWarning]=useState<{password:string,confirm:string}>({password:'',confirm:''})
   
-  function handleReset(){
+  async function handleReset(){
 
     if(password.trim()===''){
       setWarning({password:'Blank not allowed',confirm:''})
@@ -36,29 +36,21 @@ export const Forgot_Final:React.FC<Forgot_Props> = ({changeToggle}) => {
     else{
       setWarning({password:'',confirm:""})
       try {
-        const resonse=async()=>{
-          setLoading(true)
-          return await request({url:'/user/changePassword',method:'patch',data:{email:forgotEmail,password}})
-        }
-        resonse().then((value:unknown)=>{
-          let result=value as {message:string}|false
-          console.log(result)
-          console.log(result&&result.message&&result.message==="password changed")
-          setLoading(false)
-          if(result&&result.message&&result.message==="password changed"){
+        setLoading(true)
+        const response:{message:string}=await request({url:'/user/changePassword',method:'patch',data:{email:forgotEmail,password}})
+       console.log(response)
+        if(response.message){
+          if(response.message==='password changed'){
             alertWithOk('Password Reset','Password changed,please try again',"info")
-          changeToggle('2')
-          
+            changeToggle('2')
+          }else{
+            throw new Error(response.message)
           }
-        }).catch(result=>{
-          if(result){
-
-            setLoading(false)
-          }
-          throw new Error('error on validation')
-        })
-      } catch (error) {
+        }
         
+      } catch (error:any) {
+       handleAlert("error",error.message)
+       setLoading(false) 
       }
       
     }

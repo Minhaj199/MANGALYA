@@ -1,44 +1,22 @@
-import { UserRepository } from "../../domain/interface/userRepository";
-import { UserModel } from "../db/userModel";
-import { OtpModel } from "../db/otpModel";
-import { User, UserWithID } from "../../domain/entity/userEntity";
-import { OtpEntity, OTPWithID } from "../../domain/entity/otpEntity";
-import { OTPrespository } from "../../domain/interface/OtpRepsitory";
-import { SubscriptionPlanRepo } from "../../domain/interface/PlanRepo";
-
-import { ObjectId } from "mongodb";
-import {
-  SubscriptionPlan,
-  SubscriptionPlanDocument,
-} from "../../domain/entity/PlanEntity";
-import { planModel } from "../db/planModel";
-import { Types } from "mongoose";
-import { PlanOrder, planOrderModel } from "../db/planOrder";
-import { subscriptionPlanModel } from "../db/planModel";
-import { MatchedProfile, profileTypeFetch, userForLanding } from "../../application/types/userTypes";
-import { getAge } from "../../interface/Utility/ageCalculator";
-import { GetExpiryPlan } from "../../interface/Utility/getExpiryDateOfPlan";
+import { UserRepository } from "../../domain/interface/userRepositoryInterface";
+import { IUserModel, UserModel } from "../db/userModel";
+import {   LandingShowUesrsInterface, RequestInterface, suggestionType, updateData, UserCurrentPlan, UserWithID } from "../../types/TypesAndInterfaces";
+import {  Types } from "mongoose";
+import { planOrderModel } from "../db/planOrder";
+import { PlanOrder } from "../../types/TypesAndInterfaces";
+import { MatchedProfile, profileTypeFetch, userForLanding } from "../../types/TypesAndInterfaces";
 import { getDateFromAge } from "../../interface/Utility/getDateFromAge";
-import { updateData } from "../../application/useCases/updateData";
-import { match } from "assert";
-import { response } from "express";
-import { Abuser } from "../../domain/interface/abuse";
-import { AbuserMongoDoc, AbuserReport } from "../../domain/entity/abuse";
-import { reportUser } from "../db/reportedUser";
+import BaseRepository from "./baseRepository";
 
 
-export class MongoUserRepsitories implements UserRepository {
-  async create(user: User): Promise<UserWithID> {
-    try {
-      const newUser = new UserModel(user);
-      const savedUser = await newUser.save();
-      return savedUser.toObject() as UserWithID;
-    } catch (error: any) {
-      throw new Error(error.message);
-    }
+
+export class UserRepsitories extends BaseRepository<UserWithID>implements UserRepository {
+  constructor(){
+  super(UserModel)
   }
+  
   async findByEmail(email: string): Promise<UserWithID | null> {
-    const user = await UserModel.findOne({ email, block: false }).lean();
+    const user = await this.model.findOne({ email, block: false }).lean();
 
     return user as UserWithID | null;
   }
@@ -56,8 +34,8 @@ export class MongoUserRepsitories implements UserRepository {
         return false;
       }
     } catch (error: any) {
-      
-      return error;
+      throw new Error(error.message||'error on message')
+     
     }
   }
   async addInterest(interst: string[], email: string): Promise<boolean> {
@@ -66,128 +44,99 @@ export class MongoUserRepsitories implements UserRepository {
         { email },
         { $set: { "PersonalInfo.interest": interst } }
       );
-      return true;
+      if(result){
+        return true;
+      }else{
+        return false
+      }
     } catch (error: any) {
-      return false;
+      throw new Error(error.message||'error on interest adding')
     }
   }
-  async addMatch(userId: unknown, matchedId: string): Promise<boolean> {
+  async addMatch(userId: unknown, matchedId: string,user:UserWithID): Promise<boolean> {
     if(typeof userId==='string'){
 
       if (userId && matchedId) {
-          const userMatchId = new ObjectId(matchedId);
-          const userID = new ObjectId(userId);  
+          const userMatchId = new Types.ObjectId(matchedId);
+          const userID = new Types.ObjectId(userId);  
           try {
-        const isEbleTo: UserWithID | null = await UserModel.findById({
-          _id: userId,
-        });
-        
-        if (isEbleTo) {
-        
-          if (isEbleTo.subscriber === "subscribed") {
-               
-            
-            if (isEbleTo.CurrentPlan) {
-           
-
-              if (isEbleTo.CurrentPlan.Expiry > new Date()) {
-            
-
-                if (isEbleTo.CurrentPlan.avialbleConnect === 1) {
+        if (user?.CurrentPlan&&user.CurrentPlan.avialbleConnect === 1) {
                     
-                  const result = await UserModel.bulkWrite([
-                    {
-                      updateOne: {
-                        filter: { _id: userId },
-                        update: {
-                          $addToSet: {
-                            match: { _id: userMatchId, typeOfRequest: "send" },
-                          },
-                        },
-                      },
-                    },
-                    {
-                      updateOne: {
-                        filter: { _id: userId },
-                        update: { $set: { subscriber: "connection finished" } },
-                      },
-                    },
-                    {
-                      updateOne: {
-                        filter: { _id: userId },
-                        update: { $inc: { "CurrentPlan.avialbleConnect": -1 } },
-                      },
-                    },
-                    {
-                      updateOne: {
-                        filter: { _id: matchedId },
-                        update: {
-                          $addToSet: {
-                            match: { _id: userID, typeOfRequest: "recieved" },
-                          },
-                        },
-                      },
-                    },
-                  ]);
-                  if (result) {
-                    return true;
-                  }
-                } else if (isEbleTo.CurrentPlan.avialbleConnect > 1) {
-            
+          const result = await UserModel.bulkWrite([
+            {
+              updateOne: {
+                filter: { _id: userId },
+                update: {
+                  $addToSet: {
+                    match: { _id: userMatchId, typeOfRequest: "send" },
+                  },
+                },
+              },
+            },
+            {
+              updateOne: {
+                filter: { _id: userId },
+                update: { $set: { subscriber: "connection finished" } },
+              },
+            },
+            {
+              updateOne: {
+                filter: { _id: userId },
+                update: { $inc: { "CurrentPlan.avialbleConnect": -1 } },
+              },
+            },
+            {
+              updateOne: {
+                filter: { _id: matchedId },
+                update: {
+                  $addToSet: {
+                    match: { _id: userID, typeOfRequest: "recieved" },
+                  },
+                },
+              },
+            },
+          ]);
+          if (result) {
+            return true;
+          }
+        } else if (user?.CurrentPlan&&user.CurrentPlan.avialbleConnect > 1) {
+    
 
-                  const result = await UserModel.bulkWrite([
-                    {
-                      updateOne: {
-                        filter: { _id: userId },
-                        update: {
-                          $addToSet: {
-                            match: { _id: userMatchId, typeOfRequest: "send" },
-                          },
-                        },
-                      },
-                    },
-                    {
-                      updateOne: {
-                        filter: { _id: userId },
-                        update: { $inc: { "CurrentPlan.avialbleConnect": -1 } },
-                      },
-                    },
-                    {
-                      updateOne: {
-                        filter: { _id: matchedId },
-                        update: {
-                          $addToSet: {
-                            match: { _id: userID, typeOfRequest: "recieved" },
-                          },
-                        },
-                      },
-                    },
-                  ]);
-                  if (result) {
-                    return true;
-                  }else{
-                    throw new Error('Error on Request sending')
-                  }
-                } else {
-                    throw new Error('Connection count over')
-                }
-              } else {
-                throw new Error("You plan is Expired");
-              }
-            } else {
-              throw new Error("No active Plan");
-            }
-          } else if (isEbleTo.subscriber === "connect over") {
-            throw new Error("You connection count over!! please buy a plan");
-          } else {
-              
-            throw new Error("You are not subscribed, please buy a plan");
-
+          const result = await UserModel.bulkWrite([
+            {
+              updateOne: {
+                filter: { _id: userId },
+                update: {
+                  $addToSet: {
+                    match: { _id: userMatchId, typeOfRequest: "send" },
+                  },
+                },
+              },
+            },
+            {
+              updateOne: {
+                filter: { _id: userId },
+                update: { $inc: { "CurrentPlan.avialbleConnect": -1 } },
+              },
+            },
+            {
+              updateOne: {
+                filter: { _id: matchedId },
+                update: {
+                  $addToSet: {
+                    match: { _id: userID, typeOfRequest: "recieved" },
+                  },
+                },
+              },
+            },
+          ]);
+          if (result) {
+            return true;
+          }else{
+            throw new Error('Error on Request sending')
           }
         } else {
-           
-
-          throw new Error("user not found");
+            throw new Error('Connection count over')
         }
       } catch (error) {
         console.log(error);
@@ -209,10 +158,7 @@ export class MongoUserRepsitories implements UserRepository {
         try {
           const convertedReqID = new Types.ObjectId(requesterId);
           const convertedUserID = new Types.ObjectId(userId);
-          // const response = await UserModel.updateOne(
-          //   { _id: convertedUserID, "match._id": convertedReqID },
-          //   { $set: { "match.$.status": "accepted" } }
-          // );
+          
           const response=await UserModel.bulkWrite([
             {
               updateOne:{
@@ -229,7 +175,11 @@ export class MongoUserRepsitories implements UserRepository {
               }
             }
           ])
-          return true;
+          if(response){
+            return true
+          }else{
+            return true;
+          }
         } catch (error) {
           console.log(error);
           throw new Error("error on manage Request");
@@ -255,7 +205,12 @@ export class MongoUserRepsitories implements UserRepository {
               }
             }
           ])
-          return true;
+          if(response){
+
+            return true;
+          }else{
+            return false
+          }
         } catch (error) {
           throw new Error("error on manage Request");
         }
@@ -266,17 +221,19 @@ export class MongoUserRepsitories implements UserRepository {
       throw new Error("error on manage request");
     }
   }
-  async getUsers(): Promise<userForLanding[]> {
+  async getUsers(): Promise<LandingShowUesrsInterface[]|[]> {
     try {
       const data = (await UserModel.aggregate([
         {
           $facet: {
             boys: [
+              {$match:{'PersonalInfo.image':{$exists:true}}},
               { $match: { "PersonalInfo.gender": "male" } },
               { $sort: { _id: -1 } },
               { $limit:2 },
             ],
             girls: [
+              {$match:{'PersonalInfo.image':{$exists:true}}},
               { $match: { "PersonalInfo.gender": "female" } },
               { $sort: { _id: -1 } },
               { $limit: 2 },
@@ -297,20 +254,14 @@ export class MongoUserRepsitories implements UserRepository {
           },
         },
       ])) as { name: string; secondName: string; age: Date; image: string }[];
+      if(data.length){
 
-      if (data.length) {
-        const response: { name: string; age: number; image: string }[] = [];
-        data.forEach((el) => {
-          response.push({
-            name: `${el.name} ${el.secondName}`,
-            age: getAge(el.age),
-            image: el.image || "",
-          });
-        });
-        return response;
-      } else {
-        throw new Error("user not found");
+        return data
+      }else{
+        return []
       }
+      
+      
     } catch (error: any) {
       console.log(error);
       throw new Error(error.message || "error on getting new added data");
@@ -374,15 +325,15 @@ export class MongoUserRepsitories implements UserRepository {
       throw new Error(error.message)
     }
   }
-  async findEmailByID(id: unknown): Promise<string> {
+  async findEmailByID(id: unknown): Promise<{email:string}> {
     try {
       
       if(!id||typeof id!=='string'){
         throw new Error('id not found')
       }
       const changedId=id as string
-      const email:any=await UserModel.findById(changedId,{_id:0,email:1})
-      if(email){
+      const email:{email:string}|null=await UserModel.findById(changedId,{_id:0,email:1})
+      if(email?.email){
         return email
       }
       throw new Error('email not found')
@@ -391,6 +342,7 @@ export class MongoUserRepsitories implements UserRepository {
     }
   }
   async getUserProfile(id: string): Promise<UserWithID> {
+   
     try {
       const user:unknown=await UserModel.findOne({_id:id}).lean()
       if(user){
@@ -405,16 +357,16 @@ export class MongoUserRepsitories implements UserRepository {
     }
   }
   async update(user: updateData,id:string): Promise<UserWithID> {
-   
+
     try {
-      const response:unknown=await UserModel.findOneAndUpdate({_id:id},{$set:user}, { new: true })   
-      
+      const response:unknown=await UserModel.findOneAndUpdate({_id:new Types.ObjectId (id)},{$set:user}, { new: true })   
       if(response){
         return response as UserWithID
       }else{
         throw new Error('not updated')
       }  
     } catch (error:any) {
+    
       throw new Error(error.message||'error on update')
     }
   }
@@ -499,11 +451,9 @@ export class MongoUserRepsitories implements UserRepository {
     return { MonthlyRevenue:revenue[0].totalAmount, SubscriberCount: ans.subscriber, UserCount:data[0].totalCount[0].totalCount }
   }
   async getMatchedRequest(id: string):Promise<MatchedProfile[]|[]> {
-    const cropedId=id.slice(1,25)
+    const cropedId=id
     
-    if(cropedId.length!==24){
-      throw new Error('id length miss match')
-    }
+    
    
     try {
       const profiles=await UserModel.aggregate([{$match:{_id:new Types.ObjectId(cropedId)}},{$project:{match:1,_id:0}},{$unwind:'$match'},
@@ -519,8 +469,8 @@ export class MongoUserRepsitories implements UserRepository {
   }
   async deleteMatched(id: string, matched: string): Promise<boolean> {
     try {
-      const response:{acknowledged:boolean,modifiedCount:number,matchedCount:number}=await UserModel.updateOne({_id:new Types.ObjectId(id.slice(1,25))},{$pull:{match:{_id:matched}}})
-      const response2:{acknowledged:boolean,modifiedCount:number,matchedCount:number}=await UserModel.updateOne({_id:new Types.ObjectId(matched)},{$pull:{match:{_id:id.slice(1,25)}}})
+      const response:{acknowledged:boolean,modifiedCount:number,matchedCount:number}=await UserModel.updateOne({_id:new Types.ObjectId(id)},{$pull:{match:{_id:matched}}})
+      const response2:{acknowledged:boolean,modifiedCount:number,matchedCount:number}=await UserModel.updateOne({_id:new Types.ObjectId(matched)},{$pull:{match:{_id:id}}})
      if(response&&response.acknowledged&&response.modifiedCount===1){
 
           return true
@@ -528,205 +478,152 @@ export class MongoUserRepsitories implements UserRepository {
           throw new Error('not deleted')
         }
     } catch (error:any) {
-      console.log(error)
+   
       throw new Error(error.message||'error on deletion')
     }
   }
-  
-}
-export class MongoOtpRepository implements OTPrespository {
-  async create(otpData: OtpEntity): Promise<OTPWithID> {
-    const newOTP = new OtpModel(otpData);
-    const savedOTP = await newOTP.save();
-    return newOTP as OTPWithID;
-  }
-  async otpValidation(otp: string, email: string): Promise<boolean> {
+  async changePassword(email: string, hashedPassword: string): Promise<boolean> {
     try {
-      const otpDoc = await OtpModel.aggregate([
-        { $match: { email: email } },
-        { $sort: { _id: -1 }},
-        { $limit: 1 },
-      ]);
-      const otpParsed: number = parseInt(otp);
-      if (otpDoc) {
-        if (otpDoc[0].email === email && otpDoc[0].otp === otpParsed) {
-          return true;
-        } else {
-          return false;
-        }
-      } else {
-        return false;
-      }
-    } catch (error) {
-      throw new Error("otp failure");
-    }
-  }
-}
-export class MongodbPlanRepository implements SubscriptionPlanRepo {
-  async create(plan: SubscriptionPlan): Promise<boolean> {
-    try {
-      const response: SubscriptionPlanDocument | null = (await planModel.create(
-        plan
-      )) as SubscriptionPlanDocument;
-
-      if (response) {
-        return true;
-      } else {
-        throw new Error("Error on response");
-      }
-    } catch (error: any) {
-      if (error.code === 11000) {
-        throw new Error("Name already exist");
-      } else {
-        throw new Error(error);
-      }
-    }
-  }
-  async getAllPlans(): Promise<SubscriptionPlanDocument[] | []> {
-    try {
-      const response: SubscriptionPlanDocument[] | [] = await planModel.find({
-        delete: false,
-      });
-     
-      return response;
-    } catch (error: any) {
-      throw new Error(error);
-    }
-  }
-  async editPlan(data: SubscriptionPlanDocument): Promise<true> {
-    try {
-      if (typeof data._id === "string") {
-        const response = await planModel.updateOne(
-          { _id: data._id },
-          { $set: data }
-        );
-        if (response) {
-          return true;
-        }
-      }
-      throw new Error("Error on id");
-    } catch (error: any) {
-      if (error.code === 11000) {
-        throw new Error("Name already exist");
-      } else {
-        throw new Error(error);
-      }
-    }
-  }
-  async softDlt(id: string): Promise<true> {
-    try {
-   
-      const response = await planModel.updateOne(
-        { _id: id },
-        { $set: { delete: true } }
-      );
-      if (response) {
-       
-        return true;
-      }
-      throw new Error("Error on remove plan");
-    } catch (error: any) {
-      throw new Error(error.message || "error on remove plan");
-    }
-  }
-}
-
-export class MongoPurchasedPlan {
-  async createOrder(
-    userid: unknown,
-    planData: subscriptionPlanModel
-  ): Promise<true> {
-    if(typeof userid==='string'){
-      const data: PlanOrder = {
-        userID: new ObjectId(userid),
-        amount: planData.amount,
-        connect: parseInt(planData.connect),
-        avialbleConnect: parseInt(planData.connect),
-        duration: planData.duration,
-        features: planData.features,
-        name: planData.name,
-        Expiry: GetExpiryPlan(planData.duration),
-      };
-      try {
-        const response = await planOrderModel.create(data);
-        const response2 = await UserModel.updateOne(
-          { _id: new Types.ObjectId(userid) },
-          {$push:{PlanData: response._id} ,$set:{ subscriber: "subscribed", CurrentPlan: data} }
-        );
-        if (response && response2) {
-          return true;
-        } else {
-          throw new Error("error on plan purchase");
-        }
-      } catch (error: any) {
-        console.log(error);
-        throw new Error(error.message);
-      }
-    }else{
-      throw new Error('Error on purchase')
-    }
-    }
-}
-
-export class ReportUser implements Abuser{
-  async create(data:AbuserReport): Promise<boolean> {
-    try {
-      
-      const obj=new reportUser(data)
-      const sav= await obj.save()
-      console.log(sav)
-      return true
-    } catch (error:any) {
-      console.log(error)
-      throw new Error(error.message)
-    }
-  }
-  async getMessages(): Promise<AbuserReport[]|[]> {
-    try {
-      const response=await reportUser.find().populate('reporter','PersonalInfo.firstName').populate('reported','PersonalInfo.firstName')
-      console.log(response)
-      return response
-    } catch (error:any) {
-      console.log(error)
-      throw new Error(error.message||'error on data fetching')
-    }
-  
-  }
-  async markAsReaded(reportedId: string): Promise<boolean> {
-    return true
-  }
-  async delete(id: string): Promise<boolean> {
-   try {
-     const response=await reportUser.deleteOne({_id:new Types.ObjectId(id)})
+      const response=await UserModel.updateOne({email:email},{password:hashedPassword})
       if(response){
         return true
       }else{
-        throw new Error('error on deletion')
+        return false
       }
+    } catch (error:any) {
+      throw new Error(error.message||'error on password reset')
+    }
+  }
+  async fetchPartnerProfils(userId: string, userGender: string, partnerGender: string): Promise<{ profile: profileTypeFetch; request: profileTypeFetch; }[]> {
+   try {
+    return this.model.aggregate([{
+      $facet:{
+          profile:[{$match:{$and:[{'PersonalInfo.gender':partnerGender},{'partnerData.gender':userGender},{_id:{$ne:new Types.ObjectId(userId)}}]}},{$project:{name:'$PersonalInfo.firstName',
+          lookingFor:'$partnerData.gender',secondName:'$PersonalInfo.secondName',
+              state:'$PersonalInfo.state',gender:'$PersonalInfo.gender',
+              dateOfBirth:'$PersonalInfo.dateOfBirth',interest:'$PersonalInfo.interest',
+              photo:'$PersonalInfo.image',match:'$match'}},{$sort:{_id:-1}}],
+          request:[{$match:{_id:new Types.ObjectId(userId)}},{$unwind:'$match'},{$match:{'match.status':'pending','match.typeOfRequest':'recieved'}},
+              {$lookup:{from:'users',localField:'match._id',foreignField:'_id',as:'matchedUser'}},{$unwind:'$matchedUser'},{$project:{_id:0,matchedUser:1}},
+          {$project:{_id:'$matchedUser._id',name:'$matchedUser.PersonalInfo.firstName',
+          lookingFor:'$matchedUser.partnerData.gender',secondName:'$matchedUser.PersonalInfo.secondName',
+          state:'$matchedUser.PersonalInfo.state',gender:'$matchedUser.PersonalInfo.gender',
+          dateOfBirth:'$matchedUser.PersonalInfo.dateOfBirth',interest:'$matchedUser.PersonalInfo.interest',
+          photo:'$matchedUser.PersonalInfo.image'}},{$sort:{_id:-1}}]
+      }
+  }])
+   } catch (error:any) {
+    throw new Error(error.message||'error on fetching')
+   }
+    
+  }
+  async getCurrentPlan(userId: string): Promise<{CurrentPlan:UserCurrentPlan}[]|[]> {
+    console.log(userId)
+    try {
+      const response:{CurrentPlan:UserCurrentPlan}[]|[]= await this.model.aggregate([{$match:{_id:new Types.ObjectId(userId)}},{$project:{_id:0,CurrentPlan:1}}])
+      console.log(response)
+      return response
+    } catch (error:any) {
+      throw new Error(error.message)
+    }
+    
+  }
+  async addPurchaseData(planId: string, id: string, data: PlanOrder):Promise<boolean>{
+    try {
+      const result:any= await this.model.updateOne(
+        { _id: new Types.ObjectId(id) },
+        {$push:{PlanData: planId} ,$set:{ subscriber: "subscribed", CurrentPlan: data} }
+      ); 
+     
+      if(result){
+        return true
+      }else{
+        throw new Error('internal server error')
+      }
+    } catch (error:any) {
+      console.log(error)
+      throw new Error(error.message||'internal server error')
+    }
+     
+    
+  }
+ async fetchSuggetions(id: string,gender:string,partnerPreference:string): Promise<{ profile: suggestionType[]|[] ; request: profileTypeFetch|[] ; userProfile: IUserModel[]|[]}[]> {
+  
+  try {
+        const datas:{profile:suggestionType[]|[],request:profileTypeFetch|[],userProfile:IUserModel[]|[]}[]=await UserModel.aggregate([{
+          $facet:{
+              profile:[{$match:{$and:[{'PersonalInfo.gender':partnerPreference},{'partnerData.gender':gender},{match:{$not:{$elemMatch:{_id:new Types.ObjectId(id)}}}}]}},{$project:{name:'$PersonalInfo.firstName',
+              lookingFor:'$partnerData.gender',secondName:'$PersonalInfo.secondName',
+                  state:'$PersonalInfo.state',gender:'$PersonalInfo.gender',
+                  dateOfBirth:'$PersonalInfo.dateOfBirth',interest:'$PersonalInfo.interest',
+                  photo:'$PersonalInfo.image',match:'$match',subscriber:'$subscriber',planFeatures:'$CurrentPlan.features'}},{$sort:{_id:-1}}],
+              request:[{$match:{_id:new Types.ObjectId(id)}},{$unwind:'$match'},{$match:{'match.status':'pending','match.typeOfRequest':'recieved'}},
+                  {$lookup:{from:'users',localField:'match._id',foreignField:'_id',as:'matchedUser'}},{$unwind:'$matchedUser'},{$project:{_id:0,matchedUser:1}},
+              {$project:{_id:'$matchedUser._id',name:'$matchedUser.PersonalInfo.firstName',
+              lookingFor:'$matchedUser.partnerData.gender',secondName:'$matchedUser.PersonalInfo.secondName',
+              state:'$matchedUser.PersonalInfo.state',gender:'$matchedUser.PersonalInfo.gender',
+              dateOfBirth:'$matchedUser.PersonalInfo.dateOfBirth',interest:'$matchedUser.PersonalInfo.interest',
+              photo:'$matchedUser.PersonalInfo.image'}},{$sort:{_id:-1}}],
+              userProfile:[{$match:{_id:new Types.ObjectId(id)}}]
+          }
+      }]) 
+        
+      return datas 
+      } catch (error:any) {
+        throw new Error(error.message)
+      }
+ }
+ async findEmail(email: string): Promise<UserWithID | null> {
+   try {
+     return await UserModel.findOne({email:email})
    } catch (error:any) {
     throw new Error(error.message)
    }
-   
-  }
-  async update(id:string,field:string,change:string|boolean): Promise<boolean> {
-    
-    
-    try {
-      
-     const response=await reportUser.updateOne({_id:new Types.ObjectId(id)},{$set:{[field]:change}})
-    console.log(response)
-     if(response){
-       return true
+ }
+ async createRequest(id: string): Promise<RequestInterface[]> {
  
-     }else{
-    
-      throw new Error('error on setWaring')
-     }
-   } catch (error:any) {
-    console.log(error)
-    throw new Error(error.message||'error on message')
-   }
-  }
-
+  try {
+    const user=await UserModel.aggregate([{$match:{_id:new Types.ObjectId(id)}},
+        {$project:{_id:'$_id',photo:'$PersonalInfo.image',name:'$PersonalInfo.firstName'}}])
+        if(user){
+            return {...user[0]}    
+        }else{
+            throw new Error('user not found')
+        }
+} catch (error:any) {
+    throw new Error(error.message||'error on request injection')
 }
+ }
+ async fetchName(id: string): Promise<string> {
+  try {
+    const name:{PersonalInfo:{firstName:string}}|null=await UserModel.findById(id,{_id:0,'PersonalInfo.firstName':1})
+        if(name?.PersonalInfo.firstName){
+            return name?.PersonalInfo.firstName
+        }else{
+            return 'name'
+        }
+} catch (error){
+    return 'name'
+}
+ }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -1,16 +1,20 @@
 import   cloudinary  from 'cloudinary';
+import dotEnv from 'dotenv'
+
+dotEnv.config()
 
 import fs from 'fs'
+
 cloudinary.v2.config({
-    cloud_name: 'dyomgcbln',
-    api_key: '532727725169433',
-    api_secret: 'Bt-UE-vnsI8V5eKvnV_0SFgPhDg'
+    cloud_name:process.env.CLOUDINARY_NAME,
+    api_key:process.env.CLOUDINARY_KEY,
+    api_secret:process.env.CLOUDINARY_SECRET_KEY,
   });
 
 
 
 export class Cloudinary{
-   async upload (path:string){ 
+   async upload (path:string):Promise<string>{ 
     try {
         const result=await cloudinary.v2.uploader.upload(path,{
             folder:'mangalya'
@@ -19,6 +23,8 @@ export class Cloudinary{
         fs.unlink(path,()=>{})
         if(result.secure_url){
             return result.secure_url
+        }else{
+            throw new Error('error on image uploading')
         }
     } catch (error:any) {
         console.log(error)
@@ -27,6 +33,3 @@ export class Cloudinary{
         
     }
 }
-
-
-

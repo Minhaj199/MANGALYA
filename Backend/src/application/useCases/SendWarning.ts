@@ -1,4 +1,5 @@
-import { MongoUserRepsitories,ReportUser } from "../../Infrastructure/repositories/mongoRepositories"
+import {UserRepsitories as  MongoUserRepsitories, } from "../../Infrastructure/repositories/userRepository"
+import { ReportUser } from "../../Infrastructure/repositories/reportUser"
 import { EmailService } from "../emailService"
 
 export async function sendWarningMail(reporter:string,reported:string,reportId:string){

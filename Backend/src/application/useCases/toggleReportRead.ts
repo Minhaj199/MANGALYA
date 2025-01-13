@@ -1,4 +1,4 @@
-import { ReportUser } from "../../Infrastructure/repositories/mongoRepositories"
+import { ReportUser } from "../../Infrastructure/repositories/reportUser" 
 export async function toggleReportRead(id:string,status:boolean){
     const report=new ReportUser()
     try {

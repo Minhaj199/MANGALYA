@@ -1,18 +1,9 @@
 import mongoose, { Schema,Document,Types } from "mongoose";
+import { PlanOrder, PlanOrderMongo } from "../../types/TypesAndInterfaces";
 
-export interface PlanOrder{
-    userID:Types.ObjectId,
-    name:string,
-    duration:number
-    features:string[]
-    amount:string
-    connect:number
-    avialbleConnect:number
-    Expiry:Date
-    created?:Date
-}
 
-const PlanOrderSchema=new Schema<PlanOrder>({
+
+const PlanOrderSchema=new Schema<PlanOrderMongo>({
     userID:Types.ObjectId,
     amount:Number,
     connect:Number,
@@ -25,4 +16,4 @@ const PlanOrderSchema=new Schema<PlanOrder>({
    
 })
 
-export const planOrderModel=mongoose.model<PlanOrder>('Plan_Order',PlanOrderSchema)
+export const planOrderModel=mongoose.model<PlanOrderMongo>('Plan_Order',PlanOrderSchema)

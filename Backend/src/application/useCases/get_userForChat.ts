@@ -1,4 +1,4 @@
-import { MongoUserRepsitories } from "../../Infrastructure/repositories/mongoRepositories"
+import {UserRepsitories as MongoUserRepsitories } from "../../Infrastructure/repositories/userRepository"
 
 export async function get_userForChat(id:string){
     const mongoRepo=new MongoUserRepsitories()

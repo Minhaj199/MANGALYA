@@ -23,7 +23,7 @@ export const CountdownProfile:React.FC<TimerProbs> =({expiryTimeStamp,from,statu
          
          const userProfile=<>
          <span>{minutes}:{seconds}</span>
-         <span className='cursor-pointer' onClick={resetProfileOtp}>RESET</span>
+         <span className='cursor-pointer' onClick={resetProfileOtp}>RESEND</span>
          </>
          return (
      userProfile

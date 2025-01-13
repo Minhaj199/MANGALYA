@@ -1,5 +1,5 @@
 import nodemailer,{Transporter} from 'nodemailer'
-import { IEmailService } from '../domain/interface/email'
+import { IEmailService } from '../types/TypesAndInterfaces'; 
 import dotenv from 'dotenv'
 dotenv.config()
 export class EmailService implements IEmailService{
@@ -28,7 +28,7 @@ export class EmailService implements IEmailService{
 
         try {
           const result=  await this.transporter.sendMail(mailOptions);
-          console.log(result)
+         
         } catch (error) {
             console.error('Error sending email:', error);
             throw new Error('Failed to send email');

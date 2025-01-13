@@ -1,7 +1,7 @@
-import { UserWithID } from "../../domain/entity/userEntity"
-import { MongoUserRepsitories } from "../../Infrastructure/repositories/mongoRepositories"
+
+import {UserRepsitories as MongoUserRepsitories } from "../../Infrastructure/repositories/userRepository"
 import { getAge } from "../../interface/Utility/ageCalculator"
-import { profileTypeFetch } from "../types/userTypes"
+import { profileTypeFetch } from "../../types/TypesAndInterfaces"
 
 const userRepo=new MongoUserRepsitories()
 export async function searchOnProfile(data:string,gender:string,preferedGender:string){

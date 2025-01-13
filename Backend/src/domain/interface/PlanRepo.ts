@@ -1,7 +1,8 @@
-import { SubscriptionPlan,SubscriptionPlanDocument } from "../entity/PlanEntity";
+import { SubscriptionPlan } from "../entity/PlanEntity";
+import { SubscriptionPlanDocument } from "../../types/TypesAndInterfaces";
 
 export interface SubscriptionPlanRepo{
-    create(plan:SubscriptionPlan):Promise<boolean>
+    create(plan:SubscriptionPlan):Promise<SubscriptionPlanDocument>
     getAllPlans():Promise<SubscriptionPlanDocument[]|[]>
     editPlan(data:SubscriptionPlanDocument):Promise<boolean>
     softDlt(id:string):Promise<true>

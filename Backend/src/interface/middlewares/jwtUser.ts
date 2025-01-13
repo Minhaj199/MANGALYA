@@ -28,7 +28,8 @@ if(token&&typeof token==='string'){
         const currentTime = Math.floor(Date.now() / 1000);
                 if(isValid&&isValid.role==='user'){
                     if(isValid.exp&&isValid.exp>currentTime){  
-                        req.userID=isValid.id 
+                        
+                        req.userID=isValid.id.slice(1,25) 
                         req.gender=isValid.gender
                         req.preferedGender=isValid.preferedGender                 
                         next()
@@ -41,9 +42,11 @@ if(token&&typeof token==='string'){
                 }
         
     } catch (error:any) {
+        console.log(error)
         res.json({message:error?.TokenExpiredError||'validation Faild'})
     }
     }else{
+       
         res.status(500).json({message:'validation Faild'})
     
     }

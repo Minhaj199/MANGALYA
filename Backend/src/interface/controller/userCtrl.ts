@@ -1,47 +1,23 @@
-import { Response,Request, response } from "express";
-import { AuthService } from "../../application/user/auth/authService"; 
-import { MongoUserRepsitories,MongoOtpRepository, MongodbPlanRepository} from "../../Infrastructure/repositories/mongoRepositories"; 
-import { EmailService } from "../../application/emailService";
-import { UserModel } from "../../Infrastructure/db/userModel";
-import { Cloudinary } from "../Utility/cloudinary";
-import { getAge } from "../Utility/ageCalculator";
-import { Types } from "mongoose";
-import { profileTypeFetch } from "../../application/types/userTypes";
-import { MongoPurchasedPlan } from "../../Infrastructure/repositories/mongoRepositories";
-import { InterestModel } from "../../Infrastructure/db/signupInterest";
-import { doStripePayment } from "../../application/paymentSerivice";
-import { getUserProfileUseCase } from "../../application/useCases/getUserProfile";
-import { otpProfile } from "../../application/useCases/otpProfile";
-import { Validate } from "../../application/useCases/validateOTP";
-import { changePasswordProfile } from "../../application/useCases/resetPassoword";
-import { uploadImage } from "../../application/useCases/uploadImage";
-import { updateData } from "../../application/useCases/updateData";
-import { matchedUsers } from "../../application/useCases/matchedUsers";
-import { MatchedProfile } from "../../application/types/userTypes"; 
-import { deleteMatchedUser } from "../../application/useCases/delelteMatchedUser";
-import { Abuse, getAllMessages } from "../../application/useCases/reportAbuse";
-import { reportUser } from "../../Infrastructure/db/reportedUser";
-import { AbuserReport } from "../../domain/entity/abuse";
-import axios from "axios";
-import { getSuggstion } from "../../application/useCases/getSuggestion";
-import { getOrCreatechat } from "../../application/useCases/getOrCreatechat";
-import { createText } from "../../application/useCases/createText";
-import { get_userForChat } from "../../application/useCases/get_userForChat";
-import { getMessgesUsecase } from "../../application/useCases/getMessgesUsecase";
+import { Response,Request} from "express";
+import { AuthService } from "../../application/services/authService"; 
+import { PartnerProfileService } from "../../application/services/partnersProfileService";
+import { UserProfileService } from "../../application/services/userProfileService";
+import { PaymentSerivice } from "../../application/services/paymentService";
+import { PlanService } from "../../application/services/planService";
+import { InterestServiece } from "../../application/services/interestService";
+import { ReportAbuseService } from "../../application/services/reportAbuseService";
+import { ChatService } from "../../application/services/chatService";;
+import { MessageService } from "../../application/services/messageServie";
+import { OtpService } from "../../application/services/OtpService";
 
 
-const emailService=new EmailService()
-const planRepo=new MongodbPlanRepository
-const userRepository=new MongoUserRepsitories()
-const otpRepsitory=new MongoOtpRepository()
-const authService=new AuthService(userRepository,otpRepsitory)
-const cloudinary= new Cloudinary()
-const orderRepo=new MongoPurchasedPlan()
 
-export const signup=async (req:Request,res:Response)=>{
+
+
+export const signup=async (req:Request,res:Response,authService:AuthService)=>{
     try {
         const user=await authService.signupFirstBatch(req.body)
-        res.status(201).json({message:'sign up completed',token:user?.token,id:user?.id}) 
+        res.status(201).json({message:'sign up completed',token:user?.token}) 
     } catch (error:any) {
         
         if(error){
@@ -49,18 +25,18 @@ export const signup=async (req:Request,res:Response)=>{
             res.json({message:'Email already exist',status:false})
         }else{
             
-        res.json({message:"error"})
+        res.json({message:error.message||'error on signup please try again'})
      }
  }
     }
 }
 
-export const otpCreation=async(req:Request,res:Response)=>{
+export const otpCreation=async(req:Request,res:Response,authService:AuthService,otpService:OtpService)=>{
     const {email,from}=req.body
     
    if(from==='forgot'){
     try {
-        const response=await authService.otpVerificationForForgot(email)
+        const response=await otpService.otpVerificationForForgot(email,from)
         if(response){
             if(response){
                 res.status(200).json({message:'Email send successfull'})
@@ -73,7 +49,7 @@ export const otpCreation=async(req:Request,res:Response)=>{
 
        try {
            
-           const response=await authService.otpVerification(email)
+           const response=await otpService.otpVerification(email,req.body.from)
            if(response){
                res.status(200).json({message:'Email send successfull'})
             }
@@ -83,97 +59,30 @@ export const otpCreation=async(req:Request,res:Response)=>{
     }
     
 }
-export const login=async(req:Request,res:Response)=>{
+export const login=async(req:Request,res:Response,authService:AuthService)=>{
     const {email,password}=req.body
     try {
         const response=await authService.login(email,password)
-        const {token,name,photo,partner,gender,id,subscriptionStatus}=response
+        const {token,name,photo,partner,gender,subscriptionStatus}=response
             
-        res.json({message:'password matched',token,name,photo,partner,gender,id,subscriptionStatus})
+        res.json({message:'password matched',token,name,photo,partner,gender,subscriptionStatus})
    
     } catch (error:any) {   
         res.json({message:error.message})
     }
 }
-export const fetechProfileData=async(req:Request,res:Response)=>{
+export const fetechProfileData=async(req:Request,res:Response,partnersProfileService:PartnerProfileService)=>{
     
     
     try {
         
         if(req.userID ){
+
+         const response= await partnersProfileService.fetechProfileData(req.userID,req.gender,req.preferedGender)            
         
-            const idd=new Types.ObjectId(req.userID.slice(1,25))
-          
-          
-          
-
-             let datas:{profile:profileTypeFetch,request:profileTypeFetch}[]=await UserModel.aggregate([{
-                $facet:{
-                    profile:[{$match:{$and:[{'PersonalInfo.gender':req.preferedGender},{'partnerData.gender':req.gender},{match:{$not:{$elemMatch:{_id:idd}}}}]}},{$project:{name:'$PersonalInfo.firstName',
-                    lookingFor:'$partnerData.gender',secondName:'$PersonalInfo.secondName',
-                        state:'$PersonalInfo.state',gender:'$PersonalInfo.gender',
-                        dateOfBirth:'$PersonalInfo.dateOfBirth',interest:'$PersonalInfo.interest',
-                        photo:'$PersonalInfo.image',match:'$match'}},{$sort:{_id:-1}}],
-                    request:[{$match:{_id:idd}},{$unwind:'$match'},{$match:{'match.status':'pending','match.typeOfRequest':'recieved'}},
-                        {$lookup:{from:'users',localField:'match._id',foreignField:'_id',as:'matchedUser'}},{$unwind:'$matchedUser'},{$project:{_id:0,matchedUser:1}},
-                    {$project:{_id:'$matchedUser._id',name:'$matchedUser.PersonalInfo.firstName',
-                    lookingFor:'$matchedUser.partnerData.gender',secondName:'$matchedUser.PersonalInfo.secondName',
-                    state:'$matchedUser.PersonalInfo.state',gender:'$matchedUser.PersonalInfo.gender',
-                    dateOfBirth:'$matchedUser.PersonalInfo.dateOfBirth',interest:'$matchedUser.PersonalInfo.interest',
-                    photo:'$matchedUser.PersonalInfo.image'}},{$sort:{_id:-1}}]
-                }
-            }])
-            
-            let currntPlan=await UserModel.aggregate([{$match:{_id:idd}},{$project:{_id:0,CurrentPlan:1}}])
-            
-            let interest:unknown[]=await InterestModel.aggregate([
-                {
-                    $project: {
-                      arrayFields: {
-                        $filter: {
-                          input: { $objectToArray: "$$ROOT" }, 
-                          as: "field",
-                          cond: { $isArray: "$$field.v" }, 
-                        },
-                      },
-                    },
-                  },
-                  {
-                    $project: {
-                      allInterests: {
-                        $reduce: {
-                          input: "$arrayFields",
-                          initialValue: [],
-                          in: { $concatArrays: ["$$value", "$$this.v"] }, 
-                        },
-                      },
-                    },
-                  },
-              ]);
-             let interestArray:{allInterests:string[]}[]=[]
-            if(interest?.length){
-             interestArray= interest as {allInterests:string[]}[]
-            }
-            if(!interestArray[0].allInterests){
-                throw new Error('Error on interest fetching')
-            }
-
-            
-            if(datas[0].profile){
-
-                 datas[0].profile=datas[0].profile.map((el,index)=>{
-                
-                    return ({
-                        ...el,
-                        no:index+1,
-                        age:getAge(el.dateOfBirth)
-                    }) 
-                })
-            }
-            
-            res.json({datas,currntPlan:currntPlan[0]?.CurrentPlan,interest:interestArray[0].allInterests})
+         res.json(response)
         }else{
-            throw new Error('id not found')
+            throw new Error('id not found----117')
         }
             
        
@@ -183,8 +92,8 @@ export const fetechProfileData=async(req:Request,res:Response)=>{
        
     }
 }
-export const forgotCheckValidate=async(req:Request,res:Response):Promise<void>=>{
-  
+export const forgotCheckValidate=async(req:Request,res:Response,otpService:OtpService):Promise<void>=>{
+ 
     try {
         if(typeof req.query.email==='string'){
 
@@ -192,11 +101,11 @@ export const forgotCheckValidate=async(req:Request,res:Response):Promise<void>=>
             
             const email=decoded
            
-            const isValid=await authService.ForgetValidateEmail(email)
+            const isValid=await otpService.ForgetValidateEmail(email)
                       
             if(isValid){
                 
-           const response=await authService.otpVerificationForForgot(email)
+           const response=await otpService.otpVerificationForForgot(email,'forgot')
            if(response){
 
                res.json ({email:isValid.email})
@@ -209,13 +118,13 @@ export const forgotCheckValidate=async(req:Request,res:Response):Promise<void>=>
         res.json(error) 
     }
 }
-export const forgotCheckValidateSigunp=async(req:Request,res:Response):Promise<void>=>{
+export const forgotCheckValidateSigunp=async(req:Request,res:Response,otpService:OtpService):Promise<void>=>{
   
     try {
  
             const {email}=req.body
            
-            const isValid=await authService.ForgetValidateEmail(email)
+            const isValid=await otpService.ForgetValidateEmail(email)
                       
             if(isValid){
                 res.json ({email:isValid.email})
@@ -227,11 +136,11 @@ export const forgotCheckValidateSigunp=async(req:Request,res:Response):Promise<v
         res.json(error) 
     }
 }
-export const otpValidation=async(req:Request,res:Response):Promise<void>=>{
+export const otpValidation=async(req:Request,res:Response,otpService:OtpService):Promise<void>=>{
     try {
-        const {email,otp}=req.body
+        const {email,otp,from}=req.body
        
-        const isValid=await authService.otpValidation(otp,email)
+        const isValid=await otpService.otpValidation(email,otp,from)
       
         if(isValid){
             res.json({message:'OTP valid'})
@@ -242,12 +151,12 @@ export const otpValidation=async(req:Request,res:Response):Promise<void>=>{
         res.json(error)
     }
 }
-export const changePassword=async(req:Request,res:Response):Promise<void>=>{
+export const changePassword=async(req:Request,res:Response,authService:AuthService):Promise<void>=>{
     try {
         const {password,email}=req.body
-      
+
         const isValid=await authService.passwordChange(email,password)
-      
+        
         if(isValid){
             res.json({message:'password changed'})
         }else{
@@ -257,21 +166,20 @@ export const changePassword=async(req:Request,res:Response):Promise<void>=>{
         res.json(error)
     }
 }
-export const secondBatch=async(req:Request,res:Response):Promise<void>=>{
+ export const secondBatch=async(req:Request,res:Response,userProfileService:UserProfileService):Promise<void>=>{
     const obj:{url:string|boolean,responseFromAddinInterest:string|boolean}={responseFromAddinInterest:false,url:false}
-    try {
+     try {
         if(req.file&&req.file.path){
             
             const image=req.file?.path||''
             
-           const url=await cloudinary.upload(image)||''
-           
-         const urlInserted=await userRepository.addPhoto(url,req.body.email)
-         obj.url=urlInserted
+           const response=await userProfileService.uploadPhoto(image,req.body.email)||''
+    
+         obj.url=response
         }
         const interest:string[]=JSON.parse(req.body.interest)
         if(interest.length>0){
-             const responseFromAddinInterest=await userRepository.addInterest(interest,req.body.email)
+             const responseFromAddinInterest=await userProfileService.uploadInterest(interest,req.body.email)
               obj.responseFromAddinInterest=responseFromAddinInterest
           }
           
@@ -280,22 +188,23 @@ export const secondBatch=async(req:Request,res:Response):Promise<void>=>{
          res.json( error)
     }
      
+
 }
-export const addMatch=async(req:Request,res:Response):Promise<void>=>{
+export const addMatch=async(req:Request,res:Response,patnerServiece:PartnerProfileService):Promise<void>=>{
    
     try {
         
-        const response=await userRepository.addMatch(req.userID?.slice(1,25),req.body.matchId)
+        const response=await patnerServiece.addMatch(req.userID,req.body.matchId)
          
         res.json(response) 
     } catch (error) {
         res.json(error)
     }
 }
-export const  manageReqRes=async(req:Request,res:Response):Promise<void>=>{
+export const  manageReqRes=async(req:Request,res:Response,partnersProfileService:PartnerProfileService):Promise<void>=>{
    
     try {
-        const response=await userRepository.manageReqRes(req.body.id,req.userID?.slice(1,25),req.body.action)
+        const response=await partnersProfileService.manageReqRes(req.body.id,req.userID,req.body.action)
         if(response){
 
             res.json({message:'changed'})
@@ -307,37 +216,39 @@ export const  manageReqRes=async(req:Request,res:Response):Promise<void>=>{
     }
     
 }
-export const fetchPlanData=async (req:Request,res:Response):Promise<void>=>{
+export const fetchPlanData=async (req:Request,res:Response,planService:PlanService):Promise<void>=>{
     try {
-        const data=await planRepo.getAllPlans()
+        const data=await planService.fetchAll()
         res.json(data)
     } catch (error:any) {
         res.json({message:error.message})
     }
 
 }
-export const purchasePlan=async (req:Request,res:Response):Promise<void>=>{
+export const purchasePlan=async (req:Request,res:Response,paymentSerivice:PaymentSerivice):Promise<void>=>{
     try {
-       
-       
-        
-       
-        const result=await doStripePayment(req.body.planData,req.body?.token,req.body?.token.email)
+       if( !req.userID){
+          throw new Error('user id not found')
 
-        if(result==='succeeded'){
-            const response=await  orderRepo.createOrder(req.userID?.slice(1,25),req.body.planData)
+       }
+       if(req.body.planData&&req.body.token&&req.body.token.email){
+
+           const response=await paymentSerivice.purchase(req.body.planData,req.body.token,req.body.token.email,req.userID)
             res.json({status:response})
         }else{
-            throw new Error('Error on payment')
-        }
+        res.json({message:'client side error'})
+        
+       }
+       
+        
     } catch (error:any) {
-     
+        console.log(error)
         res.json({message:error.message})
     }
 }
-export const fetchDataForProfile=async (req:Request,res:Response):Promise<void>=>{
+export const fetchDataForProfile=async (req:Request,res:Response,partnerServiece:PartnerProfileService):Promise<void>=>{
     try {
-        const response=await userRepository.getUsers()
+        const response=await partnerServiece.fetchUserForLandingShow()
         if(response){
             res.json(response)
         }else{
@@ -347,9 +258,10 @@ export const fetchDataForProfile=async (req:Request,res:Response):Promise<void>=
         res.json({error:error.message})
     }
 }
-export const fetchInterest=async (req:Request,res:Response):Promise<void>=>{
+export const fetchInterest=async (req:Request,res:Response,interestService:InterestServiece):Promise<void>=>{
     try {
-       const response=await InterestModel.findOne({},{_id:0,sports:1,music:1,food:1})
+       const response=await interestService.fetchInterestAsCategory()
+
        if(response){
         res.json({Data:response})
        }else{
@@ -361,35 +273,41 @@ export const fetchInterest=async (req:Request,res:Response):Promise<void>=>{
 }
 
 
-export const getUserProfile=async(req:Request,res:Response)=>{
-    
+export const getUserProfile=async(req:Request,res:Response,userProfileService:UserProfileService)=>{
+    console.log(req.userID?.length)
     try {
-        const user=await getUserProfileUseCase(req.userID?.slice(1,25))
+        const user=await userProfileService.fetchUserProfile(req.userID)
         res.json({user})
     } catch (error:any) {
         res.json({message:error.message})
     }
 }
-export const otpForResetPassword=async(req:Request,res:Response)=>{
-    
-    const sentOpt= await otpProfile(req.userID?.slice(1,25))
+export const otpForResetPassword=async(req:Request,res:Response,otpService:OtpService)=>{
+    try {
+        const sentOtp= await otpService.otpDispatchingForEditProfile(req.userID)
+        res.json(sentOtp)
+        
+    } catch (error:any) {
+        res.json(error.message||'internal server error')
+    }
 }
 
-export const otpForUserResetPassword=async(req:Request,res:Response)=>{
+export const otpForUserResetPassword=async(req:Request,res:Response,otpService:OtpService)=>{
     try {
         
-        const validate=await Validate(req.userID?.slice(1,25),JSON.stringify(req.body.OTP))
+        const validate=await otpService.validateOtpForEditProfiel(req.userID,JSON.stringify(req.body.OTP),req.body.from)
         res.json({status:validate})
     } catch (error:any) {
+        console.log(error)
         res.json({message:error.message})
     }
     
 }
-export const resetPassword=async(req:Request,res:Response)=>{
+export const resetPassword=async(req:Request,res:Response,authService:AuthService)=>{
     try {
         const { password ,confirmPassword }=req.body
         if(password===confirmPassword){
-            const response=await changePasswordProfile(password,req.userID?.slice(1,25))
+            const response=await authService.changePasswordEditProfile(password,req.userID)
            
             res.json({status:response})
         }else{
@@ -400,16 +318,18 @@ export const resetPassword=async(req:Request,res:Response)=>{
         res.status(500).json({message:error.message})
     }
 }
-export const editProfile=async(req:Request,res:Response)=>{
+export const editProfile=async(req:Request,res:Response,userProfileService:UserProfileService)=>{
    
-   
+  
     try {
-        if(req.file){    
-            const response=await uploadImage(req.file,req.userID?.slice(1,25))
-            const updateDetail=await updateData(JSON.parse (req.body.data),req.userID)
+        if(req.file){ 
+  
+            const email=await userProfileService.fetchUserByID(req.userID)
+            await userProfileService.uploadPhoto(req.file.path,email)
+            const updateDetail=await userProfileService.updateEditedData(JSON.parse (req.body.data),req.userID)
                 res.json({status:true, newData:updateDetail})
         }else{
-            const updateDetail=await updateData(JSON.parse (req.body.data),req.userID?.slice(1,25))
+            const updateDetail=await userProfileService.updateEditedData(JSON.parse (req.body.data),req.userID)
             if(typeof updateDetail==='string'){
                 res.json({newData:updateDetail})
             }else{
@@ -422,45 +342,45 @@ export const editProfile=async(req:Request,res:Response)=>{
         res.json({message:error.messaeg||'error on update'})
     }
 }
-export const matchedUser=async(req:Request,res:Response)=>{
+export const matchedUser=async(req:Request,res:Response,partnerServiece:PartnerProfileService)=>{
+   console.log('here')
     try {
-        type Extented= MatchedProfile&{age:number}
-        const fetchMatchedUsers=await matchedUsers(req.userID)
+        
+        const fetchMatchedUsers=await partnerServiece.matchedProfiles(req.userID)
+        console.log(fetchMatchedUsers)
         if(fetchMatchedUsers){  
             res.json({fetchMatchedUsers})
+        }else{
+            res.json(false)
         }
     } catch (error) {
         res.status(500).json({message:error})
     }
 }
-export const deleteMatched=async(req:Request,res:Response)=>{
+export const deleteMatched=async(req:Request,res:Response,partnerServiece:PartnerProfileService)=>{
     try {
         const {id}=req.body
-        const response=await deleteMatchedUser(req.userID,id)
+       
+        const response=await partnerServiece.deleteMatchedUser(req.userID,id)
         res.json({status:response})
-    } catch (error) {
+    } catch (error:any) {
         console.log(error)
-        res.status(500).json({message:error})
+        res.status(500).json({message:error.message})
     }
 }
-export const reportAbuse=async(req:Request,res:Response)=>{
+export const reportAbuse=async(req:Request,res:Response,reportAbuse:ReportAbuseService)=>{
     try {   
         
     
         if(!req.body.reason||!req.body.moreInfo||!req.body.profileId){
             throw new Error('In suficient data error')
-        }
-        const check:AbuserReport[]|[]=await reportUser.find({reporter:new Types.ObjectId(req.userID?.slice(1,25)),reported:new Types.ObjectId(req.body.profileId),reason:req.body.reason })
-     
-        if(check?.length>=1){
-            throw new Error('complaint already taken on specified reason')
-        }
-        const response=await Abuse(req.userID,req.body.profileId,req.body.reason,req.body.moreInfo)
+        }      
+        const response=await reportAbuse.createReport(req.userID,req.body.profileId,req.body.reason,req.body.moreInfo)
         
         if(typeof response==='boolean'){  
             res.json({data:response})
         }else{
-            res.json({data:[]})
+            res.json({data:false})
 
         }
     } catch (error:any) {
@@ -468,50 +388,84 @@ export const reportAbuse=async(req:Request,res:Response)=>{
     }
   
 }
-export const fetchSuggestion=async(req:Request,res:Response)=>{
+export const fetchSuggestion=async(req:Request,res:Response,partnerServiece:PartnerProfileService)=>{
     try {
      
-        const result=await getSuggstion(req.userID,req.preferedGender,req.gender)
+        const result=await partnerServiece.fetchSuggestions(req.userID,req.preferedGender,req.gender)
         res.json(result)
     } catch (error:any) {
         res.json({message:error.messaeg||'error on suggestion fetching'})
     }
 }
-export const getChats=async(req:Request,res:Response)=>{
+export const getChats=async(req:Request,res:Response,chatService:ChatService)=>{
     try {
-        const response=await getOrCreatechat(req.body.id,req.userID)
+        const response=await chatService.fetchChats(req.body.id,req.userID)
+        console.log(response)
         res.json(response)
     } catch (error:any) {
         res.json({message:error.messaeg||'error on chat fetching'})
     }
 }
-export const createTexts=async(req:Request,res:Response)=>{
-    
+export const createTexts=async(req:Request,res:Response,chatService:ChatService)=>{
+    console.log(req.body)
     try { 
-        const response=await createText(req.body.chatId,req.body.senderIdString,req.body.text)
-       
-        res.json({status:response})
+         if(req.body.chatId===''){
+            throw new Error('chat id not found')
+         }
+        const response=await chatService.createMessage(req.body.chatId,req.body.senderIdString,req.body.text,req.body.image)
+        res.json({newMessage:response})
     } catch (error:any) {
+        console.log(error)
         res.json({message:error.messaeg||'error chat'})
     }
 }
-export const getMessages=async(req:Request,res:Response)=>{
+export const getMessages=async(req:Request,res:Response,messageService:MessageService)=>{
     try {
-        const response=await getMessgesUsecase(req.params.id)
+        const response=await messageService.findAllMessage(req.params.id)
         res.json(response)
     } catch (error:any) {
         res.json({message:error.messaeg||'error on chat fetching'})
     }
 }
-export const getuserForChat=async(req:Request,res:Response)=>{
+export const getuserForChat=async(req:Request,res:Response,chatRoomService:ChatService)=>{
     try {
-        const response=await get_userForChat(req.params.id)
+        const response=await chatRoomService.fetchUserForChat(req.params.id)
         res.json(response)
     } catch (error:any) {
         res.json({message:error.messaeg||'error on chat fetching'})
+    }
+}
+export const MsgCount=async(req:Request,res:Response,messageService:MessageService)=>{
+    try { 
+        console.log('hnererer')
+        const response=await messageService.fetchMessageCount(req.query?.from,req.userID)
+        res.json(response) 
+    } catch (error) {
+        res.json({count:0})
+    }
+}
+export const MessageViewed=async(req:Request,res:Response,messageRepo:MessageService)=>{
+    try { 
+        const response=await messageRepo.makeAllUsersMessageReaded(req.body.from,req.body.ids)
+        res.json({status:response}) 
+    } catch (error) {
+        res.json({status:false})
     }
 }
 
+export const saveImage=async(req:Request,res:Response,messageService:MessageService)=>{
+    try { 
+      if(req.file&&typeof req.file.path==='string'){
+
+          const getImgUrl=await messageService.createImageUrl(req.file.path)
+          res.json({image:getImgUrl}) 
+      }else{
+        throw new Error('internal server error on photo send')
+      }
+    } catch (error) {
+        res.json({status:false})
+    }
+}
 
 
 

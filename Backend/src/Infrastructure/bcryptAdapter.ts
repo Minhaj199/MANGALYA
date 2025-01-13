@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs'
-import User from '../interface/routes/userRoutes'
+
 
 export class BcryptAdapter{
     async hash(password:string):Promise<string>{

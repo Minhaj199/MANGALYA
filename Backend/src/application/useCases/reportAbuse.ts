@@ -1,6 +1,6 @@
 import { Types } from "mongoose"
 import { AbuserReport } from "../../domain/entity/abuse"
-import { ReportUser } from "../../Infrastructure/repositories/mongoRepositories"
+import { ReportUser } from "../../Infrastructure/repositories/reportUser" 
 
 
 
@@ -9,7 +9,7 @@ export async function Abuse(userId:unknown,reporedId:string,reason:string,moreIn
   
        try {
            if(typeof userId==='string'&&typeof reporedId==='string'){
-               console.log(10)
+            
                const data:AbuserReport={
                    reporter: new Types.ObjectId(userId.slice(1,25)),
                    reported:new Types.ObjectId(reporedId),
@@ -21,7 +21,7 @@ export async function Abuse(userId:unknown,reporedId:string,reason:string,moreIn
                    warningMail:false
                }
                const response=await reportRepo.create(data)
-               console.log(response)
+              
                return response
            }else{
                

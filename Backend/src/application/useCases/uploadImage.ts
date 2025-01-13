@@ -1,5 +1,5 @@
-import { Cloudinary } from "../../interface/Utility/cloudinary"
-import { MongoUserRepsitories } from "../../Infrastructure/repositories/mongoRepositories"
+import { Cloudinary } from "../../interface/Utility/cloudinary" 
+import {UserRepsitories as MongoUserRepsitories } from "../../Infrastructure/repositories/userRepository"
 import { Types } from "mongoose"
 
 const cloudinary=new Cloudinary()

@@ -261,7 +261,7 @@ export const UserProfile = () => {
 
   });
   interface IsValid {
-    status: boolean;
+    status: 'OTP not found'|'opt matched'|'Not valid otp';
     message: string;
   }
   const [PasswordWarnning, setPasswordWarning] = useState<{
@@ -348,21 +348,27 @@ export const UserProfile = () => {
       setWarning("Please enter otp");
       return;
     }
+    if(otp.toString().length<6||otp.toString().length>6){
+      setWarning("Insert 6 digits");
+      return;
+    }
     try {
       const isValid: IsValid = await request({
         url: "/user/validateUserOTP",
         method: "post",
-        data: { OTP: otp },
+        data: { OTP: otp ,from:'forgot'},
       });
-     
+
       if (isValid.message) {
         throw new Error(isValid.message || "error on otp validation");
       }
-      if (isValid.status) {
+      if (isValid.status==='opt matched') {
+
         setSwitchTopassword(true);
-      } else if (isValid.status === false) {
-        alertWithOk("OTP VALIDATION", "validation faild", "info");
+      }else{
+        throw new Error(isValid.status)
       }
+      
     } catch (error: any) {
       alertWithOk(
         "OTP VALIDATION",
@@ -436,20 +442,22 @@ const [loading,setLoading]=useState<boolean>(false)
       formData.append("file", editedData.PersonalInfo.image || "");
       formData.append("data", JSON.stringify(dataToFind));
       try {
-        const response: { newData: fetchBlankData; message: string } =
+        const response: { newData: {data:fetchBlankData,token:string|boolean}; message: string } =
           await request({
             url: "/user/editProfile",
             method: "put",
             data: formData,
           });
         
-        if (response.message) {
+        if (response?.message) {
           throw new Error(response.message || "error on updating");
         }
-
+        if(response?.newData.token&&typeof response?.newData.token==='string'){
+          localStorage.setItem('userToken',response.newData.token)
+        }
         if (response) {
           if (response.newData) {
-            setOrginalData(response.newData);
+            setOrginalData(response.newData.data);
             handleAlert("success", "datas updated");
           } else {
             handleAlert("info", "data not updated");

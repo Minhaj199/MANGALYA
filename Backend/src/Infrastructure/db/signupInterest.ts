@@ -1,15 +1,12 @@
 import mongoose, { Schema,Document } from "mongoose";
+import { InterestInterface } from "../../types/TypesAndInterfaces";
 
-interface Interest extends Document{
-   sports:string[];
-   music:string[]
-   food:string[]
-}
 
-const interestSchem=new Schema <Interest>({
+
+const interestSchem=new Schema <InterestInterface>({
     sports:{type:[String],required:true},
     music:{type:[String],required:true},
     food:{type:[String],required:true},
 })
 
-export const InterestModel=mongoose.model<Interest>('Interests',interestSchem)
+export const InterestModel=mongoose.model<InterestInterface>('Interests',interestSchem)

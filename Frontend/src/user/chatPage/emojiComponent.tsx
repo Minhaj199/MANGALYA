@@ -3,7 +3,7 @@ import { useEffect } from "react"
 
 
 export const EmogiComponent=()=>{
-///641ce8c649a23c8e0934d234697cf00b744ef781
+
 
     useEffect(()=>{
       async function  fetchEmogi(){

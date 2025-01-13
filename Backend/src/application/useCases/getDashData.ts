@@ -1,4 +1,4 @@
-import { MongoUserRepsitories } from "../../Infrastructure/repositories/mongoRepositories"
+import {UserRepsitories as MongoUserRepsitories } from "../../Infrastructure/repositories/userRepository"
 
 const userRepo=new MongoUserRepsitories()
 export async function getDashData(from:unknown){

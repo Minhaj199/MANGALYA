@@ -1,6 +1,7 @@
 import mongoose,{ Schema, } from "mongoose";
+import { ChatRoom } from "../../types/TypesAndInterfaces";
 
-const chatSchema=new Schema({
+const chatSchema=new Schema<ChatRoom>({
     members:[{type:mongoose.Schema.ObjectId,ref:'User'}]
 },
 {
@@ -8,4 +9,4 @@ const chatSchema=new Schema({
 }
 )
 
-export const chatModel=mongoose.model('Chat',chatSchema)
+export const chatModel=mongoose.model<ChatRoom>('Chat',chatSchema)

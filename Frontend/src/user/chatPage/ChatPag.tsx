@@ -3,15 +3,25 @@ import { Send, ArrowLeft, Image, Menu, User } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { request } from '@/utils/axiosUtils';
 import { handleAlert } from '@/utils/alert/sweeAlert';
-import socket from '@/socketConnection';
+
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFaceSmile } from '@fortawesome/free-solid-svg-icons';
+import { faFaceSmile,faSpinner } from '@fortawesome/free-solid-svg-icons';
 import InputEmoji from 'react-input-emoji'
 import { EmogiComponent } from './emojiComponent';
+import { useSocket } from '@/globalSocket';
+import { useSelector } from 'react-redux';
+import store, { ReduxState } from '@/Redux/ReduxGlobal';
+import data from '@emoji-mart/data';
+import Picker from '@emoji-mart/react';
 
 
 const ChatInterface = () => {
-  const [messages, setMessages] = useState<{_id:string,text:string,senderId:string,createdAt:string}[]>([]);
+  let onliners=useSelector((state:ReduxState)=>state.onlinePersons) 
+  
+
+  const socket=useSocket()
+  const [Loading,setLoading]=useState(false)
+  const [messages, setMessages] = useState<{_id:string,text:string,senderId:string,createdAt:string,image:boolean}[]>([]);
   const [input, setInput] = useState('');
   const [chatId,setChatId]=useState('')
   const [recieverData,setRecieverData]=useState<{name:string,image:string}>()
@@ -19,60 +29,70 @@ const ChatInterface = () => {
   const messagesEndRef = useRef(null);
   const [emogi,setEmogi]=useState(false)
   const messageBox=useRef<HTMLDivElement>(null)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  
   const location=useLocation()
   const ref=useRef(0)
   const [onlineStatus,setOnlineStatus]=useState(false)
+  const addEmoji = (emoji: any) => {
+    setInput((prev) => prev + emoji.native); 
+  };
   useEffect(()=>{
     
     const fetch=async()=>{
       if(chatId){
-       
-        const messagesResponse:{senderId:string,text:string,createdAt:string,_id:string}[]=await request({url:`/user/getMessages/${chatId}`})
-        // console.log(messages)
+        const messagesResponse:{senderId:string,text:string,createdAt:string,_id:string,image:boolean}[]=await request({url:`/user/getMessages/${chatId}`})
         setMessages(messagesResponse)
       }
     }
     fetch()
   },[chatId])
   useEffect(()=>{
-    socket.emit('register_user',{userId:localStorage.getItem('userToken')})
+    socket?.emit('register_user',{userId:localStorage.getItem('userToken')})
     
-    const receiveMessage=(data:{_id:string,text:string,createdAt:string,senderId:string})=>{
+    const receiveMessage=(data:{_id:string,text:string,createdAt:string,senderId:string,image:boolean})=>{
       setMessages(el=>[...el,data])
     }
-    socket.on('recieveMessage',receiveMessage)
+    socket?.on('recieveMessage',receiveMessage)
   
-    socket.emit('userJoined',{reciverId:location.state.id,senderId:localStorage.getItem('userToken')})
-    const isUserOnelin=(data:{onlineStatus:boolean})=>{
-      if(data.onlineStatus){
-        setOnlineStatus(true)
-      }else{
-        setOnlineStatus(false)
-      }
+    socket?.on('user_loggedOut',(data:{id:string})=>{  
+      store.dispatch({type:'SET_ONLINERS',payload:onliners.filter(el=>el!==data.id)})
+      
+  })
+  function getOnliners(data:any){
+    if(data.id&&!onliners.includes(data.id)){
+      store.dispatch({type:'ADD_NEW_ONLINER',payload:data.id})
+     
     }
-    socket.on('userIsOnline',isUserOnelin)
-
-  return ()=>{
- 
-    socket.off('recieveMessage',receiveMessage)
-    socket.off('userIsOnline',isUserOnelin)
   }
-  },[])
+    
+  socket?.on('newUserOnline',getOnliners)
+  return ()=>{
+    socket?.off('user_loggedOut')
+    socket?.off('recieveMessage',receiveMessage)
+    socket?.off('newUserOnline',getOnliners)
+    
+  }
+  },[socket])
+  useEffect(()=>{
+    if(chatId){
+      console.log(chatId)
+    }
+  },[chatId])
+
   useEffect(()=>{
       const fetch=async()=>{
         try {
           const userData:{name:string,photo:string}=await request({url:`/user/userForChat/${location.state.id}`})
-         
-          console.log(userData)  
+          
           if(userData){
               setRecieverData({image:userData.photo,name:userData.name})
             } 
-          const response:{chatRoomData:{_id:string},allMessages:string[]}=await request({url:`/user/getChats`,data:{id:location.state.id},method:'post'})
-         
-          if(response.chatRoomData){
-
-            console.log(response.chatRoomData._id)
-            setChatId(response.chatRoomData._id)
+          const response:{chatRoomId:string}=await request({url:`/user/getChats`,data:{id:location.state.id},method:'post'})
+          
+          if(response.chatRoomId){
+           
+            setChatId(response.chatRoomId)
            
           }
         } catch (error) {
@@ -87,48 +107,141 @@ const ChatInterface = () => {
     
   },[])
   useEffect(()=>{
-    console.log(messages)
+  
     if(messageBox.current){
       messageBox.current.scrollTop=messageBox.current.scrollHeight
     }
    
   },[messages])
   const formatTime = (timestamp:Date) => {
-    return new Date(timestamp).toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
+    const date = new Date(timestamp);
+  const now = new Date();
+
+ 
+  const isToday =
+    date.getDate() === now.getDate() &&
+    date.getMonth() === now.getMonth() &&
+    date.getFullYear() === now.getFullYear();
+
+  if (isToday) {
+ 
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
       minute: '2-digit',
-      hour12: true 
+      hour12: true,
     });
+  } else {
+ 
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  }
   };
 User  
   const handleSubmit = async(e:React.FocusEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setEmogi(false)
+    let imgUrl=''
+    setLoading(true)
+    if(file){
+      const formData = new FormData();
+      console.log(file)
+      formData.append('file', file);
+      try {
+        const url:{image:string}=await request({url:'user/saveImage',data:formData,method:'post',headers: { 'Content-Type': 'multipart/form-data' }})
+          if(url.image){
+            imgUrl=url.image
+            setMessages([...messages, {
+              _id:'',
+              image:true,
+              text:imgUrl, 
+              senderId: location.state.id,
+              createdAt: new Date().toISOString()
+            }]);
+          }
+          const response:{newMessage:{_id:string,text:string,senderId:string,createdAt:Date,image:boolean},messsage:string}=await request({url:'/user/createChats',data:{senderIdString:location.state.id,chatId:chatId,text:imgUrl,image:imgUrl!==''},method:'post'})
+         
+          if(response.messsage) throw new Error(response.messsage||'erro on Chat')
+            if(response.newMessage._id){
+              socket?.emit('sendMessage',{chatId:chatId,recieverId:response.newMessage.senderId,text:response.newMessage.text,createdAt: new Date(response.newMessage.createdAt).toISOString(),_id:response.newMessage._id,image:response.newMessage.image})
+            }
+          setFile(null)
+          setPreview(null)
+          setLoading(false)
+      } catch (error) {
+        setLoading(false)
+       handleAlert('error','Error on photo sending') 
+      }
+     
+    }
     if (input.trim()) {
+      
       setMessages([...messages, {
         _id:'',
-        text: input, 
+        image:false,
+        text:input, 
         senderId: location.state.id,
         createdAt: new Date().toISOString()
+        
       }]);
+   
       try {
-        const response:{status:boolean,messsage:string}=await request({url:'/user/createChats',data:{senderIdString:location.state.id,chatId:chatId,text:input},method:'post'})
+        const response:{newMessage:{_id:string,text:string,senderId:string,createdAt:Date,image:boolean},messsage:string}=await request({url:'/user/createChats',data:{senderIdString:location.state.id,chatId:chatId,text:input,image:imgUrl!==''},method:'post'})
+        console.log(response)
         if(response.messsage) throw new Error(response.messsage||'erro on Chat')
+          if(response.newMessage._id){
+            
+            socket?.emit('sendMessage',{chatId:chatId,recieverId:response.newMessage.senderId,text:response.newMessage.text,createdAt: new Date(response.newMessage.createdAt).toISOString(),_id:response.newMessage._id,image:response.newMessage.image})
+          }
+          setLoading(false)
       } catch (error:any) {
+        setLoading(false)
         handleAlert('error',error.message)
       }
-      socket.emit('sendMessage',{recieverId:location.state.id,text:input,createdAt: new Date().toISOString(),_id:'',})
+      // socket?.emit('sendMessage',{recieverId:location.state.id,text:input,createdAt: new Date().toISOString(),_id:'',})
+     
       setInput('');
+    }else{
+      setLoading(false)
+    }
+  
+    
+  };
+  const [file, setFile] = useState<File | null>(null);
+    const [preview, setPreview] = useState<string | null>(null);
+  const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    
+    if (selectedFile) {
+      setFile(selectedFile);
+      setPreview(URL.createObjectURL(selectedFile)); 
     }
   };
+
+
+  const [currentPhoto,setCurrentPhoto]=useState('')
   const navigate=useNavigate()
   
 
   const handleBack=()=>{
-    // socket.emit('exitedFromChatRoom','')
     navigate('/match')
   }
+ 
   return (
     <div className="flex flex-col  h-screen max-w-4xl  bg-gradient-to-b from-gray-50 to-white shadow-xl ">
+      {currentPhoto&&<div className='w-full h-full fixed  z-10 bg-[rgba(0,0,0,.8)] '>
+      <div className='w-full h-full flex relative justify-center items-center'>
+        <div className='w-[50%] h-[80%] bg-red-400'>
+          <img src={currentPhoto} className='w-full h-full' alt="" />
+        </div>
+        <img src="deleteRemove.png" onClick={()=>setCurrentPhoto('')} className='cursor-pointer w-6 h-6 absolute top-5 right-5 ' alt="" />
+      </div>
+      </div>}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4  flex justify-between items-center">
         <div className="flex items-center space-x-4">
           <button onClick={handleBack} className="text-white hover:bg-blue-500/50 p-2 rounded-full transition-colors">
@@ -137,7 +250,7 @@ User
           <img src={recieverData?.image} alt="Profile" className="w-14 h-14 rounded-full border-2 border-white shadow-md"/>
           <div>
             <h2 className="text-white font-semibold text-lg">{recieverData?.name}</h2>
-            {onlineStatus&&<span className="text-blue-100 text-sm flex items-center">
+            {onliners.includes(location.state.id)&&<span className="text-blue-100 text-sm flex items-center">
               <span className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
               online
             </span>}
@@ -171,7 +284,25 @@ User
           {message.senderId === location.state.id ? 'You' : recieverData?.name}
         </span>
 
+        {message.image?
         <div
+          className={`relative max-w-xs md:max-w-md p-3 rounded-2xl shadow-sm break-words ${
+            message.senderId === location.state.id
+              ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-tr-none' // Outgoing style
+              : 'bg-white border text-gray-800 rounded-tl-none' // Incoming style
+          }`}
+        >
+          <div className='w-10 h-10 cursor-pointer ' onClick={()=>setCurrentPhoto(message.text)}>
+
+          <img src={message.text} alt="" />
+          </div>
+          <span className="block text-xs mt-3 opacity-75">
+            {formatTime(new Date(message.createdAt))}
+          </span>
+        </div>
+        :
+      
+      <div
           className={`relative max-w-xs md:max-w-md p-3 rounded-2xl shadow-sm break-words ${
             message.senderId === location.state.id
               ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-tr-none' // Outgoing style
@@ -183,6 +314,8 @@ User
             {formatTime(new Date(message.createdAt))}
           </span>
         </div>
+        
+        }
       </div>
     </div>
   ))}
@@ -190,13 +323,16 @@ User
   <div ref={messagesEndRef} />
 </div>
 
-      <div className="p-4 bg-white border-t border-gray-100 shadow-lg">
+      <div className="p-4 bg-white border-t border-gray-100 shadow-lg ">
+       
         <form onSubmit={handleSubmit}  className="flex gap-3">
           <input
             type="file"
             ref={fileInputRef}
+            onChange={handlePhoto}
             accept="image/*"
             className="hidden"
+          
           />
           <button
             type="button"
@@ -212,12 +348,24 @@ User
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type your message..."
-            className=""
+            className="w-full bg-gray-200 p-4 rounded-full"
           />
-          <FontAwesomeIcon onClick={()=>setEmogi(el=>!el)} size='2xl' icon={faFaceSmile} className='text-[#000000] absolute right-4 top-3' />
-          {emogi&& <div className='w-52 h-52 bg-green-400 absolute -top-40 right-0'>
+           {Loading&&<div className='w-14 h-14 bg-blue-500 rounded-full text-center absolute -right-16 z-[1] bottom-0 flex items-center justify-center'>
+       <FontAwesomeIcon icon={faSpinner} spin  className='text-white text-2xl' />
+          </div>}
+          {file&&<div className='w-32 h-32 bg-green-400 absolute bottom-2 -left-11 rounded-lg'>
+            <div className='w-full h-full rounded-lg relative'>
+              <img className='w-full h-full rounded-lg' src={preview||''} alt="" />
+            </div>
+            <img src="/deleteRemove.png" className='w-5 h-5 top-2 right-2 absolute' onClick={()=>(setFile(null),setPreview(null))} alt="" />
+          </div>}
+          <FontAwesomeIcon onClick={()=>setEmogi(el=>!el)} size='2xl' icon={faFaceSmile} className='text-[#000000] absolute right-4 top-3 cursor-pointer' />
+          {emogi&& <div className='w-52 h-52 bg-green-400 absolute bottom-80  right-36'>
                       
-                      <EmogiComponent/>
+            <Picker data={data}  emojiSize={18} style={{
+              width: '100px',  
+              height: '200px'  
+            }} onEmojiSelect={addEmoji} />
                         </div>}
           </div>
           <button

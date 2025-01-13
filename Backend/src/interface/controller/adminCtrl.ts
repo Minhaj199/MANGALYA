@@ -1,9 +1,7 @@
-import {  Request,response,Response } from "express";
+import {  Request,Response } from "express";
 import { AdminAuth } from "../../application/admin/auth/authService";
 import { UserModel } from "../../Infrastructure/db/userModel";
-import { JWTAdapter } from "../../Infrastructure/jwt";
-import { jwtInterface } from "../middlewares/jwtAdmin";
-import { MongodbPlanRepository } from "../../Infrastructure/repositories/mongoRepositories";
+import { PlanRepository } from "../../Infrastructure/repositories/planRepositories"; 
 import { SubscriptionPlan } from "../../domain/entity/PlanEntity";
 import { featureModel, Features } from "../../Infrastructure/db/featureModel";
 import { planModel } from "../../Infrastructure/db/planModel";
@@ -17,7 +15,7 @@ import { msgDeletion } from "../../application/useCases/msgDeletion";
 
 
 const adminAuthentication=new AdminAuth()
-const planRepo=new MongodbPlanRepository()
+const planRepo=new PlanRepository()
 
 export const login=(req:Request,res:Response)=>{
 

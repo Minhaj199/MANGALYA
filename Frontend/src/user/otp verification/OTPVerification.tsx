@@ -40,7 +40,7 @@ export const OTPVerification:React.FC = () => {
          navigate('/signup')
         }  
         setLoading(true)
-      const Response:any=await request({url:'/user/otpValidation',method:'post',data:{otp:otp,email:signupFirstData.EMAIL}})
+      const Response:any=await request({url:'/user/otpValidation',method:'post',data:{otp:otp,email:signupFirstData.EMAIL,from:'signup'}})
       
       if(Response){
         if(Response?.message==='OTP valid'){
@@ -54,8 +54,6 @@ export const OTPVerification:React.FC = () => {
               navigate('/photoAdding')
             }
           async function secondFunction(){
-              console.log(response)
-              
               dispatch({type:'SET_DATA',payload:{...userData,auth:true}})
               setSignupFirst({"FIRST NAME":'',"SECOND NAME":'',"DATE OF BIRTH":'',"GENDER OF PARTNER":'',"STATE THAT YOU LIVE":'',"YOUR GENDER":'','EMAIL':'','PASSWORD':''})
               alertWithOk('Signup completed','Best of luck with you journy',"success")

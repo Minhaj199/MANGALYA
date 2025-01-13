@@ -86,6 +86,35 @@ const [currentData,setCurrentData]=useState<AbuserReport>({_id:'',rejected:true,
       isRead: false,
     },
   ]);
+  const formatTime = (timestamp:Date) => {
+    const date = new Date(timestamp);
+  const now = new Date();
+
+ 
+  const isToday =
+    date.getDate() === now.getDate() &&
+    date.getMonth() === now.getMonth() &&
+    date.getFullYear() === now.getFullYear();
+
+  if (isToday) {
+ 
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  } else {
+ 
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  }
+  };
   
   ///////////////////////handle modal//////////////////
 
@@ -158,7 +187,7 @@ const [currentData,setCurrentData]=useState<AbuserReport>({_id:'',rejected:true,
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <h2 className="text-lg font-semibold">{message.reason}</h2>
-                    <p className="text-gray-600 text-xs">{abuseDateFormat(message.createdAt)}</p>
+                    <p className="text-gray-600 text-xs">{formatTime(message.createdAt)}</p>
                   </div>
                   <div className="flex space-x-2">
                     <button

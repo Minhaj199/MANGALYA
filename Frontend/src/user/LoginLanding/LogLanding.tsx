@@ -20,8 +20,9 @@ import { PlanData } from "../plan/Plan";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { ReduxState } from "../../Redux/ReduxGlobal";
-import socket from '../../socketConnection'
+
 import { showToast } from "@/utils/toast";
+import { useSocket } from "@/globalSocket";
 
 export type profileType = {
   _id: string;
@@ -39,18 +40,11 @@ export type profileType = {
 };
 
 export const LoginLanding = ({ active }: { active: string }) => {
+  const socket=useSocket()
   const navigate = useNavigate();
   const [planData, setPlanData] = useState<PlanData | null>(null);
   const location = useLocation();
-//   useEffect(() => {
-//     socket.on('receive_request', (data) => {
-//         console.log('New request received:', data);
-//         alert('hiiii');
-//     });
-//     return () => {
-//         socket.off('receive_request');
-//     };
-// }, []);
+
 
   const [requestProfile, setRequest] = useState<profileType[]>([
     {
@@ -70,7 +64,7 @@ export const LoginLanding = ({ active }: { active: string }) => {
 
   ///////////////////accept request/////////////////
 
-  const acceptRequest = async (id: string,name:string) => {   
+  const acceptRequest = async (id: string) => {   
     try {
       if (planData?.name) {
         const response = await request({
@@ -81,8 +75,9 @@ export const LoginLanding = ({ active }: { active: string }) => {
 
         if (typeof response === "object") {
           handleAlert("success", "Request accepted");
-          socket.emit('userRequestSocket',{partnerId:id,from:'accept',name:name})
+          socket?.emit('userRequestSocket',{partnerId:id,from:'accept',token:localStorage.getItem('userToken'),})
           setRequest((el) => el.filter((el) => el._id !== id));
+
         } else {
           throw new Error("error on requeset");
         }
@@ -107,7 +102,7 @@ export const LoginLanding = ({ active }: { active: string }) => {
 
         if (typeof response === "object") {
           handleAlert("warning", "Request rejected");
-          socket.emit('userRequestSocket',{partnerId:id,from:'reject',name:name})
+          socket?.emit('userRequestSocket',{partnerId:id,from:'reject',name:localStorage.getItem('userToken')})
           setRequest((el) => el.filter((el) => el._id !== id));
         } else {
           throw new Error("error on requeset");
@@ -124,23 +119,23 @@ export const LoginLanding = ({ active }: { active: string }) => {
   useEffect(()=>{
     function handleFuncton(data:{name:string,from:'accept'|'reject'}){
       if(data.from==='accept'){
-        showToast(`${data.name?data.name:'partner'} accepted request`)
+        showToast(`${data.name?data.name:'partner'} accepted your request`)
       }else{
-        showToast(`${data.name?data.name:'partner'} declined request`,'warning')
+        showToast(`${data.name?data.name:'partner'} declined your request`,'warning')
       }
     }
-    socket.on('requestStutus',handleFuncton)
+    socket?.on('requestStutus',handleFuncton)
     return ()=>{
-     socket.off('requestStutus',handleFuncton)
+     socket?.off('requestStutus',handleFuncton)
    }
   },[])
   useEffect(()=>{
-     socket.emit('register_user',{userId:localStorage.getItem('userToken')})
-    socket.on('new_connect',((data:{data:profileType,note:string})=>{
-      console.log(data)
+     socket?.emit('register_user',{userId:localStorage.getItem('userToken')})
+    socket?.on('new_connect',((data:{data:profileType,note:string})=>{
+
       if(data.data){
-        console.log(data.data)
-        showToast('new request arraive',"info")
+     
+        showToast('new request arraived',"info")
         setRequest(el=>([...el,data.data]))
       }
     
@@ -149,9 +144,9 @@ export const LoginLanding = ({ active }: { active: string }) => {
    
 
     return ()=>{
-       socket.off('new_connect')
+       socket?.off('new_connect')
     }
-  },[])
+  },[socket])
 
   ///////////handle matching
   const dispatch = useDispatch();
@@ -165,7 +160,7 @@ export const LoginLanding = ({ active }: { active: string }) => {
     }
     if (planData) {
       if (planData.avialbleConnect && planData.avialbleConnect > 0) {
-        socket.emit('request_send',{sender:localStorage.getItem('userToken'),reciever:id,})
+        socket?.emit('request_send',{sender:localStorage.getItem('userToken'),reciever:id,})
         try {
           const response: boolean = await request({
             url: "/user/addMatch",
@@ -331,14 +326,14 @@ export const LoginLanding = ({ active }: { active: string }) => {
       
       async function fetch() {
         const response: {
-          datas: profileType[];
+          datas: {profile:profileType[],request:profileType[]}[];
           currntPlan: PlanData;
           interest: string[];
         } = await request({
           url: `/user/fetchSuggestion`,
         });
-        
-       if(Array.isArray(response)){
+        console.log(response.datas[0].profile.length)
+       if(response.datas[0].profile.length===0){
         handleAlert('info','suggestion not available')
         navigate('/loginLanding')
        }
@@ -368,7 +363,7 @@ export const LoginLanding = ({ active }: { active: string }) => {
           url: `/user/fetchProfile`,
         });
         // setInterest(response.interest);
-        console.log(response)
+        
         const res: any = response.datas ?? { profile: [], request: [] };
 
         if (res[0]?.profile) setProfiles(res[0].profile);
@@ -383,7 +378,7 @@ export const LoginLanding = ({ active }: { active: string }) => {
       }
       fetch();
     }
-  }, [location.state]);
+  }, [location]);
 
   /////////////pagination
   const [totalPage, setTotalPage] = useState(0);
@@ -799,7 +794,7 @@ export const LoginLanding = ({ active }: { active: string }) => {
                     </div>
                     <div className="w-[30%]  flex md:flex-row md:gap-y-0 gap-y-3 flex-col md:py-3 h-full justify-around items-center ">
                       <div
-                        onClick={() => acceptRequest(el._id,el.name)}
+                        onClick={() => acceptRequest(el._id)}
                         className="sm:w-5 w-4 h-4 sm:h-5 cursor-pointer">
                         <FontAwesomeIcon
                           icon={faCircleCheck}

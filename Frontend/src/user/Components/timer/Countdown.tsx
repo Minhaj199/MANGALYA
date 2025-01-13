@@ -40,7 +40,7 @@ export const Countdown:React.FC<TimerProbs> = ({expiryTimeStamp,from,email}) => 
             restart(new Date(Date.now()+120000))
             if(signupFirstData.EMAIL){
                 try{
-                    await request({url:'/user/otpCreation',method:'post',data:{email:signupFirstData.EMAIL,from:'forgot'}})  
+                    await request({url:'/user/otpCreation',method:'post',data:{email:signupFirstData.EMAIL,from:'signup'}})  
                 }catch(error){
                     
                 }

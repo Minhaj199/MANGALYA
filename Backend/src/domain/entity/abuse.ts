@@ -11,6 +11,3 @@ export interface AbuserReport{
     rejected:boolean
 }
 
-export interface AbuserMongoDoc extends AbuserReport{
-    createdAt:Date
-}
