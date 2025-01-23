@@ -1,7 +1,7 @@
 import { Response,Request} from "express";
 import { AuthService } from "../../application/services/authService"; 
 import { PartnerProfileService } from "../../application/services/partnersProfileService";
-import { UserProfileService } from "../../application/services/userProfileService";
+import { UserProfileService } from "../../application/services/userService";
 import { PaymentSerivice } from "../../application/services/paymentService";
 import { PlanService } from "../../application/services/planService";
 import { InterestServiece } from "../../application/services/interestService";
@@ -9,6 +9,7 @@ import { ReportAbuseService } from "../../application/services/reportAbuseServic
 import { ChatService } from "../../application/services/chatService";;
 import { MessageService } from "../../application/services/messageServie";
 import { OtpService } from "../../application/services/OtpService";
+import { JWTAdapter } from "../../Infrastructure/jwt";
 
 
 
@@ -17,6 +18,7 @@ import { OtpService } from "../../application/services/OtpService";
 export const signup=async (req:Request,res:Response,authService:AuthService)=>{
     try {
         const user=await authService.signupFirstBatch(req.body)
+        res.setHeader('authorizationforuser', user?.refreshToken)
         res.status(201).json({message:'sign up completed',token:user?.token}) 
     } catch (error:any) {
         
@@ -60,12 +62,17 @@ export const otpCreation=async(req:Request,res:Response,authService:AuthService,
     
 }
 export const login=async(req:Request,res:Response,authService:AuthService)=>{
+
     const {email,password}=req.body
+    console.log('here')
+  
     try {
         const response=await authService.login(email,password)
-        const {token,name,photo,partner,gender,subscriptionStatus}=response
-            
-        res.json({message:'password matched',token,name,photo,partner,gender,subscriptionStatus})
+
+        const {token,refresh,name,photo,partner,gender,subscriptionStatus}=response
+        res.setHeader('authorizationforuser', refresh)
+
+        res.status(200).json({message:'password matched',token,refresh,name,photo,partner,gender,subscriptionStatus})
    
     } catch (error:any) {   
         res.json({message:error.message})
@@ -73,7 +80,8 @@ export const login=async(req:Request,res:Response,authService:AuthService)=>{
 }
 export const fetechProfileData=async(req:Request,res:Response,partnersProfileService:PartnerProfileService)=>{
     
-    
+   
+   
     try {
         
         if(req.userID ){
@@ -82,7 +90,7 @@ export const fetechProfileData=async(req:Request,res:Response,partnersProfileSer
         
          res.json(response)
         }else{
-            throw new Error('id not found----117')
+            throw new Error('id not found')
         }
             
        
@@ -271,10 +279,8 @@ export const fetchInterest=async (req:Request,res:Response,interestService:Inter
         res.json({message:error.message||'Error on message interest getting'})
     }
 }
-
-
 export const getUserProfile=async(req:Request,res:Response,userProfileService:UserProfileService)=>{
-    console.log(req.userID?.length)
+   
     try {
         const user=await userProfileService.fetchUserProfile(req.userID)
         res.json({user})
@@ -343,11 +349,11 @@ export const editProfile=async(req:Request,res:Response,userProfileService:UserP
     }
 }
 export const matchedUser=async(req:Request,res:Response,partnerServiece:PartnerProfileService)=>{
-   console.log('here')
+
     try {
         
         const fetchMatchedUsers=await partnerServiece.matchedProfiles(req.userID)
-        console.log(fetchMatchedUsers)
+      
         if(fetchMatchedUsers){  
             res.json({fetchMatchedUsers})
         }else{
@@ -390,8 +396,7 @@ export const reportAbuse=async(req:Request,res:Response,reportAbuse:ReportAbuseS
 }
 export const fetchSuggestion=async(req:Request,res:Response,partnerServiece:PartnerProfileService)=>{
     try {
-     
-        const result=await partnerServiece.fetchSuggestions(req.userID,req.preferedGender,req.gender)
+        const result=await partnerServiece.fetchSuggestions(req.userID,req.preferedGender,req.gender) 
         res.json(result)
     } catch (error:any) {
         res.json({message:error.messaeg||'error on suggestion fetching'})
@@ -400,14 +405,14 @@ export const fetchSuggestion=async(req:Request,res:Response,partnerServiece:Part
 export const getChats=async(req:Request,res:Response,chatService:ChatService)=>{
     try {
         const response=await chatService.fetchChats(req.body.id,req.userID)
-        console.log(response)
+        
         res.json(response)
     } catch (error:any) {
         res.json({message:error.messaeg||'error on chat fetching'})
     }
 }
 export const createTexts=async(req:Request,res:Response,chatService:ChatService)=>{
-    console.log(req.body)
+   
     try { 
          if(req.body.chatId===''){
             throw new Error('chat id not found')
@@ -437,7 +442,7 @@ export const getuserForChat=async(req:Request,res:Response,chatRoomService:ChatS
 }
 export const MsgCount=async(req:Request,res:Response,messageService:MessageService)=>{
     try { 
-        console.log('hnererer')
+       
         const response=await messageService.fetchMessageCount(req.query?.from,req.userID)
         res.json(response) 
     } catch (error) {
@@ -465,6 +470,20 @@ export const saveImage=async(req:Request,res:Response,messageService:MessageServ
     } catch (error) {
         res.json({status:false})
     }
+}
+export const getNewToken=async (req:Request,res:Response,authService:AuthService)=>{
+ console.log('triggered')
+    try {
+        const response=await authService.getNewToken(req.body.refresh)
+        if(response){
+            res.json({token:response})
+        }else{
+            throw new Error('refresh token not found')
+        }
+    } catch (error) {
+        res.json('error on validating token please login again')
+    }
+
 }
 
 

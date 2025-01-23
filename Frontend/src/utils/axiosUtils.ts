@@ -1,18 +1,29 @@
 import axios, { AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from "axios";
+import { handleAlert } from "./alert/SweeAlert";
 
 
 const client = axios.create({ baseURL:import.meta.env.VITE_BACKENT_URL  });
+let isRefreshing=false
+let refreshSubscribers:((token: string) => void)[] = []
 
-
+const onTokenRefreshed=((token:string)=>{
+  refreshSubscribers.forEach(callBacks=>callBacks(token))
+  refreshSubscribers=[]
+})
+const addRefreshSubscriber=(callback:(token:string)=>void)=>{
+  refreshSubscribers.push(callback)
+}
 client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  let adminToken = localStorage.getItem('adminToken');  
+  const adminToken = localStorage.getItem('adminToken'); 
   if (adminToken) {
    config.headers['AuthorizationForAdmin'] = adminToken;
   }
 
-  let userToken = localStorage.getItem('userToken');
+  const userToken = localStorage.getItem('userToken');
+  const refresh= localStorage.getItem('userRefresh')
   if (userToken) {
     config.headers['AuthForUser'] = userToken;
+    config.headers['RefreshAuthForUser'] = refresh;
   }
 
   return config;
@@ -24,24 +35,54 @@ client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 
 client.interceptors.response.use(
   (response: AxiosResponse) =>{
-    if(response.status===401){
-      throw new Error('token expired')
+    
+    if(response.headers['authorizationforuser']){
+      localStorage.setItem('userRefresh',response.headers['authorizationforuser'])
     }
     return response.data
   
-  }, 
-  
-    
-  (error) => {
+  },    
+  async (error) => {
+    const originalRequest=error.config
+    if(error.response?.status===402&&!originalRequest._retry){
+     if(isRefreshing){
+      return new Promise((resolve)=>{
+        addRefreshSubscriber((newToken:string)=>{
+          originalRequest.headers['AuthForUser']=newToken
+          resolve(client(originalRequest))
+        })
+      })
+     }
+      originalRequest._retry=true
+      isRefreshing=true
+     try {
+      const {data}=await axios.post(`${import.meta.env.VITE_BACKENT_URL}/user/getNewToken`,{refresh:localStorage.getItem('userRefresh')})
+        if(data?.token){
+          localStorage.setItem('userToken',data.token)
+          onTokenRefreshed(data.token)
+          isRefreshing=false
+
+          originalRequest.headers['AuthForUser']=data.token
+          return client(originalRequest)
+        }
+    } catch (error) {
+      console.log(error)
+      localStorage.removeItem("userToken");
+      localStorage.removeItem("userRefresh");
+      throw new Error("Token refresh failed");
+      
+     }
+    }
+    if(error.response?.status===405){
+      localStorage.removeItem('adminToken')
+      handleAlert('info','token Expired')
+      throw new Error('405')
+    }
     return Promise.reject(new Error(error.response?.data?.message || error.message));
   }
 );
 
 
 export const request = async <T>(options: AxiosRequestConfig): Promise<T> => {
-  try {
-    return await client(options);
-  } catch (error) {
-    throw error;
-  }
+  return await client(options);
 };

@@ -1,14 +1,14 @@
 import React, { useContext, useEffect, useState } from "react";
-import { credential_validation } from "../../Validators/signupValidator";
+import { credential_validation } from "../../validators/signupValidator";
 
 import { useNavigate } from "react-router-dom";
 import './Credential.css'
-import { Inputs } from "../Components/User/signupInputs/Inputs";
-import { SignupContext } from "../../GlobalContext/signupData";
-import { request } from "../../utils/axiosUtils";
-import { Loading } from "../Components/Loading/Loading";
-import { PhotAndInt } from "./PhotoAndInterest.tsx/PhotAndInt";
-import { alertWithOk, handleAlert } from "../../utils/alert/sweeAlert";
+import { Inputs } from "../../components/user/signupInputs/Inputs";
+import { SignupContext } from "../../shared/globalCondext/signupData";
+import { request } from "../../utils/AxiosUtils";
+import { Loading } from "@/components/Loading/Loading";
+import { PhotAndInt } from "./photoAndInterest.tsx/PhotAndInt";
+import { alertWithOk, handleAlert } from "../../utils/alert/SweeAlert";
 
 import { useDispatch } from "react-redux";
 
@@ -34,7 +34,7 @@ export type PhotoAndInterest={
 export const Credentials:React.FC<InputArrayProbs> = ({inputFields,toggle}) => {
   const [scrolled,setScrolled]=useState(false)
   const context =useContext(SignupContext)
-  const [inputToggle,setIputToggle]=useState<number>(toggle)
+  const [inputToggle]=useState<number>(toggle)
   const [photoAndInter,setPhotAndInter]=useState<PhotoAndInterest>({photo:null,interest:[]})
   const dispatch=useDispatch()
   useEffect(()=>{
@@ -85,12 +85,14 @@ export const Credentials:React.FC<InputArrayProbs> = ({inputFields,toggle}) => {
          setCredentialData({})
          navigate("/otpVerification")
         
-        }else{
-          
-     }
+        }
       
-    } catch (error:any) {
-      alertWithOk('signup',error.message||'error on signup',"error")
+    } catch (error:unknown) {
+      if(error instanceof Error){
+
+        alertWithOk('signup',error.message||'error on signup',"error")
+      }
+      console.log(error)
     } 
       setSignupFirst(signupFirst) 
     }
@@ -137,7 +139,9 @@ try {
   
   
 } catch (error) {
-  alert('some error in photo and interest')
+  if(error){
+    alert('some error in photo and interest')
+  }
 }
    
   }

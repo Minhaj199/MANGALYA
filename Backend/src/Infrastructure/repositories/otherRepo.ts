@@ -1,8 +1,10 @@
-import { FeaturesRepositoryInterface, OtherRepositoriesInterface } from "../../domain/interface/otherRepositories";
-import { InterestInterface } from "../../types/TypesAndInterfaces";
+import { FeaturesRepositoryInterface, OtherRepositoriesInterface, RefreshTokenInterface } from "../../domain/interface/otherRepositories";
+import { InterestInterface, RefeshToken, RefreshWithPopulatedData } from "../../types/TypesAndInterfaces";
 import { featureModel, Features } from "../db/featureModel";
 import { InterestModel } from "../db/signupInterest";
 import BaseRepository from "./baseRepository";
+import { refeshTokenModel } from "../db/refreshToken";
+import { Types } from "mongoose";
 
 export class InterestRepo extends BaseRepository<InterestInterface> implements OtherRepositoriesInterface{
   constructor(){
@@ -64,4 +66,31 @@ export class FeaturesRepository extends BaseRepository<Features> implements Feat
         throw new Error(error.message)
       }
     }
+    async fetchFeature(){
+      try {
+      const  response:{features:Features}|null=await featureModel.findOne({},{_id:0,features:1})
+      return response
+      } catch (error:any) {
+        throw new Error(error.message)
+      }
+    }
   }
+export class TokenRepository extends BaseRepository<RefeshToken> implements RefreshTokenInterface{
+  constructor(){
+    super(refeshTokenModel)
+  }
+  async fetchToken(extractId:string,refreshToken:string):Promise<RefreshWithPopulatedData|null>{
+    try {
+      return await this.model.findOne({token:refreshToken,userId:extractId}).populate<RefreshWithPopulatedData>('userId')
+    } catch (error:any) {
+      throw new Error(error.message)
+    }
+  }
+  async deleteToken(id:string){
+    try {
+      await this.model.deleteMany({userId:new Types.ObjectId(id)})
+    } catch (error:any) {
+      throw new Error(error)
+    }
+  }
+}

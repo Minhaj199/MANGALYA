@@ -1,4 +1,4 @@
-// active collor -bg-[#1a1aff]
+
 
 import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";

@@ -1,11 +1,11 @@
 import React, {  useState } from "react";
 import "./Login.css";
 
-import { request } from "../../utils/axiosUtils";
+import { request } from "../../utils/AxiosUtils";
 
-import { LoginValidatorAdmin } from "../../Validators/LoginValidatorForAdmin"; 
+import { LoginValidatorAdmin } from "../../validators/loginValidatorForAdmin"; 
 import {  useNavigate } from "react-router-dom";
-import { handleAlert } from "../../utils/alert/sweeAlert";
+import { handleAlert } from "../../utils/alert/SweeAlert";
 
  export interface AdminInterface{
   email:string
@@ -58,8 +58,12 @@ interface LoginType{
         }else{
           console.log('error')
         }
-      } catch (error) {
-        console.log('internal server error at login 21')
+      } catch (error:unknown) {
+        if(error instanceof Error){
+
+          handleAlert('error',error.message||'internal server error at login 21')
+        }
+        handleAlert('error','internal server error at login 21')
       }
     }
       

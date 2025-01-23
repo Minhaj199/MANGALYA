@@ -9,7 +9,6 @@ export class MessageRepository extends BaseRepository<IMessage>implements Messag
       super(messageModel)
     }
     async findMessages(chatRoomId:unknown):Promise<IMessage[]|[]>{
-     
       if(typeof chatRoomId!=='string'){
         throw new Error('interanal server error on message fetching')
       }
@@ -28,12 +27,16 @@ export class MessageRepository extends BaseRepository<IMessage>implements Messag
       }
     }
     async updateReadedMessage(id: string): Promise<void> {
-      const data=await this.model.updateMany({chatRoomId:new Types.ObjectId(id)},{viewedOnNav:true,viewedList:true})    
+      try {
+        await this.model.updateMany({chatRoomId:new Types.ObjectId(id)},{viewedOnNav:true,viewedList:true})      
+      } catch (error:any) {
+        throw new Error(error.message)
+      }
+      
     
     }
     
     async updatAllMessagesReaded(ids: string[]): Promise<boolean> {
-      console.log(ids)
       if(!Array.isArray(ids)||ids?.length<0){
         return true
       }

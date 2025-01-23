@@ -4,8 +4,8 @@ import { User } from "../domain/entity/userEntity"
 import { OtpEntity } from '../domain/entity/otpEntity'
 import { UserRepository } from '../domain/interface/userRepositoryInterface'
 import { SubscriptionPlan } from '../domain/entity/PlanEntity'
-import { Token } from '@stripe/stripe-js'
-import { subscriptionPlanModel } from '../Infrastructure/db/planModel'
+
+
 
 import { AbuserReport } from '../domain/entity/abuse'
 
@@ -224,4 +224,37 @@ export interface userProfileReturnType{
     Email: string;
     subscriptionStatus: string;
     currentPlan: PlanOrdersEntity | undefined;
+}
+export interface userMgtUserfetchUserDatasForAdmin{
+    expiry: string | Date;
+    no: number;
+    username: string;
+    email: string;
+    match: {
+        _id: string;
+        status: string;
+        typeOfRequest: string;
+    }[];
+    subscriber: string;
+    CreatedAt: Date;
+    block: boolean;
+}
+export interface adminPlanType{
+        no:number
+        username: string,
+        planName:string,
+        MatchCountRemaining:number,
+        expiry: Date|string,
+        planAmount: string
+      }
+export interface RefeshToken extends Document{
+    userId:Types.ObjectId,
+    token:string
+}
+export interface RefreshWithPopulatedData extends Document{
+    userId:UserWithID,
+    token:string
+}
+export interface subscriptionPlanModel extends SubscriptionPlan,Document{
+    delete:boolean
 }

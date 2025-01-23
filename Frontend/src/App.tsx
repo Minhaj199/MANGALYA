@@ -1,30 +1,27 @@
 import React, { useContext } from "react";
-import { Login } from "./admin/Login/Login";
-import { Layout } from "./admin/Layout/Layout";
+import { Login } from "./admin/login/Login";
+import { Layout } from "./admin/layout/Layout";
 import { Routes,Route} from "react-router-dom";
-import { Landing } from "./user/Landing/Landing";
-import { SignupContext } from "./GlobalContext/signupData"; 
-import { LoginLanding } from "./user/LoginLanding/LogLanding";
+import { Landing } from "./user/landing/Landing";
+import { SignupContext } from "./shared/globalCondext/signupData"; 
+import { LoginLanding } from "./user/loginLanding/LogLanding";
 import { UserTable } from "./admin/pages/userMgt/Table";
 import { OTPVerification } from "./user/otp verification/OTPVerification";
-import { PlanDetails } from "./admin/pages/PlanMa/PlanMgt";
-import { ProtectRouteAdmin,PlanRouteUser ,UnProtectRouteUser,UnProtectRouteAdmin,ProtectRouteUser } from "./utils/RouteManagement";
-import { AddPlan  } from "./admin/pages/AddPlan/AddPlan";
-import { SubscriberTable } from "./admin/pages/Subscribers/Table";
+import { PlanDetails } from "./admin/pages/planMgt/PlanMgt";
+import { ProtectRouteAdmin,PlanRouteUser ,UnProtectRouteUser,UnProtectRouteAdmin,ProtectRouteUser } from "./utils/routeManagement"
+import { AddPlan  } from "./admin/pages/addPlan/AddPlan";
+import { SubscriberTable } from "./admin/pages/subscribers/Table";
 import PlanPurchase from "./user/plan/Plan"; 
-import { UserProfile } from "./user/userProfile/userProfile";
-
-
-
-
-
-import { Credentials } from "./user/Signup/Credentials";
-import { Dash } from "./admin/pages/Dash/Dash";
-import { Suggestion } from "./user/suggetionPage/Suggestion";
+import { UserProfile } from "./user/userProfile/UserProfile"; 
+import { Credentials } from "./user/signup/Credentials";
+import { Dash } from "./admin/pages/dash/Dash"; 
 import { UserSearchPage } from "./user/search/Search";
-import { Matched } from "./user/MatchedProfile/Matched";
-import { Abuse } from "./admin/pages/Abuse/Abuse";
+import { Matched } from "./user/matchedProfile/Matched";
+import { Abuse } from "./admin/pages/abuse/Abuse";
 import ChatInterface from "./user/chatPage/ChatPag";
+
+
+
 
 export const districtsOfKerala = [
   "Alappuzha",
@@ -41,7 +38,8 @@ export const districtsOfKerala = [
   "Trivandrum",
   "Thrissur",
   "Wayanad"
-];
+]
+
 
 const App: React.FC = () => {
     const context=useContext(SignupContext)
@@ -49,7 +47,7 @@ const App: React.FC = () => {
     if(!context){
       throw new Error('user  data is empty in opt verification')
     }
-    // const {signupFirstData}=context
+   
 
   const inputFields=[
     {linkingName:'firstName',inputType:'text',inputName:'FIRST NAME'},
@@ -59,12 +57,12 @@ const App: React.FC = () => {
     {linkingName:'Gender',inputType:'dropDown',option:['female','male'] ,inputName:"YOUR GENDER"},
     {linkingName:'partner',inputType:'dropDown',option:['male','female'], inputName:"GENDER OF PARTNER"},
     {linkingName:'email',inputType:'email',inputName:"EMAIL"},
-    {linkingName:'password',inputType:'password',inputName:"PASSWORD"},
+    {linkingName:'password',inputType:'text',inputName:"PASSWORD"},
     {linkingName:'cPassword',inputType:'password',inputName:"CONFIRM PASSWORD"},
   ]
   return (
-    <Routes>
-     <Route element={<UnProtectRouteAdmin/>}>
+    <Routes>    
+        <Route element={<UnProtectRouteAdmin/>}>
       <Route path="/login" element={<Login />} />
      </Route>
       <Route  element={<ProtectRouteAdmin />} >
@@ -88,15 +86,18 @@ const App: React.FC = () => {
       <Route path="/otpVerification" element={<OTPVerification  />}/>
       </Route>
       <Route element={<ProtectRouteUser/>}>
-      <Route path="/loginLanding" element={<LoginLanding active={'profile'}/>} />
+     
+      <Route path="/loginLanding" element={<LoginLanding />} />
       <Route path="/userProfile" element={<UserProfile/>} />
-      <Route path="/suggestion" element={<LoginLanding active=""/>} />
+      <Route path="/suggestion" element={<LoginLanding />} />
       <Route path="/search" element={<UserSearchPage/>} />
       <Route path="/match" element={<Matched/>} />
       <Route path="/chat" element={<ChatInterface/>} />
+     
       </Route>
     </Routes>
   );
-};
+}
+
 
 export default App;

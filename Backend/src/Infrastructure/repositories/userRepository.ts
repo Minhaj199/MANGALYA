@@ -1,7 +1,7 @@
 import { UserRepository } from "../../domain/interface/userRepositoryInterface";
 import { IUserModel, UserModel } from "../db/userModel";
-import {   LandingShowUesrsInterface, RequestInterface, suggestionType, updateData, UserCurrentPlan, UserWithID } from "../../types/TypesAndInterfaces";
-import {  Types } from "mongoose";
+import {   adminPlanType, LandingShowUesrsInterface, RequestInterface, suggestionType, updateData, UserCurrentPlan, UserWithID } from "../../types/TypesAndInterfaces";
+import {  Types,UpdateWriteOpResult } from "mongoose";
 import { planOrderModel } from "../db/planOrder";
 import { PlanOrder } from "../../types/TypesAndInterfaces";
 import { MatchedProfile, profileTypeFetch, userForLanding } from "../../types/TypesAndInterfaces";
@@ -16,9 +16,14 @@ export class UserRepsitories extends BaseRepository<UserWithID>implements UserRe
   }
   
   async findByEmail(email: string): Promise<UserWithID | null> {
-    const user = await this.model.findOne({ email, block: false }).lean();
+    try {
+      const user = await this.model.findOne({ email, block: false }).lean();
 
-    return user as UserWithID | null;
+      return user as UserWithID | null;
+    } catch (error:any) {
+      throw new Error(error.message||'errro occured on email fetching')
+    }
+   
   }
   async addPhoto(photo: string, email: string): Promise<boolean> {
     
@@ -319,7 +324,7 @@ export class UserRepsitories extends BaseRepository<UserWithID>implements UserRe
         ])
         return responseDB
       }
-      throw new Error('Error on search (299-mrpt)')
+      throw new Error('Error on search ')
     } catch (error:any) {
       console.log(error)
       throw new Error(error.message)
@@ -370,49 +375,28 @@ export class UserRepsitories extends BaseRepository<UserWithID>implements UserRe
       throw new Error(error.message||'error on update')
     }
   }
-  async getRevenue(): Promise<{ month: string[], revenue:number[] }> {
+  async getRevenue(): Promise<{ _id:string, total: number }[]> {
     
     const result=await planOrderModel.aggregate([{$group:{_id:{'$dateToString':{format: "%Y-%m-%d", date: "$created"}},total:{$sum:'$amount'}}},
       {$sort:{_id:-1}},
       {$limit:7}
     ])
-  
-    const month:string[]=[]
-    const total:number[]=[]
-    if(result.length){
-      result.forEach((el)=>{
-          month.push(el?._id.slice(5))
-          total.push(el?.total)
-      },[])
-    }
-   
-    return { month:month, revenue:total }
-  }
-  async getSubcriberCount(): Promise<number[]> {
-    try {
-      const data:any=await UserModel.aggregate([{$group:{_id:'$subscriber',count:{$sum:1}}}])
-      let ans={subscriber:0,notSubscriber:0}
-      if(data?.length){
-        data.forEach((el: { _id: string, count: number })=>{
-          if(el._id==='subscribed'||el._id==='connection finished'){
-            ans.subscriber+=el.count
-          }else{
-            ans.notSubscriber+=el.count
-          }
-        })
-      }
-      const response=[]
-      response[0]=parseFloat (((ans.subscriber/(ans.notSubscriber+ans.subscriber))*100).toFixed(2))
-      response[1]= parseFloat(((ans.notSubscriber/(ans.notSubscriber+ans.subscriber))*100).toFixed(2))
     
-      return response
+    return result
+  }
+  async getSubcriberCount(): Promise<{_id:string,count:number}[]> {
+    try {
+      const data:{_id:string,count:number}[]=await UserModel.aggregate([{$group:{_id:'$subscriber',count:{$sum:1}}}])
+      
+     return data
     } catch (error:any) {
       throw new Error(error.message)
     }
    
   }
-  async getDashCount(): Promise<{ MonthlyRevenue: number; SubscriberCount: number; UserCount: number; }> {
-    const data: any = await UserModel.aggregate([
+  async getDashCount(): Promise<{subscriberGroups:{ _id:string, count:number}[],totalCount:number}> {
+    const data:{ totalCount:{totalCount:number}[],subscriberGroups:{ _id:string, count:number}[]}[]
+     = await UserModel.aggregate([
       {
         $facet: {
           totalCount: [{ $count: "totalCount" }], 
@@ -427,28 +411,8 @@ export class UserRepsitories extends BaseRepository<UserWithID>implements UserRe
         }
       }
     ])
-    const revenue:any=await planOrderModel.aggregate([
-      {
-        $group: {
-          _id: null, 
-          totalAmount: { $sum: "$amount" } 
-        }
-      }
-    ])
-  
-    let ans={subscriber:0,notSubscriber:0}
-    if(data?.length){
-      data[0].subscriberGroups.forEach((el: { _id: string, count: number })=>{
-        if(el._id==='subscribed'||el._id==='connection finished'){
-          ans.subscriber+=el.count
-        }else{
-          ans.notSubscriber+=el.count
-        }
-      })
-    }
-    // [ { _id: null, totalAmount: 26840 } ]
-   
-    return { MonthlyRevenue:revenue[0].totalAmount, SubscriberCount: ans.subscriber, UserCount:data[0].totalCount[0].totalCount }
+    
+    return {subscriberGroups:data[0].subscriberGroups,totalCount:data[0].totalCount[0].totalCount}
   }
   async getMatchedRequest(id: string):Promise<MatchedProfile[]|[]> {
     const cropedId=id
@@ -518,10 +482,10 @@ export class UserRepsitories extends BaseRepository<UserWithID>implements UserRe
     
   }
   async getCurrentPlan(userId: string): Promise<{CurrentPlan:UserCurrentPlan}[]|[]> {
-    console.log(userId)
+ 
     try {
       const response:{CurrentPlan:UserCurrentPlan}[]|[]= await this.model.aggregate([{$match:{_id:new Types.ObjectId(userId)}},{$project:{_id:0,CurrentPlan:1}}])
-      console.log(response)
+  
       return response
     } catch (error:any) {
       throw new Error(error.message)
@@ -544,8 +508,6 @@ export class UserRepsitories extends BaseRepository<UserWithID>implements UserRe
       console.log(error)
       throw new Error(error.message||'internal server error')
     }
-     
-    
   }
  async fetchSuggetions(id: string,gender:string,partnerPreference:string): Promise<{ profile: suggestionType[]|[] ; request: profileTypeFetch|[] ; userProfile: IUserModel[]|[]}[]> {
   
@@ -605,6 +567,37 @@ export class UserRepsitories extends BaseRepository<UserWithID>implements UserRe
 } catch (error){
     return 'name'
 }
+ }
+ async fetchUserDataForAdmin(){
+  try {
+    return await this.model.aggregate([{$sort:{_id:-1}},{$project:{username:'$PersonalInfo.firstName',email:1,match:1,subscriber:1,CreatedAt:1,block:1}}])
+  } catch (error:any) {
+    throw new Error(error.message)
+  }
+ }
+ async fetchSubscriber():Promise<adminPlanType[]|[]>{
+  try {
+    const data:adminPlanType[]|[]=await this.model.aggregate([{$match:{$or:[{subscriber:'subscribed'},{subscriber:
+      'connection finished'}]}},{$match:{'CurrentPlan.name':{$exists:true}}},
+      {$project:{_id:0,username:'$PersonalInfo.firstName',
+      planName:'$CurrentPlan.name',MatchCountRemaining:'$CurrentPlan.avialbleConnect',expiry:'$CurrentPlan.Expiry',planAmount:'$CurrentPlan.amount'}}
+  ])
+  return data
+  } catch (error:any) {
+    throw new Error(error.message)  
+  }
+ }
+ async blockAndUnblockUser(id:string,action:boolean): Promise<boolean> {
+   try {
+    const response:UpdateWriteOpResult=await this.model.updateOne({_id:new Types.ObjectId(id)},{$set:{block:action}})
+    if(response.acknowledged){
+      return true
+    }else{
+      return false
+    }
+  } catch (error:any) {
+    throw new Error(error.message)
+   }
  }
 }
 

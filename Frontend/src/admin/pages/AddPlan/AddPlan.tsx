@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react'
 
 import './planMgt.css'
-import { PlanValidator } from '../../../Validators/planValidator'
-import { alertWithOk, handleAlert } from '../../../utils/alert/sweeAlert'
-import { request } from '../../../utils/axiosUtils'
+import { PlanValidator } from '../../../validators/planValidator'
+import { alertWithOk, handleAlert } from '../../../utils/alert/SweeAlert'
+import { request } from '../../../utils/AxiosUtils'
 import { useNavigate } from 'react-router-dom'
-import { capitaliser } from '../../../utils/capitalise'
+import { capitaliser } from '../../../utils/firstWordCapitaliser'
 export type planMgtWarningType={
 
     name:string
@@ -23,14 +23,14 @@ export type PlanData={
 
 export const AddPlan = () => {
     const navigate=useNavigate()
-    const [feature,setFeature]=useState<string[]>([''])
+    
     const [featureData,setFeatureData]=useState<string[]>([''])
     
     useEffect(()=>{
        async function fetchFeature(){
             const response:{features:string[]}=await request({url:'/admin/fetchFeature'})
             setFeatureData(response.features)
-            console.log(response)
+            
         }
         fetchFeature()
     },[])
@@ -57,19 +57,36 @@ export const AddPlan = () => {
         
         if(PlanValidator(datas,setWarning,handleFeatureState)){
             try {
-                const response:unknown=await request({url:'/admin/insertPlan',method:'post',data:{datas,handleFeatureState}})
-                if(typeof response==='string'&&response==='Name already exist'){
-                    throw new Error(response)
+                const response:{status:unknown,message:string,name:string}=await request({url:'/admin/insertPlan',method:'post',data:{datas,handleFeatureState}})
+                console.log(response)
+                if(response?.message&&response?.name){
+                   if(response.name==='authentication failed'){
+                   throw new Error(response?.name)
+                   }else{
+                    throw new Error(response?.message)
+                   }
+
+                }else if(response.message){
+                    throw new Error(response.message)
                 }
-                else if(typeof response==='object'){
-                    
+
+                else if(typeof response.status==='object'){
                     handleAlert('success','Plan Added')
                     navigate('/admin/Plan')
                 }
                 
-            } catch (error:any) {
+            } catch (error:unknown) {
                 
-                alertWithOk('Plan insertion',error||'Error occured','error')
+                if(error instanceof Error){
+                     if(error.message==='405'){
+                              navigate('/login')
+                              return
+                            }
+                              alertWithOk('Dash error',error.message||'error on dash','error')
+                    alertWithOk('Plan insertion',error.message||'Error occured','error')
+                }else{
+                    alertWithOk('Plan insertion','Error occured','error')
+                }
             }
         }
         
@@ -128,7 +145,7 @@ export const AddPlan = () => {
                 <div className='w-full h-10  mb-2'>
                     <select onChange={handleFeature} className='w-[40%] outline-none rounded-xl sm:h-[80%] h-[50%] sm:text-base text-xs bg-dark-blue text-white' name="features" id="">
                     <option value="">Features</option>
-                       {featureData.map(el=>(<option value={el}>{el}</option>))}
+                       {featureData?.map(el=>(<option value={el}>{el}</option>))}
                         
 
                     </select>

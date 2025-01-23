@@ -1,12 +1,12 @@
 import  React, { useEffect, useState } from "react";
 import "./Plan.css";
-import { request } from "../../utils/axiosUtils";
+import { request } from "../../utils/AxiosUtils";
 import { useNavigate } from "react-router-dom";
-import { alertWithOk, handleAlert, promptSweet } from "../../utils/alert/sweeAlert";
-import StripeCheckout, { Token } from 'react-stripe-checkout'
-import { Loading } from "../Components/Loading/Loading";
+import { alertWithOk, handleAlert } from "../../utils/alert/SweeAlert";
+import  StripeCheckout, { Token } from 'react-stripe-checkout'
+import { Loading } from "@/components/Loading/Loading"; 
 import { useDispatch, useSelector } from "react-redux";
-import { ReduxState } from "../../Redux/ReduxGlobal";
+import { ReduxState } from "../../redux/reduxGlobal";
 
 
 
@@ -74,9 +74,13 @@ const PlanPurchase = () => {
             setLoading(false)
             throw new Error(response.message||'Error on puchase')
           }
-        } catch (error:any) {
+        } catch (error:unknown) {
+          
           setLoading(false)
-          alertWithOk('Plan Purchase',error.message||'Error on purchase',"warning")
+          if(error instanceof Error){
+            alertWithOk('Plan Purchase',error.message||'Error on purchase',"warning")
+          }
+          console.log(error)
         }
       }
      Purchase()
@@ -104,7 +108,7 @@ const PlanPurchase = () => {
           <div className="w-screen h-14 flex justify-end items-center px-2 ">
             <p className="text-white cursor-pointer" onClick={handleSkip}>{"DO IT LATER>"}</p>
           </div>
-          <div className="w-[80%] px-4 overflow-x-auto no-scrollbar no-scrollbarh-[70%] flex justify-center items-center">
+          <div className="w-[100%] px-4 overflow-x-auto no-scrollbar no-scrollbarh-[70%] flex justify-center items-center">
             <div className="flex sm:flex-col md:flex-col lg:flex-row flex-col gap-5 h-full ">
               {planData.map((el, index) => (
                 <div key={index} className="sm:w-[300px] w-[250px]  h-[98%] ml-5 rounded-2xl bg-blue-950 " >
@@ -127,12 +131,11 @@ const PlanPurchase = () => {
                   </div>
                   <div  className="w-full h-20 flex justify-center items-center">
                   <StripeCheckout   stripeKey={import.meta.env.VITE_STRIPE_SECRET_KEY}  token={(token)=>handlePurchase(token,el)} currency="INR" name={el.name} amount={el.amount*100}>
-      
-                    <button id="pay" className="border px-10 py-1 rounded-xl text-white bg-dark-blue">
-                      BUY
-                    </button>
-                  </StripeCheckout>
-                   
+                      <button id="pay" className="border px-10 py-1 rounded-xl text-white bg-dark-blue">
+                        BUY
+                      </button>
+        
+                    </StripeCheckout>
                    
                   </div>
                 </div>

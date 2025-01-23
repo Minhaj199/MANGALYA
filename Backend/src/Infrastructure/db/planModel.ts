@@ -1,8 +1,7 @@
 import mongoose, { Schema,Document } from "mongoose";
-import { SubscriptionPlan } from "../../domain/entity/PlanEntity";
-export interface subscriptionPlanModel extends SubscriptionPlan,Document{
-    delete:boolean
-}
+
+import { subscriptionPlanModel } from "../../types/TypesAndInterfaces";
+
 
 const planSchema=new Schema<subscriptionPlanModel>({
     name:{type:String,unique:true},

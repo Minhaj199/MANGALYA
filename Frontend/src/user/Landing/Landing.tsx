@@ -1,28 +1,32 @@
 import "./Landing.css";
 
-import { Footer } from "../Components/User/Footer/Footer";
-import React, { useEffect, useState } from "react";
-import { Forgot_first } from "../Components/User/Forgot/Forgot_first";
-import { Forgot_second } from "../Components/User/Forgot/Forgot_second"; 
-import { Forgot_Final } from "../Components/User/Forgot/Forgot_final";
-import { Login } from "../Components/User/Login/Login";
-import { Send } from 'lucide-react';
-import { HomeCards } from "../Components/User/HomeCards/HomeCards";
+import { Footer } from "../../components/user/Footer/Footer";
+import  { useEffect, useState } from "react";
+import { Forgot_first } from "../../components/user/Forgot/Forgot_first";
+import { Forgot_second } from "../../components/user/Forgot/Forgot_second"; 
+import { Forgot_Final } from "../../components/user/Forgot/Forgot_final";
+import { Login } from "../../components/user/Login/Login";
+import { HomeCards } from "../../components/user/HomeCards/HomeCards";
 import { useDispatch } from "react-redux";
-import { Info } from "../Components/User/HomeInfo/Info";
+import { Info } from "../../components/user/HomeInfo/Info";
+import CircularIndeterminate from "@/components/circularLoading/Circular";
+
 
 export const Landing = () => {
   const [loginTogle, changeTogle] = useState<string>("1");
+  const [loading,setLoading]=useState(false)
   const dispatch=useDispatch()
   useEffect(()=>{
     dispatch({type:'CLEAR_DATA'})
     localStorage.removeItem('userToken')
   },[])
-  
-  
+ 
   
   return (
     <div>
+{loading&&<div className='w-full flex items-center justify-center  h-full  fixed bg-[rgba(0,0,0,.8)] z-10'>
+  <CircularIndeterminate/>
+</div>}
       <div className="w-[100%]  h-svh bg-cover bg-center first_part" >
         <div  className={loginTogle !== "1" ? "hidden" : "w-full h-full"}>
           <div className="w-full h-20   flex justify-between items-center p-5 ">
@@ -56,6 +60,7 @@ export const Landing = () => {
         <Login
           changeToggle={changeTogle}
           loginTogle={loginTogle}
+          setLoading={setLoading}
         />
         {loginTogle === "3" ? <Forgot_first changeToggle={changeTogle} /> : ""}
         {loginTogle === "4" ? <Forgot_second changeToggle={changeTogle} /> : ""}

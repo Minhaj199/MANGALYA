@@ -10,8 +10,13 @@ export default abstract class BaseRepository<T extends Document> implements Base
                 const doc=new this.model(data)
                 return (await doc.save()).toObject()
             } catch (error:any) {
-                console.log(error)
-                throw new Error(error.message||'Error on data fetching')
+                if(error?.code&&error.code===11000){
+                    throw new Error('Name already exists')
+                }else{
+                    
+                    throw new Error(error.message||'Error on data fetching')
+        
+                }
             }
         }
     

@@ -1,11 +1,10 @@
-import { Types } from "mongoose";
+
 import { ChatRepository } from "../../domain/interface/chatRoomRepository";
-import { messageModel } from "../../Infrastructure/db/messageModel";
 import { MessageRepository } from "../../Infrastructure/repositories/messageRepository"; 
 import { Cloudinary } from "../../interface/Utility/cloudinary";
 import { MessageServiceInterface } from "../../types/serviceLayerInterfaces";
-import {  ChatMessage, IMessage, IMessageWithoutId, MessageWithDate } from "../../types/TypesAndInterfaces";
-import { updateReadedMessage } from "../useCases/udateReadedMessage";
+import {  ChatMessage,  IMessageWithoutId, } from "../../types/TypesAndInterfaces";
+
 
 
 export class MessageService implements MessageServiceInterface{
@@ -82,24 +81,24 @@ export class MessageService implements MessageServiceInterface{
         }
     }
     async makeAllUsersMessageReaded(from:unknown,ids:string[]){
-        console.log(from)
+      
         try {
             if(typeof from==='string'){
                 if(from==='nav'){
 
                     await this.messageRepo.updatAllMessagesReaded(ids)
-                    console.log(91)
+                    
                     return true
                 }else{
-                    console.log(97)
+                   
                     return false
                 }
             }else{
-                console.log(101)
+               
                 return false
             }
         } catch (error:any) {
-            console.log(error)
+          
             throw new Error(error.message)
         }
     }

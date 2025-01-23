@@ -1,7 +1,7 @@
 import { doStripePayment } from "../../interface/Utility/stripe"; 
 import { Token } from '@stripe/stripe-js';
 import { PlanOrder, PlanOrderMongo, PlanOrdersEntity, UserCurrentPlan } from "../../types/TypesAndInterfaces";
-import {  UserRepsitories } from "../../Infrastructure/repositories/userRepository";
+import {UserRepsitories} from "../../Infrastructure/repositories/userRepository";
 import { PurchasedPlan } from "../../Infrastructure/repositories/orderRepository";
 import { Types } from "mongoose";
 import { GetExpiryPlan } from "../../interface/Utility/getExpiryDateOfPlan";
@@ -18,17 +18,16 @@ export class PaymentSerivice implements PaymentSeriviceInterface {
 
   async purchase(plan:UserCurrentPlan,token:Token,email:string,userId:string):Promise<boolean> {
     try {
-      const userPlan=await this.userRepo.getCurrentPlan(userId)
+    const userPlan=await this.userRepo.getCurrentPlan(userId)
     
      if(userPlan.length>0&&userPlan[0]?.CurrentPlan){
 
        if(Number(userPlan[0]?.CurrentPlan.avialbleConnect)>0&&userPlan[0].CurrentPlan.name===plan.name){
-         throw new Error('already have same plan and sufficiet connect.please upgrade if you want')
+         throw new Error('already have same plan and sufficiet connect.chouse different plan if you want')
        }
        
       }
       const result=await doStripePayment(plan,token,email)
-      console.log(plan)
      if(result==='succeeded'){
       const data: PlanOrder = {
         userID: new Types.ObjectId(userId),

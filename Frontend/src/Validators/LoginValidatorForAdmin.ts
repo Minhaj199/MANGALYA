@@ -1,6 +1,6 @@
 
 import { Dispatch,SetStateAction } from "react";
-import { AdminInterface } from "../admin/Login/Login";
+import { AdminInterface } from "../admin/login/Login";
 
 
 type probs={

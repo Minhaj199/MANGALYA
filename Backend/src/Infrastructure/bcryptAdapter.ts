@@ -1,7 +1,8 @@
 import bcrypt from 'bcryptjs'
+import { BcryptAdapterInterface } from '../types/serviceLayerInterfaces'
 
 
-export class BcryptAdapter{
+export class BcryptAdapter implements BcryptAdapterInterface{
     async hash(password:string):Promise<string>{
         return await bcrypt.hash(password,10)
     }

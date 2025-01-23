@@ -8,6 +8,8 @@ import { ParnterServiceInterface } from "../../types/serviceLayerInterfaces";
 import { ExtentedMatchProfile, LandingShowUesrsInterface, MatchedProfile,  profileTypeFetch, suggestionType, UserWithID } from "../../types/TypesAndInterfaces";
 
 
+
+
 export class PartnerProfileService implements ParnterServiceInterface{
    private userRepository:UserRepository
    private interestRepo:InterestRepo
@@ -195,7 +197,7 @@ try {
                             const main:IUserModel=datas[0].userProfile[0]
                           
                             if(!main.PersonalInfo?.interest?.length){
-                                return   fetchedProfiles=[]
+                                return   {datas:[{profile:[]}]}
                             }
                             let FirstCat:{subscriber:suggestionType[],
                                  connectionOver:suggestionType[],prioriy:suggestionType[]}={subscriber:[],connectionOver:[],prioriy:[]}

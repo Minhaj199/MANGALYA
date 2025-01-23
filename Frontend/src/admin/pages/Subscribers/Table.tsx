@@ -5,9 +5,9 @@ import { Table, TableBody, TableCell, TableHead, TableRow, Paper } from '@mui/ma
 import { Columns } from './UserHeadSchema'
 import { SubscriberTableDataType } from './SubscriberTableDataType'; 
 
-import { request } from '../../../utils/axiosUtils';
+import { request } from '../../../utils/AxiosUtils';
 import { useNavigate } from 'react-router-dom';
-import { alertWithOk, promptSweet } from '../../../utils/alert/sweeAlert';
+import { alertWithOk, promptSweet } from '../../../utils/alert/SweeAlert';
 
 export interface UserListInterface{
   triggerPagination:()=>void
@@ -34,7 +34,7 @@ export const SubscriberTable:React.FC = () => {
   useEffect(()=>{
     async function fetchData (){
       try {
-        const data:data=await request({url:`/admin/fetchData?from=subscriber`,method:'get'})
+        const data:data=await request({url:`/admin/fetchUserData?from=subscriber`,method:'get'})
         if(data.planData){
           setPlanData(data.planData) 
           
@@ -45,8 +45,12 @@ export const SubscriberTable:React.FC = () => {
           navigate('/login')
         } 
         setMockData(data.userData)
-      } catch (error) {
-        
+      } catch (error:any) {
+        if(error.message==='405'){
+          navigate('/login')
+          return
+        }
+          alertWithOk('subscriber',error.message||'error on dash','error')
       }
       
     }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { request } from "../../utils/axiosUtils";
+import { request } from "../../utils/AxiosUtils";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCircleCheck,
@@ -9,20 +9,20 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 import "./LogLanding.css";
-import { Navbar } from "../Components/User/navbar/Navbar";
+import { Navbar } from "../../components/user/navbar/Navbar";
 import {
   alertWithOk,
   handleAlert,
   simplePropt,
   
-} from "../../utils/alert/sweeAlert";
+} from "../../utils/alert/SweeAlert";
 import { PlanData } from "../plan/Plan";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { ReduxState } from "../../Redux/ReduxGlobal";
+import { ReduxState } from "../../redux/reduxGlobal";
 
 import { showToast } from "@/utils/toast";
-import { useSocket } from "@/globalSocket";
+import { useSocket } from "@/shared/hoc/GlobalSocket";
 
 export type profileType = {
   _id: string;
@@ -39,7 +39,7 @@ export type profileType = {
   matchStatics?:string
 };
 
-export const LoginLanding = ({ active }: { active: string }) => {
+export const LoginLanding = () => {
   const socket=useSocket()
   const navigate = useNavigate();
   const [planData, setPlanData] = useState<PlanData | null>(null);
@@ -84,12 +84,17 @@ export const LoginLanding = ({ active }: { active: string }) => {
       } else {
         alertWithOk("Plan subscription", "No valid plan", "info");
       }
-    } catch (error: any) {
-      alertWithOk("Plan insertion", error || "Error occured", "error");
+    } catch (error: unknown) {
+      if(error instanceof Error){
+
+        alertWithOk("Plan insertion", error.message || "Error occured", "error");
+        return
+      }
+      console.log(error)
     }
   };
 
-  const rejectRequest = async (id: string,name:string) => {
+  const rejectRequest = async (id: string) => {
     
     
     try {
@@ -110,8 +115,11 @@ export const LoginLanding = ({ active }: { active: string }) => {
       } else {
         alertWithOk("Plan subscription", "No valid plan", "info");
       }
-    } catch (error: any) {
-      alertWithOk("Plan insertion", error || "Error occured", "error");
+    } catch (error: unknown) {
+      if(error instanceof Error){
+        alertWithOk("Plan insertion", error.message || "Error occured", "error");
+      }
+      console.log(error)
     }
   };
 
@@ -125,8 +133,13 @@ export const LoginLanding = ({ active }: { active: string }) => {
       }
     }
     socket?.on('requestStutus',handleFuncton)
+    socket?.on('errorFromSocket',(data:{message:string})=>{
+    
+     showToast(data.message,'error')
+  })
     return ()=>{
      socket?.off('requestStutus',handleFuncton)
+     socket?.off('errorFromSocket')
    }
   },[])
   useEffect(()=>{
@@ -180,7 +193,12 @@ export const LoginLanding = ({ active }: { active: string }) => {
           
             setProfiles((el) => el?.filter((element) => element._id !== id));
           }
-        } catch (error) {}
+        } catch (error:unknown) {
+          if(error instanceof Error){
+            handleAlert('error',error.message||'internal server error')
+          }
+
+        }
       } else {
         dispatch({
           type: "SET_DATA",
@@ -241,13 +259,14 @@ export const LoginLanding = ({ active }: { active: string }) => {
           return;
         }
         const response: {
-          datas: profileType[];
+          datas: {profile:profileType[],request:profileType[]}[];
           currntPlan: PlanData;
           interest: string[];
         } = await request({
           url: `/user/fetchProfile`,
         });
-        const res: any = response.datas ?? { profile: [], request: [] };
+        const res:{profile:profileType[],request:profileType[]}[] = response.datas ?? { profile: [], request: [] };
+        console.log(res)
         if (!res[0]?.profile) {
           alert("error");
         }
@@ -332,13 +351,13 @@ export const LoginLanding = ({ active }: { active: string }) => {
         } = await request({
           url: `/user/fetchSuggestion`,
         });
-        console.log(response.datas[0].profile.length)
-       if(response.datas[0].profile.length===0){
+      console.log(response)
+       if(response.datas[0]?.profile.length===0){
         handleAlert('info','suggestion not available')
         navigate('/loginLanding')
        }
       
-        const res: any = response.datas ?? { profile: [], request: [] };
+        const res: {profile:profileType[],request:profileType[]}[] = response.datas ?? { profile: [], request: [] };
         
         if (res[0]?.profile) setProfiles(res[0].profile);
         if (res[0]?.request) setRequest(res[0]?.request);
@@ -353,10 +372,9 @@ export const LoginLanding = ({ active }: { active: string }) => {
       fetch();
     }
     else {
-     
       async function fetch() {
         const response: {
-          datas: profileType[];
+          datas: {profile:profileType[],request:profileType[]}[];
           currntPlan: PlanData;
           interest: string[];
         } = await request({
@@ -364,8 +382,8 @@ export const LoginLanding = ({ active }: { active: string }) => {
         });
         // setInterest(response.interest);
         
-        const res: any = response.datas ?? { profile: [], request: [] };
-
+        const res: {profile:profileType[],request:profileType[]}[] = response.datas ?? { profile: [], request: [] };
+        console.log(res)
         if (res[0]?.profile) setProfiles(res[0].profile);
         if (res[0]?.request) setRequest(res[0]?.request);
         if (
@@ -396,68 +414,23 @@ export const LoginLanding = ({ active }: { active: string }) => {
     if (currentPage < totalPage) setCurrenPage((el) => el + 1);
   };
   ///////search////////////
-  const [openSearch, setOpenSearch] = useState<boolean>(false);
-  const [searchData, setSearchData] = useState<{
-    minAge: number;
-    maxAge: number;
-    district: string;
-    interest: string[];
-  }>({ minAge: 18, maxAge: 60, district: "", interest: [] });
-  let minAge: number[] = [];
+  
+  // const [searchData, setSearchData] = useState<{
+  //   minAge: number;
+  //   maxAge: number;
+  //   district: string;
+  //   interest: string[];
+  // }>({ minAge: 18, maxAge: 60, district: "", interest: [] });
+  const minAge: number[] = [];
   for (let i = 18; i < 60; i++) {
     minAge.push(i);
   }
-  let maxAge: number[] = [];
+  const maxAge: number[] = [];
   for (let i = 19; i < 61; i++) {
     maxAge.push(i);
   }
-  function openSearchModalFunc() {
-    setOpenSearch(true);
-  }
-  async function resetProfilePage() {
-    const response: {
-      datas: profileType[];
-      currntPlan: PlanData;
-      interest: string[];
-      massage: string;
-    } = await request({
-      url: `/user/fetchProfile`,
-    });
-    if (response.massage) {
-      localStorage.removeItem("id");
-    }
-    const res: any = response.datas ?? { profile: [], request: [] };
-    if (res[0]?.profile) setProfiles(res[0].profile);
-  }
-  // function handleInterest(e: React.ChangeEvent<HTMLSelectElement>) {
-  //   if (
-  //     !searchData.interest.includes(e.target.value) &&
-  //     e.target.value !== ""
-  //   ) {
-  //     setSearchData((el) => ({
-  //       ...el,
-  //       interest: [...el.interest, e.target.value],
-  //     }));
-  //   }
-  // }
-  // function handleClose(e: React.MouseEvent<HTMLDivElement>) {
-  //   if (e.target === e.currentTarget) {
-  //     setSearchData({ minAge: 18, maxAge: 60, district: "", interest: [] });
-      
-  //     setOpenSearch(false);
-  //   }
-  // }
-  // function handleChild(e: React.MouseEvent<HTMLDivElement>): void {
-  //   e.stopPropagation();
-  // }
-  // function removeInterest(index: number) {
-  //   if (interest) {
-  //     setSearchData((el) => ({
-  //       ...el,
-  //       interest: el.interest.filter((el) => el !== searchData.interest[index]),
-  //     }));
-  //   }
-  // }
+ 
+
   
 
   useEffect(() => {
@@ -709,8 +682,8 @@ export const LoginLanding = ({ active }: { active: string }) => {
             ? "search"
             :(location.state?.from==='suggestion')?'suggestion':"profile"
         }
-        openSearchModalFunc={openSearchModalFunc}
-        resetProfilePage={resetProfilePage}
+        
+        
       />
 
       <div className="w-[100%] h-full  flex">
@@ -802,7 +775,7 @@ export const LoginLanding = ({ active }: { active: string }) => {
                         />
                       </div>
                       <div
-                        onClick={() => rejectRequest(el._id,el.name)}
+                        onClick={() => rejectRequest(el._id)}
                         className="sm:w-5 w-4 h-4 sm:h-5 cursor-pointer "
                       >
                         <FontAwesomeIcon

@@ -2,7 +2,7 @@ import React from 'react';
 import { Outlet, Navigate} from 'react-router-dom';
 import {jwtDecode} from 'jwt-decode';
 import {useSelector } from 'react-redux';
-import { ReduxState } from '../Redux/ReduxGlobal';
+import { ReduxState } from '../redux/reduxGlobal';
 
 interface JWTPayload {
   auth: boolean;
@@ -66,21 +66,9 @@ export const ProtectRouteUser: React.FC = () => {
 
     const token = localStorage.getItem('userToken');
     if (token && typeof token === 'string') {
-      const decoded = jwtDecode<JWTPayload>(token);
-
-      if (decoded && decoded.exp && Date.now() / 1000 < decoded.exp) {
-        if(decoded.role==='user'){
-          
-          setIsAuthorised=true;  
-        }
-          
-      } else {
-        localStorage.removeItem('userToken');  
-       setIsAuthorised=false
-      }
+      setIsAuthorised=true
+      
     }
- 
- 
   return setIsAuthorised ? <Outlet /> : <Navigate to="/" />;
 };
 export const UnProtectRouteUser: React.FC = () => {
@@ -100,7 +88,7 @@ export const UnProtectRouteUser: React.FC = () => {
        setIsAuthorised=false
       }
     }
-   console.log(setIsAuthorised)
+  
   return setIsAuthorised ?<Navigate to="/loginLanding"/> :<Outlet/> ;
 };
 export const PlanRouteUser: React.FC = () => {

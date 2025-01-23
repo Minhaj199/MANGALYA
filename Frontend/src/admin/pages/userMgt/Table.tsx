@@ -5,9 +5,9 @@ import { Table, TableBody, TableCell, TableHead, TableRow, Paper } from '@mui/ma
 import { Columns } from './UserHeadSchema'
 import { TableDataType } from './userTable'; 
 
-import { request } from '../../../utils/axiosUtils'; 
+import { request } from '../../../utils/AxiosUtils'; 
 import { useNavigate } from 'react-router-dom';
-import { alertWithOk, promptSweet } from '../../../utils/alert/sweeAlert'; 
+import { alertWithOk, promptSweet } from '../../../utils/alert/SweeAlert'; 
 
 export interface UserListInterface{
   triggerPagination:()=>void
@@ -16,13 +16,13 @@ export interface UserListInterface{
 
 export const UserTable:React.FC = () => {
   const navigate=useNavigate()
-  function handleClick(id:string){
-    alert(id)
-  }
+
 
   const [MockData,setMockData]=useState<TableDataType[]>([]) 
    function blockUser(id:string,name:string,status:string){
     async  function Handler(){ 
+
+      try {
         const updateStatus=(status==='block')?true:false
         const response:any= await request({url:'/admin/block&Unblock',method:'patch',data:{updateStatus:updateStatus,id}})
         
@@ -34,6 +34,16 @@ export const UserTable:React.FC = () => {
           setMockData(el=>el.map(user=>(user._id===id)?{...user,block:updateStatus}:user))
           
         } 
+      } catch (error:any) {
+        if(error.message==='405'){
+          navigate('/login')
+          return
+        }
+          alertWithOk('user management',error.message||'error on dash','error')
+      }
+
+
+        
     }
     const text=`Do you want to ${status} ${name} ?`
     const completed=`Your ${status}ing is completed`
@@ -43,15 +53,19 @@ export const UserTable:React.FC = () => {
   useEffect(()=>{
    async function fetchData (){
     try {
-      const MockDataFromDb:any=await request({url:`/admin/fetchData?from=user`,method:'get'})
+      const MockDataFromDb:any=await request({url:`/admin/fetchUserData?from=user`})
       console.log(MockDataFromDb)
       if(MockDataFromDb?.message==='validation Faild'){
         alertWithOk('Validation',MockDataFromDb.message||'Validation faild','info')
         navigate('/login')
       } 
       setMockData(MockDataFromDb)
-    } catch (error) {
-      
+    } catch (error:any) {
+      if(error.message==='405'){
+        navigate('/login')
+        return
+      }
+        alertWithOk('user management',error.message||'error on dash','error')
     }
   
    }

@@ -1,15 +1,17 @@
-import React, { useEffect, useState } from 'react'
+import  { useEffect, useState } from 'react'
 import { DashCard } from './DashCard'
 
-import PieChart from './Graphs/PieChart'
-import BarChart from './Graphs/BarGraph'
-import { alertWithOk } from '../../../utils/alert/sweeAlert'
-import { request } from '../../../utils/axiosUtils'
+import PieChart from './graphs/PieChart'
+import BarChart from './graphs/BarGraph'
+import { alertWithOk } from '../../../utils/alert/SweeAlert'
+import { request } from '../../../utils/AxiosUtils'
+import { useNavigate } from 'react-router-dom'
 
 
 
 export const Dash = () => {
   const [dashCount,setDashCount]=useState<{revenue:number,suscriber:number,user:number}>()
+  const navigate=useNavigate()
   useEffect(()=>{
     async function FetchData(){
       try {
@@ -19,16 +21,23 @@ export const Dash = () => {
           throw new Error(response.message)
         }
         setDashCount({revenue:response.MonthlyRevenue,suscriber:response.SubscriberCount,user:response.UserCount})
-    } catch (error:any) {
+    } catch (error:unknown) {
+      if(error instanceof Error){
+        if(error.message==='405'){
+          navigate('/login')
+          return
+        }
           alertWithOk('Dash error',error.message||'error on dash','error')
       
         }
+      }
+        
     }
     FetchData()
   },[])
   return (
     
-    <div className=' w-[100%] lg:w-[80%] flex flex-col     pl-10  '>
+    <div className=' w-[100%] lg:w-[80%] flex flex-col  pl-10'>
       <div className='w-[100%]   sm:mt-10 mt-20 grid h-auto lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-y-4  pr-1'>
         <DashCard Data={dashCount?.revenue||0} Title={'TOTAL REVENUE'} img="/dollar.png"/>
         <DashCard Data={dashCount?.suscriber||0} Title={'SUBSCRIBER COUNT'} img='/subcribe.png'/>

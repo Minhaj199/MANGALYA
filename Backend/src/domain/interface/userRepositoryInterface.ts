@@ -1,5 +1,5 @@
 import {User} from "../entity/userEntity";
-import { LandingShowUesrsInterface, PlanOrder, RequestInterface, suggestionType, UserWithID } from "../../types/TypesAndInterfaces";
+import { adminPlanType, LandingShowUesrsInterface, PlanOrder, RequestInterface, suggestionType, UserWithID } from "../../types/TypesAndInterfaces";
 import { MatchedProfile, profileTypeFetch } from "../../types/TypesAndInterfaces";
 import { updateData } from "../../types/TypesAndInterfaces"; 
 
@@ -20,9 +20,9 @@ export interface UserRepository{
     getSearch(data:string,gender:string,preferedGender:string):Promise<profileTypeFetch|[]>
     findEmailByID(id:unknown):Promise<{email:string}>
     getUserProfile(id:string):Promise<UserWithID>
-    getDashCount():Promise<{MonthlyRevenue:number,SubscriberCount:number,UserCount: number}>
-    getSubcriberCount():Promise<number[]>
-    getRevenue():Promise<{ month: string[], revenue:number[]}>
+    getDashCount():Promise<{subscriberGroups:{ _id:string, count:number}[],totalCount:number}>
+    getSubcriberCount():Promise<{_id:string,count:number}[]>
+    getRevenue():Promise<{ _id:string, total: number }[]>
     getMatchedRequest(id:string):Promise<MatchedProfile[]|[]>
     deleteMatched(id:string,matched:string):Promise<boolean>
     changePassword(email:string,hashedPassword:string):Promise<boolean>
@@ -33,4 +33,7 @@ export interface UserRepository{
     createRequest(id:string):Promise<RequestInterface[]>
     findEmail(email:string):Promise<UserWithID|null>
     fetchName(id:string):Promise<string>
+    fetchUserDataForAdmin(): Promise<{username:string,email:string,match:{_id:string,status:string,typeOfRequest:string}[],subscriber:string,CreatedAt:Date,block:boolean}[]|[]>
+    fetchSubscriber():Promise<adminPlanType[]|[]>
+    blockAndUnblockUser(id:string,action:boolean):Promise<boolean>
 }

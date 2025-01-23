@@ -1,4 +1,4 @@
-import { userForm } from "../user/Components/User/Login/Login";
+import { userForm } from "../components/user/Login/Login";
 import { Dispatch,SetStateAction } from "react";
 
 type probs={

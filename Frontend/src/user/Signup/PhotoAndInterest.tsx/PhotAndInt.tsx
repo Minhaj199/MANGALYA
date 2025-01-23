@@ -1,7 +1,7 @@
 
 import React, {  useRef, useState,SetStateAction,Dispatch, useEffect } from 'react'
-import { PhotoAndInterest } from '../Credentials'
-import { request } from '../../../utils/axiosUtils';
+import { PhotoAndInterest } from '../../_signup/Credentials'
+import { request } from '../../../utils/AxiosUtils';
 
 interface PhotAndIntInterface{
     probState:PhotoAndInterest;
@@ -10,7 +10,7 @@ interface PhotAndIntInterface{
 
 export const PhotAndInt:React.FC<PhotAndIntInterface> = ({probSetter}) => {
     const [selected,setSelected]=useState<string[]>([])
-    let interestCount=useRef(0)
+    const interestCount=useRef(0)
     const [image,setImage]=useState<string|null>(null)
     useEffect(()=>{
         probSetter(el=>({...el,interest:selected}))

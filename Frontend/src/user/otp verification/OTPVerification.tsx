@@ -1,14 +1,14 @@
 import {  useContext, useState } from "react";
 import {  useNavigate } from "react-router-dom";
 import './Credential.css'
-import { SignupContext } from "../../GlobalContext/signupData";
-import { Countdown } from "../Components/timer/Countdown";
-import { request } from "../../utils/axiosUtils";
-import { Loading } from "../Components/Loading/Loading";
-import { alertWithOk } from "../../utils/alert/sweeAlert";
-import { promptSweet } from "../../utils/alert/sweeAlert";
+import { SignupContext } from "../../shared/globalCondext/signupData";
+import { Countdown } from "@/components/user/timer/Countdown"; 
+import { request } from "../../utils/AxiosUtils";
+import { Loading } from "@/components/Loading/Loading"; 
+import { alertWithOk, handleAlert } from "../../utils/alert/SweeAlert";
+import { promptSweet } from "../../utils/alert/SweeAlert";
 import { useDispatch, useSelector } from "react-redux";
-import { ReduxState } from "../../Redux/ReduxGlobal";
+import { ReduxState } from "../../redux/reduxGlobal";
 
 
 
@@ -40,8 +40,8 @@ export const OTPVerification:React.FC = () => {
          navigate('/signup')
         }  
         setLoading(true)
-      const Response:any=await request({url:'/user/otpValidation',method:'post',data:{otp:otp,email:signupFirstData.EMAIL,from:'signup'}})
-      
+      const Response:{message:string}=await request({url:'/user/otpValidation',method:'post',data:{otp:otp,email:signupFirstData.EMAIL,from:'signup'}})
+      console.log(Response)
       if(Response){
         if(Response?.message==='OTP valid'){
           
@@ -68,8 +68,10 @@ export const OTPVerification:React.FC = () => {
       }else{
         throw new Error('no response')
       }
-    } catch (error) {
-      
+    } catch (error:unknown) {
+        if(error instanceof Error){
+          handleAlert('error',error.message||'internal server error')
+        }
     }
     
    }else{

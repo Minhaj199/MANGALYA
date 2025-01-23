@@ -1,22 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, ArrowLeft, Image, Menu, User } from 'lucide-react';
+import { Send, ArrowLeft, Image } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { request } from '@/utils/axiosUtils';
-import { handleAlert } from '@/utils/alert/sweeAlert';
+import { request } from '@/utils/AxiosUtils';
+import { handleAlert } from '@/utils/alert/SweeAlert';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFaceSmile,faSpinner } from '@fortawesome/free-solid-svg-icons';
-import InputEmoji from 'react-input-emoji'
-import { EmogiComponent } from './emojiComponent';
-import { useSocket } from '@/globalSocket';
+
+import { useSocket } from '@/shared/hoc/GlobalSocket';
 import { useSelector } from 'react-redux';
-import store, { ReduxState } from '@/Redux/ReduxGlobal';
+import store, { ReduxState } from '@/redux/reduxGlobal';
 import data from '@emoji-mart/data';
-import Picker from '@emoji-mart/react';
+import Picker  from '@emoji-mart/react';
+import { showToast } from '@/utils/toast';
 
 
 const ChatInterface = () => {
-  let onliners=useSelector((state:ReduxState)=>state.onlinePersons) 
+  const onliners=useSelector((state:ReduxState)=>state.onlinePersons) 
   
 
   const socket=useSocket()
@@ -25,16 +25,18 @@ const ChatInterface = () => {
   const [input, setInput] = useState('');
   const [chatId,setChatId]=useState('')
   const [recieverData,setRecieverData]=useState<{name:string,image:string}>()
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef(null);
   const [emogi,setEmogi]=useState(false)
   const messageBox=useRef<HTMLDivElement>(null)
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  
+
   
   const location=useLocation()
   const ref=useRef(0)
-  const [onlineStatus,setOnlineStatus]=useState(false)
-  const addEmoji = (emoji: any) => {
+ 
+  const addEmoji = (emoji:any) => {
+    
     setInput((prev) => prev + emoji.native); 
   };
   useEffect(()=>{
@@ -54,12 +56,16 @@ const ChatInterface = () => {
       setMessages(el=>[...el,data])
     }
     socket?.on('recieveMessage',receiveMessage)
-  
+    socket?.on('errorFromSocket',(data:{message:string})=>{
+        
+         showToast(data.message,'error')
+      })
+      
     socket?.on('user_loggedOut',(data:{id:string})=>{  
       store.dispatch({type:'SET_ONLINERS',payload:onliners.filter(el=>el!==data.id)})
       
   })
-  function getOnliners(data:any){
+  function getOnliners(data:{id:string}){
     if(data.id&&!onliners.includes(data.id)){
       store.dispatch({type:'ADD_NEW_ONLINER',payload:data.id})
      
@@ -68,9 +74,11 @@ const ChatInterface = () => {
     
   socket?.on('newUserOnline',getOnliners)
   return ()=>{
+   
     socket?.off('user_loggedOut')
     socket?.off('recieveMessage',receiveMessage)
     socket?.off('newUserOnline',getOnliners)
+    socket?.off('errorFromSocket')
     
   }
   },[socket])
@@ -95,8 +103,12 @@ const ChatInterface = () => {
             setChatId(response.chatRoomId)
            
           }
-        } catch (error) {
-          
+        } catch (error:unknown) {
+          if(error instanceof Error){
+
+            handleAlert('error',error.message)
+          }
+          handleAlert('error','error on message page')
         }
         
       }
@@ -142,7 +154,7 @@ const ChatInterface = () => {
     });
   }
   };
-User  
+
   const handleSubmit = async(e:React.FocusEvent<HTMLFormElement>) => {
     e.preventDefault();
     setEmogi(false)
@@ -173,7 +185,10 @@ User
           setFile(null)
           setPreview(null)
           setLoading(false)
-      } catch (error) {
+      } catch (error:unknown) {
+        if(error instanceof Error){
+          handleAlert('error',error.message)
+        }
         setLoading(false)
        handleAlert('error','Error on photo sending') 
       }
@@ -199,11 +214,15 @@ User
             socket?.emit('sendMessage',{chatId:chatId,recieverId:response.newMessage.senderId,text:response.newMessage.text,createdAt: new Date(response.newMessage.createdAt).toISOString(),_id:response.newMessage._id,image:response.newMessage.image})
           }
           setLoading(false)
-      } catch (error:any) {
-        setLoading(false)
-        handleAlert('error',error.message)
+      } catch (error:unknown) {
+        if(error instanceof Error){
+
+          setLoading(false)
+          handleAlert('error',error.message)
+        }
+      handleAlert('error','error on sending message')
       }
-      // socket?.emit('sendMessage',{recieverId:location.state.id,text:input,createdAt: new Date().toISOString(),_id:'',})
+      
      
       setInput('');
     }else{
@@ -230,6 +249,11 @@ User
 
   const handleBack=()=>{
     navigate('/match')
+  }
+  function openPhotoInput(){
+    if(fileInputRef.current){
+      fileInputRef.current.click()
+    }
   }
  
   return (
@@ -336,7 +360,7 @@ User
           />
           <button
             type="button"
-            onClick={() =>fileInputRef.current?fileInputRef.current.click():undefined}
+            onClick={openPhotoInput}
             className="p-3 bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition-colors"
           >
             <Image size={20} />

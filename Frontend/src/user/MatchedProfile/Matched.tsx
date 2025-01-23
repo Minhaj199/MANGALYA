@@ -1,10 +1,11 @@
-import React, { ForwardRefExoticComponent, useEffect, useRef } from 'react'
-import { Navbar } from '../Components/User/navbar/Navbar'
+import React, {  useEffect, useRef } from 'react'
+import { Navbar } from '../../components/user/navbar/Navbar'
 import  { useState } from 'react';
-import store, { ReduxState } from '../../Redux/ReduxGlobal'; 
+import store, { ReduxState } from '../../redux/reduxGlobal'; 
+import { showToast as toastAlert } from '@/utils/toast';
+
 import {
   Card,
-  CardContent,
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
@@ -39,10 +40,10 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { MessageCircle, Trash2, Flag, Search } from 'lucide-react';
-import { request } from '@/utils/axiosUtils';
-import { alertWithOk, handleAlert } from '@/utils/alert/sweeAlert';
+import { request } from '@/utils/AxiosUtils';
+import { alertWithOk, handleAlert } from '@/utils/alert/SweeAlert';
 import { useNavigate } from 'react-router-dom';
-import { useSocket } from '@/globalSocket';
+import { useSocket } from '@/shared/hoc/GlobalSocket';
 import { useSelector } from 'react-redux';
  
 export const Matched = () => {
@@ -78,12 +79,7 @@ type MatchedProfileType={
     message:string
   }
 const ref=useRef(0)
-let [unreadedMessage,setUnreadedMessages]=useState<UnreadMessage[]>([])
-interface UnreadMessage {
-  chatRoomId: string;
-  unreadCount: number;
-  matchedUser: string;
-}
+
 useEffect(()=>{
  
    const fetchData=async()=>{
@@ -94,9 +90,7 @@ useEffect(()=>{
 
           const response:Response=await request({url:'/user/matchedUsers'})
           console.log(response)
-          // const allMessage:{status:UnreadMessage[]}=await request({url:'/user/getAllmessagCount'})
-          // console.log(allMessage)
-          // setUnreadedMessages(allMessage.status)
+         
         
           if(response.message){
             throw new Error(response.message)
@@ -116,8 +110,12 @@ useEffect(()=>{
           
         
           
-      } catch (error:any) {
-        alertWithOk('Profile loading',error.message||'error on data loading','error')
+      } catch (error:unknown) {
+        if(error instanceof Error){
+
+          alertWithOk('Profile loading',error.message||'error on data loading','error')
+        }
+        console.log(error)
       }
     }
     
@@ -165,11 +163,36 @@ const socket=useSocket()
        
       }
     })
+     socket?.on('errorFromSocket',(data:{message:string})=>{
+     
+      toastAlert(data.message,'error')    
+          })
     socket?.on('user_loggedOut',(data:{id:string})=>{
 
       store.dispatch({type:'SET_ONLINERS',payload:onliners.filter(el=>el!==data.id)})
   })
+  socket?.on('errorFromSocket',(data)=>{
+                       
+    toastAlert(data.message,'error')    
+        })
+        socket?.on('new_connect',((data)=>{
+        
+              if(data.data){
+                toastAlert('new request arraived',"info")
+              }
+            
+            }))
+  function handleFuncton(data:{name:string,from:'accept'|'reject'}){
+              if(data.from==='accept'){
+                toastAlert(`${data.name?data.name:'partner'} accepted your request`)
+              }else{
+                toastAlert(`${data.name?data.name:'partner'} declined your request`,'warning')
+              }
+            }
+            socket?.on('requestStutus',handleFuncton)
   return ()=>{
+    socket?.off('new_connect')
+    socket?.off('errorFromSocket')
     socket?.off('newUserOnline')
     socket?.off('user_loggedOut')
 
@@ -194,8 +217,12 @@ const socket=useSocket()
     }else{
       throw new Error(response.message||'error on deletein')
     }
-   } catch (error:any) {
-    alertWithOk('account deletion',error.message||'error on deletion','error')
+   } catch (error:unknown) {
+    if(error instanceof Error){
+
+      alertWithOk('account deletion',error.message||'error on deletion','error')
+    }
+    console.log(error)
    }
     
   };
@@ -221,8 +248,12 @@ const socket=useSocket()
           }
         
           
-      } catch (error:any) {
-        handleAlert('error',error.message||'error on report abuse')
+      } catch (error:unknown) {
+        if(error instanceof Error){
+
+          handleAlert('error',error.message||'error on report abuse')
+        }
+        console.log(error)
       }
     
    
@@ -232,8 +263,7 @@ const socket=useSocket()
       setCurrentItems(fetchedProfiles.filter(el=>el.firstName.toLowerCase().includes(e.target.value)))
   }
 
-  const getUnReadedMessage=(id:string)=>{
-    return unreadedMessage.find((msg) => msg.matchedUser === id)?.unreadCount || 0;  }
+ 
   //////////////////handling reporting//////////////////
 
   
@@ -393,7 +423,7 @@ const socket=useSocket()
                   </div>
                   
                   <DialogFooter className="mt-4">
-                    <Button onClick={(e) => handleReport(reportedId)}>
+                    <Button onClick={() => handleReport(reportedId)}>
                       Submit Report
                     </Button>
                   </DialogFooter>
@@ -424,7 +454,7 @@ const socket=useSocket()
         <Button variant="outline" onClick={goBack} disabled={currentPage<=1}>
           Previous
         </Button>
-        {currentItems?.length&&pageNumber.map((el,index)=>(
+        {currentItems?.length&&pageNumber?.map((el)=>(
           <Button className={(el===currentPage)?'bg-blue-300 text-white':'' } key={el} onClick={()=>setCurrentPage(el)} variant="outline" >
           {el}
         </Button>
@@ -448,11 +478,4 @@ const socket=useSocket()
 
 
 
-// export const Matched = () => {
-//   return (
-//     <>
-//     <Navbar active='matched' />
-   
-//     </>
-//   )
-// }
+

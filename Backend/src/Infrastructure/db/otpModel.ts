@@ -9,6 +9,6 @@ const otpSchema=new Schema<OTPWithID>({
     from:{type:String,required:true},
     createdAt:{type:Date,default:Date.now}
 })
-otpSchema.index({ createdAt: 1 }, { expireAfterSeconds: 120 });
+otpSchema.index({ createdAt: 1 }, { expireAfterSeconds: 60*2 });
 
 export const OtpModel=mongoose.model<OTPWithID>('Otps',otpSchema)

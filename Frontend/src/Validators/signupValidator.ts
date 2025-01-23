@@ -1,6 +1,6 @@
-import { CredentialInterface } from "../user/Signup/Credentials" 
+import { CredentialInterface } from "../user/signup/Credentials" 
 import { Dispatch,SetStateAction } from "react"
-import { request } from "../utils/axiosUtils"
+import { request } from "../utils/AxiosUtils"
 
 export const  credential_validation=async(formData:CredentialInterface,setWarnning:Dispatch<SetStateAction<CredentialInterface>>):Promise<boolean>=>{
     
@@ -24,8 +24,8 @@ export const  credential_validation=async(formData:CredentialInterface,setWarnni
                 const birthDate=new Date(formData['DATE OF BIRTH'])
                 const today=new Date();
                 let age=today.getFullYear()-birthDate.getFullYear()
-                let monthdiff=today.getMonth()-birthDate.getMonth()
-                let dayDiff=today.getDate()-birthDate.getDate()
+                const monthdiff=today.getMonth()-birthDate.getMonth()
+                const dayDiff=today.getDate()-birthDate.getDate()
                 if(monthdiff<0||(monthdiff===0&&dayDiff<0)){
                     --age
                 }
@@ -82,30 +82,31 @@ export const  credential_validation=async(formData:CredentialInterface,setWarnni
         return false
     }
     if(formData['EMAIL']){
-        const isExist:any=await request({url:'/user/forgotEmail',method:'post',data:{email:formData['EMAIL']}})
-        console.log(isExist)
+        const isExist:{email:string|null}=await request({url:'/user/forgotEmail',method:'post',data:{email:formData['EMAIL']}})
         if(isExist?.email){
-            console.log('84')
             setWarnning(el=>({...el,['EMAIL']:'Email already exist'}))
             return false
         }
     }
+
+    
     if(formData['PASSWORD']?.trim()===''||formData['PASSWORD']===undefined){
-       console.log('here')
         setWarnning(el=>({...el,['PASSWORD']:'Blank not allowed'}))
         return false
     }
-    else if(formData['PASSWORD']?.length<5||formData['PASSWORD']?.length>10){
-    
-        setWarnning(el=>({...el,['PASSWORD']:'password should between 5-10'}))
-        return false
-    }
     if(formData['PASSWORD']!==formData['CONFIRM PASSWORD']||formData['CONFIRM PASSWORD']===undefined){
-      
         setWarnning(el=>({...el,['CONFIRM PASSWORD']:'passowrd not matching'}))
         return false
     }
-    
+    if(formData['PASSWORD']?.trim()!==''){
+        const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/
+        const test=strongPasswordRegex.test(formData['PASSWORD'])
+        if(!test){
+            setWarnning(el=>({...el,['PASSWORD']:'should include upper,lower,number and symbol and 8 characters'}))
+       
+            return false
+            }
+    }
     
     
     return true

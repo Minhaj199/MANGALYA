@@ -3,20 +3,23 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleUp, faCreditCard } from "@fortawesome/free-solid-svg-icons";
 import { districtsOfKerala } from "../../App";
 import "./userProfile.css";
-import { CountdownProfile } from "../Components/timer/CountdownProfile";
+import { CountdownProfile } from "@/components/user/timer/CountdownProfile"; 
 import { Send, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { request } from "../../utils/axiosUtils";
-import { json, useNavigate } from "react-router-dom";
-import { alertWithOk, handleAlert } from "../../utils/alert/sweeAlert";
-import { getInputDate } from "../../utils/getDateToDateInput";
-import { validateEditedData } from "../../Validators/editValidate";
-import { capitaliser } from "../../utils/capitalise";
-import { Navbar } from "../Components/User/navbar/Navbar";
+import { request } from "../../utils/AxiosUtils";
+import { useNavigate } from "react-router-dom";
+import { alertWithOk, handleAlert } from "../../utils/alert/SweeAlert";
+  
+import { validateEditedData } from "../../validators/editValidate";
+import { capitaliser } from "../../utils/firstWordCapitaliser";
+import { Navbar } from "../../components/user/navbar/Navbar";
 
 import { showToast } from "@/utils/toast";
-import { fetchBlankData, findChange } from "@/utils/dittectEditedDataChange";
-import { Loading } from "../Components/Loading/Loading";
+
+import { Loading } from "../../components/Loading/Loading.tsx";  
+import { editedDataFinder, fetchBlankData } from "../../utils/editedDataFinder.ts";
+import { dateToDateInputGenerator } from "../../utils/dateToDateInputGenerator.ts";
+import { useSocket } from "@/shared/hoc/GlobalSocket.tsx";
 
 export type userData = {
   PersonalInfo: {
@@ -55,15 +58,16 @@ const blanUserData = {
   subscriber: "",
 };
 export const UserProfile = () => {
+  const socket=useSocket()
   const [editUser, setEditUser] = useState<boolean>(false);
   const [editedData, setEditedData] = useState<userData>(blanUserData);
 
   ///////////////////////handle between edit and view profile/////////////////////
-  const handleTogleBetweenEdit = (action: boolean) => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  // const handleTogleBetweenEdit = (action: boolean) => {
+  //   window.scrollTo({ top: 0, behavior: "smooth" });
 
-    setEditUser(action);
-  };
+  //   setEditUser(action);
+  // };
   //////////////////fetching data////////////
   
   const [orginalData, setOrginalData] = useState<fetchBlankData>({
@@ -112,7 +116,7 @@ export const UserProfile = () => {
 
         if (interest.Data) {
           setInterest([
-            ...interest?.Data.food,
+            ...interest.Data.food,
             ...interest.Data.music,
             ...interest.Data.sports,
           ]);
@@ -127,7 +131,7 @@ export const UserProfile = () => {
           PersonalInfo: {
             ...el.PersonalInfo,
             firstName: userData.user.PersonalInfo.firstName,
-            dateOfBirth: getInputDate(
+            dateOfBirth: dateToDateInputGenerator(
               "",
               new Date(
                 userData.user.PersonalInfo.dateOfBirth
@@ -143,12 +147,17 @@ export const UserProfile = () => {
             gender: userData.user.PartnerData.gender,
           },
         }));
-      } catch (error: any) {
-        alertWithOk(
-          "UserData loading",
-          error.message || "error on fetch user data",
-          "error"
-        );
+      } catch (error:unknown) {
+        if(error instanceof Error){
+
+          alertWithOk(
+            "UserData loading",
+            error.message || "error on fetch user data",
+            "error"
+          )
+        }else{
+          console.log(error)
+        }
       }
     }
     fetchUserData();
@@ -269,6 +278,15 @@ export const UserProfile = () => {
     confirmPassword: string;
   }>({ confirmPassword: "", password: "" });
   async function submitPassword() {
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/
+    const test=strongPasswordRegex.test(passwords.password)
+    if(!test){
+
+      setPasswordWarning((el) => ({ ...el, password: "password is not strong" }))
+            
+     return false
+      
+    }
     if (passwords.password.trim() === "") {
       setPasswordWarning((el) => ({ ...el, password: "Blank not allowed" }));
       return false;
@@ -335,12 +353,16 @@ export const UserProfile = () => {
         setSwitchTopassword(false)
         handleAlert("success", "Password changed successfully");
       }
-    } catch (error: any) {
-      alertWithOk(
-        "Password Reset",
-        error.message || "error on password reset",
-        "error"
-      );
+    } catch (error: unknown) {
+      if(error instanceof Error){
+
+        alertWithOk(
+          "Password Reset",
+          error.message || "error on password reset",
+          "error"
+        )
+        console.log(error)
+      }
     }
   }
   async function handleOTPSent() {
@@ -369,12 +391,16 @@ export const UserProfile = () => {
         throw new Error(isValid.status)
       }
       
-    } catch (error: any) {
-      alertWithOk(
-        "OTP VALIDATION",
-        error.message || "validation faild",
-        "error"
-      );
+    } catch (error: unknown) {
+      if(error instanceof Error){
+
+        alertWithOk(
+          "OTP VALIDATION",
+          error.message || "validation faild",
+          "error"
+        );
+        console.log(error)
+      }
     }
   }
 
@@ -407,12 +433,38 @@ export const UserProfile = () => {
     }));
   }
   useEffect(() => {
+    
     if (openPopUp) {
       async function createOTP() {
         await request({ url: "/user/otpRstPsword", method: "post" });
       }
       createOTP();
     }
+    function handleFuncton(data:{name:string,from:'accept'|'reject'}){
+      if(data.from==='accept'){
+        showToast(`${data.name?data.name:'partner'} accepted your request`)
+      }else{
+        showToast(`${data.name?data.name:'partner'} declined your request`,'warning')
+      }
+    }
+    socket?.on('requestStutus',handleFuncton)
+    socket?.on('errorFromSocket',(data:{message:string})=>{
+         
+          showToast(data.message,'error')    
+              })
+              socket?.on('new_connect',((data)=>{
+              
+                    if(data.data){
+                      showToast('new request arraived',"info")
+                    }
+                  
+                  }))
+
+return ()=>{
+socket?.off('new_connect')
+socket?.off('requestStutus',handleFuncton)
+socket?.off('errorFromSocket')
+}
   }, [openPopUp]);
 
   ////////////////////////////// handle submit edited data//////////////////////
@@ -430,7 +482,7 @@ const [loading,setLoading]=useState<boolean>(false)
     setLoading(true)
     const dataToFind=structuredClone(editedData)
     
-    findChange({dataToFind,orginalData})
+    editedDataFinder({dataToFind,orginalData})
  
     
     const validate = validateEditedData(dataToFind,setFormWarning);
@@ -470,13 +522,18 @@ const [loading,setLoading]=useState<boolean>(false)
         setEditUser(false);
         setLoading(false)
         window.scroll({top:0,behavior:"smooth"})
-      } catch (error: any) {
-        setLoading(false)
-        alertWithOk(
-          "Update Error",
-          error.message || "error on updata",
-          "error"
-        );
+      } catch (error:unknown) {
+        if(error instanceof Error){
+
+          setLoading(false)
+          alertWithOk(
+            "Update Error",
+            error.message || "error on updata",
+            "error"
+          );
+        }else{
+          console.log(error)
+        }
       }
     }
     setLoading(false)
@@ -536,9 +593,7 @@ const [loading,setLoading]=useState<boolean>(false)
   }
 
   //////////////handle interst////////////////
-  useEffect(()=>{
-    console.log(editedData)
-  },[editUser])
+ 
   function handleInterest(item: string) {
       
     
@@ -683,8 +738,9 @@ const [loading,setLoading]=useState<boolean>(false)
                              type="text"
                            />
                          </div>
-                         <div className="w-full h-6  text-dark_red sm:text-base text-xs">
+                         <div className="w-full h-6  text-dark_red sm:text-base text-xs relative group">
                            {PasswordWarnning.password}
+                           {PasswordWarnning.password==='password is not strong'&&<span className=" absolute px-2 py-2   text-white rounded-full bg-[rgba(92,92,254)] bottom-8 hidden group-hover:flex justify-center text-sm items-center opacity-0 transition-opacity duration-200 group-hover:opacity-100">insert upper,lower,number and charecters more than 8</span>}
                          </div>
                        </div>
                        <div className="w-[60%] mt-2  flex  flex-col justify-between h-[45%] ">
@@ -1046,7 +1102,7 @@ const [loading,setLoading]=useState<boolean>(false)
                           id="date"
                           name="dateOfBirth"
                           onChange={editUser ? handleInputData : undefined}
-                          value={getInputDate(
+                          value={dateToDateInputGenerator(
                             "intoInput",
                             new Date(
                               editedData.PersonalInfo.dateOfBirth
@@ -1093,7 +1149,7 @@ const [loading,setLoading]=useState<boolean>(false)
                           disabled={!editUser}
                           name="dateOfBirth"
                           
-                          value={getInputDate(
+                          value={dateToDateInputGenerator(
                             "",
                             orginalData.PersonalInfo.dateOfBirth
                           )}
@@ -1289,7 +1345,7 @@ const [loading,setLoading]=useState<boolean>(false)
                       AVAILABLE CONNECT:
                     </p>
                     <p className="md:text-xl font-popin text-amber-950 font-bold">
-                      {getInputDate(
+                      {dateToDateInputGenerator(
                         "",
                         new Date(orginalData.currentPlan?.Expiry).toDateString()
                       )}

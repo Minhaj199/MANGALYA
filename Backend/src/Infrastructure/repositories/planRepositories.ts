@@ -1,5 +1,5 @@
 
-import { Document } from "mongoose";
+import { Document, UpdateWriteOpResult } from "mongoose";
 import { SubscriptionPlan } from "../../domain/entity/PlanEntity";
 import { SubscriptionPlanRepo } from "../../domain/interface/PlanRepo";
 import { planModel } from "../db/planModel";
@@ -24,7 +24,7 @@ constructor(){
       throw new Error(error);
     }
   }
-  async editPlan(data: SubscriptionPlanDocument): Promise<true> {
+  async editPlan(data: SubscriptionPlanDocument): Promise<boolean> {
     try {
       if (typeof data._id === "string") {
         const response = await planModel.updateOne(
@@ -32,7 +32,7 @@ constructor(){
           { $set: data }
         );
         if (response) {
-          return true;
+          return true
         }
       }
       throw new Error("Error on id");
@@ -44,20 +44,28 @@ constructor(){
       }
     }
   }
-  async softDlt(id: string): Promise<true> {
+  async softDlt(id: string): Promise<boolean> {
     try {
    
-      const response = await planModel.updateOne(
+      const response:UpdateWriteOpResult = await planModel.updateOne(
         { _id: id },
         { $set: { delete: true } }
       );
-      if (response) {
+      if (response.acknowledged) {
        
         return true;
+      }else{
+        return false
       }
-      throw new Error("Error on remove plan");
     } catch (error: any) {
       throw new Error(error.message || "error on remove plan");
+    }
+  }
+  async fetchPlanAdmin(){
+    try {
+      return await this.model.find({},{_id:0,name:1})
+    } catch (error:any) {
+      throw new Error(error.message)
     }
   }
 }

@@ -1,5 +1,5 @@
 import { Dispatch,SetStateAction } from "react"
-import { CredentialInterface } from "../user/Signup/Credentials"
+import { CredentialInterface } from "../user/signup/Credentials"
 
 
 export function Validator_(setWarning:Dispatch<SetStateAction<CredentialInterface>>,key:string,value:string,password?:string){
@@ -14,6 +14,8 @@ export function Validator_(setWarning:Dispatch<SetStateAction<CredentialInterfac
                 return {...el,[key]:''}
             })
         }
+
+        
     }
     if(key==='SECOND NAME'){
         if(value.trim().length<1||value?.trim().length>10){
@@ -30,8 +32,8 @@ export function Validator_(setWarning:Dispatch<SetStateAction<CredentialInterfac
        const birthDate=new Date(value)
         const today=new Date();
         let age=today.getFullYear()-birthDate.getFullYear()
-        let monthdiff=today.getMonth()-birthDate.getMonth()
-        let dayDiff=today.getDate()-birthDate.getDate()
+        const monthdiff=today.getMonth()-birthDate.getMonth()
+        const dayDiff=today.getDate()-birthDate.getDate()
         if(monthdiff<0||(monthdiff===0&&dayDiff<0)){
             --age
         }
@@ -65,12 +67,23 @@ export function Validator_(setWarning:Dispatch<SetStateAction<CredentialInterfac
     }
     if(key==='PASSWORD'){
         // alert('hello')
-        if(value.trim().length<5||value.trim().length>10){
-            setWarning((el)=>{
-                return {...el,[key]:'password should b/w 5-10'}
+        // if(value.trim().length<5||value.trim().length>10){
+        //     setWarning((el)=>{
+        //         return {...el,[key]:'password should b/w 5-10'}
+        //     })
+        // }else{
+        //     setWarning((el)=>{
+        //         return {...el,[key]:''}
+        //     })
+        // }
+        const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/
+        const test=strongPasswordRegex.test(value)
+        if(!test){
+                     setWarning((el)=>{
+                return {...el,[key]:'should include upper,lower,number and symbol and 8 characters'}
             })
         }else{
-            setWarning((el)=>{
+                  setWarning((el)=>{
                 return {...el,[key]:''}
             })
         }
@@ -90,8 +103,7 @@ export function Validator_(setWarning:Dispatch<SetStateAction<CredentialInterfac
             })
             
         }else if (value===password){
-            // alert(value)
-            // alert(password)
+           
             setWarning((el)=>{
                 return ({...el,[key]:""})
             })

@@ -1,15 +1,16 @@
 
-import { Navbar } from '../Components/User/navbar/Navbar'
-import React, { useEffect, useState } from 'react';
+import { Navbar } from '../../components/user/navbar/Navbar'
+import  { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Search ,X} from 'lucide-react';
 import { districtsOfKerala } from "../../App";
-import { request } from '@/utils/axiosUtils'; 
+import { request } from '@/utils/AxiosUtils'; 
 import { showToast } from '@/utils/toast';
-import { alertWithOk } from '@/utils/alert/sweeAlert';
+import { alertWithOk, handleAlert } from '@/utils/alert/SweeAlert';
 import { useNavigate } from 'react-router-dom';
+import { useSocket } from '@/shared/hoc/GlobalSocket';
 
 // Sample data for districts and interests
   
@@ -26,15 +27,47 @@ export const UserSearchPage = () => {
   
 
   const navigate=useNavigate()
+   const socket=useSocket()
   ////////////////fetch intererst///////////////
   useEffect(()=>{
-    async function fetchInterest(){
-      const response:{Data:{food:string[],music:string[],sports:string[]}}=await request({url:'/user/getInterest'})
-      if(response?.Data){
-        setInterest([...response?.Data.food,...response?.Data.music,...response?.Data.sports])
+    try {
+      async function fetchInterest(){
+        const response:{Data:{food:string[],music:string[],sports:string[]}}=await request({url:'/user/getInterest'})
+        if(response?.Data){
+          setInterest([...response.Data.food,...response.Data.music,...response.Data.sports])
+        }
+      }
+       function handleFuncton(data:{name:string,from:'accept'|'reject'}){
+                    if(data.from==='accept'){
+                      showToast(`${data.name?data.name:'partner'} accepted your request`)
+                    }else{
+                      showToast(`${data.name?data.name:'partner'} declined your request`,'warning')
+                    }
+                  }
+                  socket?.on('requestStutus',handleFuncton)
+                  socket?.on('errorFromSocket',(data:{message:string})=>{
+                       
+                        showToast(data.message,'error')    
+                            })
+                            socket?.on('new_connect',((data)=>{
+                            
+                                  if(data.data){
+                                    showToast('new request arraived',"info")
+                                  }
+                                
+                                }))
+      fetchInterest()
+      return ()=>{
+        socket?.off('new_connect')
+        socket?.off('requestStutus',handleFuncton)
+        socket?.off('errorFromSocket')
+      }
+    } catch (error:unknown) {
+      if(error instanceof Error){
+        handleAlert('error',error.message||'internal server error')
       }
     }
-    fetchInterest()
+   
   },[])
 
 

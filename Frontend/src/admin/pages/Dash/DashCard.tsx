@@ -1,5 +1,4 @@
 
-import React from 'react'
 import './dash.css'
 
 interface DashCardProps {
@@ -8,8 +7,7 @@ interface DashCardProps {
   img:string
   
 }
-interface IMG{
-}
+
 
 
 export function DashCard({ Title, Data,img}: DashCardProps) {

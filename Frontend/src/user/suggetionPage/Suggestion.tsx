@@ -1,5 +1,5 @@
-import React from 'react'
-import { Navbar } from '../Components/User/navbar/Navbar'
+
+import { Navbar } from '../../components/user/navbar/Navbar'
 
 export const Suggestion = () => {
   return (

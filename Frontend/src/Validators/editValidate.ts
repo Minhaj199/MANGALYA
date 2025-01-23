@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction } from "react";
-import { userData } from "../user/userProfile/userProfile";
+import { userData } from "@/user/userProfile/UserProfile";
 import { showToast } from "../utils/toast";
-import { alertWithOk } from "@/utils/alert/sweeAlert";
+import { alertWithOk } from "@/utils/alert/SweeAlert";
 
 type warning = {
   firstName: string;
@@ -55,8 +55,8 @@ export function validateEditedData(
 
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
-    let monthdiff = today.getMonth() - birthDate.getMonth();
-    let dayDiff = today.getDate() - birthDate.getDate();
+    const monthdiff = today.getMonth() - birthDate.getMonth();
+    const dayDiff = today.getDate() - birthDate.getDate();
     if (monthdiff < 0 || (monthdiff === 0 && dayDiff < 0)) {
       --age;
     }
@@ -69,7 +69,7 @@ export function validateEditedData(
     }
   }
   
-  const email=editedData.email
+
   if (editedData.email.trim() !== "") {
     console.log(editedData.email)
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;

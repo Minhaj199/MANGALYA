@@ -6,8 +6,8 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { request } from "../../../../utils/axiosUtils";
-import { alertWithOk } from "../../../../utils/alert/sweeAlert";
+import { request } from "../../../../utils/AxiosUtils";
+import { alertWithOk } from "../../../../utils/alert/SweeAlert";
 
 // Register necessary components
 ChartJS.register(ArcElement, Tooltip, Legend);

@@ -1,7 +1,11 @@
 import { BcryptAdapter } from "../../Infrastructure/bcryptAdapter";
 import { JWTAdapter } from "../../Infrastructure/jwt";
 import { UserRepository } from "../../domain/interface/userRepositoryInterface";
-import { FirstBatch, UserWithID } from "../../types/TypesAndInterfaces";
+import {
+  FirstBatch,
+  RefreshWithPopulatedData,
+  UserWithID,
+} from "../../types/TypesAndInterfaces";
 import { User } from "../../domain/entity/userEntity";
 import dotEnv from "dotenv";
 import { AuthSeviceInteface } from "../../types/serviceLayerInterfaces";
@@ -25,7 +29,7 @@ export class AuthService implements AuthSeviceInteface {
     this.jwtGenerator = jwtGenerator;
     this.userRepository = userRepository;
   }
-  async signupFirstBatch(firstBatch: FirstBatch) {  
+  async signupFirstBatch(firstBatch: FirstBatch) {
     const hashedPassoword = await this.bcryptAdapter.hash(firstBatch.PASSWORD);
     const user: User = {
       PersonalInfo: {
@@ -49,16 +53,22 @@ export class AuthService implements AuthSeviceInteface {
     try {
       const response: UserWithID = await this.userRepository.create(user);
       if (response && response._id) {
-        const key = process.env.JWT_SECRET_USER || "123";
+        const key = process.env.JWT__ACCESS_SECRET_USER || "123";
         const id = JSON.stringify(response._id) || "123";
         const preferedGender = response.partnerData.gender;
         const gender = response.PersonalInfo.gender;
-        const token = this.jwtGenerator.createToken(
+        const accessToken = this.jwtGenerator.createAccessToken(
           { id: id, role: "user", preferedGender, gender },
           key,
-          { expiresIn: "1 hours" }
+          { expiresIn: "15m" }
         );
-        return { user, token };
+
+        const refreshToken = await this.jwtGenerator.createRefreshToken(
+          { id, role: "user" },
+          process.env.JWT__REFRESH_SECRET_USER || "",
+          { expiresIn: "1d" }
+        );
+        return { user, token: accessToken, refreshToken };
       } else {
         throw new Error("internal server error on signup");
       }
@@ -83,20 +93,36 @@ export class AuthService implements AuthSeviceInteface {
           const preferedGender = user.partnerData.gender;
           const gender = user.PersonalInfo.gender;
 
-          const jwt_key: string = process.env.JWT_SECRET_USER || "";
-          const token = this.jwtGenerator.createToken(
+          const jwt_access_key: string =
+            process.env.JWT__ACCESS_SECRET_USER || "";
+          const jwt_refresh_key: string =
+            process.env.JWT__REFRESH_SECRET_USER || "";
+          if (!jwt_access_key || jwt_access_key?.trim() === "") {
+            throw new Error("user access key not found");
+          }
+          if (!jwt_refresh_key || jwt_refresh_key?.trim() === "") {
+            throw new Error("user refresh` key not found");
+          }
+          const accessToken = this.jwtGenerator.createAccessToken(
             {
               id: JSON.stringify(user._id),
               role: "user",
               preferedGender,
               gender,
             },
-            jwt_key,
-            { expiresIn: "6 hour" }
+            jwt_access_key,
+            { expiresIn: "10s" }
           );
+          const refreshToken = await this.jwtGenerator.createRefreshToken(
+            { id: JSON.stringify(user._id), role: "user" },
+            jwt_refresh_key,
+            { expiresIn: "1d" }
+          );
+
           const photo = user.PersonalInfo.image || "";
           return {
-            token,
+            token: accessToken,
+            refresh: refreshToken,
             name: user.PersonalInfo.firstName,
             partner: user.partnerData.gender,
             photo: photo,
@@ -114,6 +140,9 @@ export class AuthService implements AuthSeviceInteface {
     }
   }
   async passwordChange(email: string, password: string) {
+    if (!email || !password) {
+      throw new Error("insuficient datas");
+    }
     try {
       const hashed = await this.bcryptAdapter.hash(password);
 
@@ -164,17 +193,63 @@ export class AuthService implements AuthSeviceInteface {
         preferedGender,
         gender,
       };
-      const newToken = this.jwtGenerator.createToken(
+      const newToken = this.jwtGenerator.createAccessToken(
         information,
         role === "admin"
-          ? process.env.JWT_SECRET_ADMIN || ""
-          : process.env.JWT_SECRET_USER || "",
-        { expiresIn: "6 hours" }
+          ? process.env.JWT_ACCESS_SECRET_ADMIN || ""
+          : process.env.JWT__ACCESS_SECRET_USER || "",
+        { expiresIn: "15m" }
       );
       return newToken;
     } catch (error: any) {
       console.log(error);
       throw new Error(error.message);
+    }
+  }
+  async getNewToken(refreshToken: string) {
+    try {
+      if (typeof refreshToken !== "string") {
+        throw new Error("token not found");
+      }
+      const extractId = this.jwtGenerator.verifyRefreshToken(
+        refreshToken,
+        "user"
+      );
+
+      if (!extractId) {
+        throw new Error("refresh token is not valid");
+      }
+      const token = await this.jwtGenerator.fetchRefreshToken(
+        extractId,
+        refreshToken
+      );
+      if (token) {
+        const newToken = this.jwtGenerator.createAccessToken(
+          {
+            id: JSON.stringify(token.userId._id),
+            role: "user",
+            preferedGender: token.userId.partnerData.gender,
+            gender: token.userId.PersonalInfo.gender,
+          },
+          process.env.JWT__ACCESS_SECRET_USER || "",
+          { expiresIn: "15s" }
+        );
+        return newToken;
+      } else {
+        throw new Error("refreshTokenNotFount");
+      }
+    } catch (error: any) {
+      throw new Error(error.message);
+    }
+  }
+  async userLoggedOut(id: unknown) {
+    try {
+      if (!id || typeof id !== "string") {
+        throw new Error("token not foun");
+      }
+      await this.jwtGenerator.deleteRefreshToken(id);
+    } catch (error: any) {
+      throw new Error(error);
     }
   }
 }
