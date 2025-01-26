@@ -9,7 +9,7 @@ import {
 import { User } from "../../domain/entity/userEntity";
 import dotEnv from "dotenv";
 import { AuthSeviceInteface } from "../../types/serviceLayerInterfaces";
-import { objectIdToString } from "../../interface/Utility/objectIdToString";
+import { objectIdToString } from "../../interface/utility/objectIdToString";
 
 dotEnv.config();
 
@@ -35,7 +35,7 @@ export class AuthService implements AuthSeviceInteface {
       PersonalInfo: {
         firstName: firstBatch["FIRST NAME"],
         secondName: firstBatch["SECOND NAME"],
-        state: firstBatch["STATE THAT YOU LIVE"],
+        state: firstBatch["DISTRICT THAT YOU LIVE"],
         gender: firstBatch["YOUR GENDER"],
         dateOfBirth: new Date(firstBatch["DATE OF BIRTH"]),
       },
@@ -177,7 +177,7 @@ export class AuthService implements AuthSeviceInteface {
       throw new Error(error.message);
     }
   }
-  degenerateToken(
+  regenerateToken(
     id: unknown,
     role: "user" | "admin",
     preferedGender: string,
@@ -242,12 +242,16 @@ export class AuthService implements AuthSeviceInteface {
       throw new Error(error.message);
     }
   }
-  async userLoggedOut(id: unknown) {
+  async userLoggedOut(id: unknown,token:unknown) {
+  
     try {
       if (!id || typeof id !== "string") {
-        throw new Error("token not foun");
+        throw new Error("token not found");
       }
-      await this.jwtGenerator.deleteRefreshToken(id);
+      if(!token||typeof token!=='string'){
+        throw new Error("token not found")
+      }
+      await this.jwtGenerator.deleteRefreshToken(id,token);
     } catch (error: any) {
       throw new Error(error);
     }

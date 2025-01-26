@@ -3,7 +3,7 @@ import { UserRepository } from "../../domain/interface/userRepositoryInterface";
 import { ChatRoomRepository } from "../../Infrastructure/repositories/chatRepository";
 import { MessageService } from "./messageServie";
 import { ChatRoom, IMessageWithoutId } from "../../types/TypesAndInterfaces";
-import { objectIdToString } from "../../interface/Utility/objectIdToString";
+import { objectIdToString } from "../../interface/utility/objectIdToString";
 import { ChatServiceInterface } from "../../types/serviceLayerInterfaces";
 
 export class ChatService implements ChatServiceInterface {

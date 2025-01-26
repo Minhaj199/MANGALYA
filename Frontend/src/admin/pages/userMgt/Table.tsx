@@ -3,7 +3,7 @@ import { useTable,usePagination} from 'react-table';
 import { Table, TableBody, TableCell, TableHead, TableRow, Paper } from '@mui/material';
 
 import { Columns } from './UserHeadSchema'
-import { TableDataType } from './userTable'; 
+import { TableDataType } from './UserTable'; 
 
 import { request } from '../../../utils/AxiosUtils'; 
 import { useNavigate } from 'react-router-dom';

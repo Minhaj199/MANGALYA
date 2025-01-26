@@ -107,7 +107,7 @@ export const LoginLanding = () => {
 
         if (typeof response === "object") {
           handleAlert("warning", "Request rejected");
-          socket?.emit('userRequestSocket',{partnerId:id,from:'reject',name:localStorage.getItem('userToken')})
+          socket?.emit('userRequestSocket',{partnerId:id,from:'reject',token:localStorage.getItem('userToken')})
           setRequest((el) => el.filter((el) => el._id !== id));
         } else {
           throw new Error("error on requeset");
@@ -171,7 +171,19 @@ export const LoginLanding = () => {
     if (e) {
       e.stopPropagation();
     }
-    if (planData) {
+
+    console.log(requestProfile)
+    if(requestProfile){
+      const isDuplicate=requestProfile?.filter((el)=>el._id===id)
+      console.log(isDuplicate)
+      if(isDuplicate.length>=1){
+        alertWithOk('Duplication','already in request','info')
+        return
+      }
+    }
+    if (planData?.name) {
+      
+      
       if (planData.avialbleConnect && planData.avialbleConnect > 0) {
         socket?.emit('request_send',{sender:localStorage.getItem('userToken'),reciever:id,})
         try {
@@ -214,10 +226,13 @@ export const LoginLanding = () => {
           "Do you want purchase new Plan"
         );
       }
+      
     } else {
+      console.log('inside connect else case')
       alertWithOk("Plan subscription", "No valid plan", "info");
     }
   };
+  
   const [profils, setProfiles] = useState<profileType[]>([]);
   const useData = useSelector((state: ReduxState) => state.userData);
   ////////pagination
@@ -351,7 +366,7 @@ export const LoginLanding = () => {
         } = await request({
           url: `/user/fetchSuggestion`,
         });
-      console.log(response)
+    
        if(response.datas[0]?.profile.length===0){
         handleAlert('info','suggestion not available')
         navigate('/loginLanding')
@@ -383,7 +398,7 @@ export const LoginLanding = () => {
         // setInterest(response.interest);
         
         const res: {profile:profileType[],request:profileType[]}[] = response.datas ?? { profile: [], request: [] };
-        console.log(res)
+     
         if (res[0]?.profile) setProfiles(res[0].profile);
         if (res[0]?.request) setRequest(res[0]?.request);
         if (
@@ -454,6 +469,7 @@ export const LoginLanding = () => {
 
   ////////////////////////handle show profile//////////////////////
   const [showProfile, setShowProfile] = useState<boolean>(false);
+  const [showRequest,setShowRequest]=useState(false)
   const [partnerProfile, setParternProfile] = useState<profileType>({
     _id: "",
     age: 0,
@@ -477,12 +493,75 @@ export const LoginLanding = () => {
       setShowProfile(true);
     }
   }
-
+ 
   return (
     <div className="min-h-[700px]   w-[100%] bg-slate-200 ">
+
+
+      {/* planModal */}
+      {showRequest&&
+      <div className=" w-full h-full fixed bg-[rgba(0,0,0,.8)] z-40">
+        <div className='w-full h-20  flex items-center justify-end pr-3'>
+          <img src="/deleteRemove.png" onClick={()=>setShowRequest(false)} className=" w-8 h-8" alt="" />
+        </div>
+      <div className="ml-2 w-[95%]    rounded-3xl   ">
+            <div className="w-full h-[10%] flex justify-center  mb-2 ">
+              <p className="font-aborato font-semibold  text-base text-[#d7ff39] mt-2 ">
+                REQUEST
+              </p>
+            </div>
+            <div
+              id="request"
+              className="w-full max-h-[400px] overflow-y-auto flex gap-y-3 items-center flex-col pb-4  bg-white shadow-lg rounded-xl pt-10"
+            >
+              {requestProfile?.[0]?._id&&requestProfile?.map((el, index) => {
+                return (
+                  <div
+                    className="w-[90%] min-h-[70px] mt-3  border-b border-b-gray-300 flex"
+                    key={index}
+                  >
+                    <div className="w-[70%]   sm:text-base text-xs h-full    flex items-center justify-around ">
+                      <div className="sm:w-12 sm:h-12 w-8 h-8   rounded-2xl">
+                        <img
+                          src={el.photo ? el.photo : "/adminLogin_.png"}
+                          className="w-full h-full rounded-2xl"
+                          alt=""
+                        />
+                      </div>
+                      <p className="font-popin text-sm font-semibold  overflow-hidden sm:px-6 sm:py-2 ">
+                        {el.name}
+                      </p>
+                    </div>
+                    <div className="w-[30%]  flex md:flex-row md:gap-y-0 gap-y-3 flex-col md:py-3 h-full justify-around items-center ">
+                      <div
+                        onClick={() => acceptRequest(el._id)}
+                        className="sm:w-5 w-4 h-4 sm:h-5 cursor-pointer">
+                        <FontAwesomeIcon
+                          icon={faCircleCheck}
+                          style={{ color: "#74C0FC", fontSize: "18px" }}
+                        />
+                      </div>
+                      <div
+                        onClick={() => rejectRequest(el._id)}
+                        className="sm:w-5 w-4 h-4 sm:h-5 cursor-pointer "
+                      >
+                        <FontAwesomeIcon
+                          icon={faCircleXmark}
+                          style={{ color: "#ababab", fontSize: "18px" }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+      </div>
       
+      }
       {/* ////////////////////////////show partener profile///////////////////////////// */}
 
+    
 
       {showProfile && (
         <div className=" w-[100%] flex  justify-center items-center h-[700px] fixed z-[2]">
@@ -676,18 +755,22 @@ export const LoginLanding = () => {
           </div>
         </div>
       )}
+    
       <Navbar
         active={
           location?.state?.from && location?.state?.from === "search"
             ? "search"
             :(location.state?.from==='suggestion')?'suggestion':"profile"
         }
-        
+        setShowRequest={setShowRequest}
         
       />
 
       <div className="w-[100%] h-full  flex">
-        <div className="md:w-[20%] sm:w-[30%] w-[44%]      md:h-screen  h-[1000px]  mt-28">
+        
+
+
+            <div className="md:w-0 lg:w-[20%] sm:w-0 w-0 overflow-hidden md:h-screen  h-[1000px]  mt-28">
           <div className="w-full  md:h-[45%] sm:h-[30%] flex    md:flex justify-center flex-col items-center">
             <p className="pb-2 font-semibold  font-aborato text-base text-amber-900 md:block  ml-3">
               PLAN DETAILS
@@ -789,8 +872,9 @@ export const LoginLanding = () => {
               })}
             </div>
           </div>
-        </div>
-        <div className="sm:w-[75%] w-auto h-full    ">
+            </div>
+        
+        <div className="sm:w-[95%] lg:w-[75%] w-full  sm:px-0 px-28 h-full    ">
           {/* ///////card///////////////////////////////// */}
 
           <div className="sm:px-5 md:px-10 px-2 py-16     bg-center grid grid-cols-1 w-[100%]   mt-16 sm:ml-10 min-h-[600px]  md:grid-cols-2  sm:grid-cols-2 lg:grid-cols-2 gap-14  ">

@@ -17,6 +17,7 @@ import {join} from 'path'
 import cookieParser from 'cookie-parser'
 const app=express()
 const server=createServer(app)
+import { job } from './Infrastructure/chronJob'
 export const io=new Server(server,{
     cors:{
         origin:['http://localhost:5173'],
@@ -77,5 +78,5 @@ async function createInterest(){
   await otherService.creatInterest()
   await otherService.createFeatures()
 }
-
+job.start()
 createInterest()

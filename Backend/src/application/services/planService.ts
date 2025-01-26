@@ -10,7 +10,11 @@ export class PlanService implements PlanServiceInterface{
         this.planRepo=planRepo
     }
     async fetchAll(){
-        return this.planRepo.getAllPlans()
+        try { 
+            return this.planRepo.getAllPlans()
+        } catch (error:any) {
+            throw new Error(error)
+        }
     }
     async createPlan(plan:SubscriptionPlan):Promise<SubscriptionPlanDocument|null>{
         try {

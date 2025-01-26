@@ -77,16 +77,15 @@ export const UnProtectRouteUser: React.FC = () => {
  
     const token = localStorage.getItem('userToken');
     if (token && typeof token === 'string') {
-      const decoded = jwtDecode<JWTPayload>(token);
+      setIsAuthorised=true
+      // const decoded = jwtDecode<JWTPayload>(token);
 
-      if (decoded && decoded.exp && Date.now() / 1000 < decoded.exp) {
-        if(decoded.role==='user'){
-          setIsAuthorised=true;  
-        }  
-      } else {
-        localStorage.removeItem('userToken');  
-       setIsAuthorised=false
-      }
+      // if (decoded && decoded.exp && Date.now() / 1000 < decoded.exp) {
+      //   if(decoded.role==='user'){
+      //     setIsAuthorised=true;  
+      //   }  
+      // } else {
+      // }
     }
   
   return setIsAuthorised ?<Navigate to="/loginLanding"/> :<Outlet/> ;

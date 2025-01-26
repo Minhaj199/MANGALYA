@@ -1,7 +1,8 @@
 import { Dispatch, SetStateAction } from "react";
 import { userData } from "@/user/userProfile/UserProfile";
 import { showToast } from "../utils/toast";
-import { alertWithOk } from "@/utils/alert/SweeAlert";
+import { alertWithOk, handleAlert } from "@/utils/alert/SweeAlert";
+import { request } from '../utils/AxiosUtils'
 
 type warning = {
   firstName: string;
@@ -10,7 +11,7 @@ type warning = {
   dob: string;
   email: string;
 };
-export function validateEditedData(
+export async function validateEditedData(
   editedData: userData,
   setFormWaring: Dispatch<SetStateAction<warning>>
 ) {
@@ -68,13 +69,28 @@ export function validateEditedData(
       return false;
     }
   }
-  
+  if(editedData.email.trim()!==''){
+    
+    try {
+       const isExist:{email:string|null}=await request({url:'/user/forgotEmail',method:'post',data:{email:editedData.email}})
+       if(isExist.email){
+        setFormWaring((el) => ({ ...el, email: "Email already exist" }));
+      count++;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      showToast("Email already exist", "info");
+      return false;
+      }
+      } catch (error:unknown) {
+      if(error instanceof Error){
+        handleAlert('error',error.message)
+      }
+    }
+  }
 
   if (editedData.email.trim() !== "") {
     console.log(editedData.email)
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     const isValid: boolean = emailRegex.test(editedData.email);
-    alert(isValid)
     if (!isValid) {
       setFormWaring((el) => ({ ...el, email: "Email not valid" }));
       count++;

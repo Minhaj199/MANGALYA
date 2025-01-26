@@ -20,7 +20,7 @@ import { JWTAdapter } from "../../Infrastructure/jwt";
 import { UserRepsitories } from "../../Infrastructure/repositories/userRepository";
 
 import { UserProfileService } from "../../application/services/userService";
-import { Cloudinary } from "../Utility/cloudinary";
+import { Cloudinary } from "../utility/cloudinary";
 import { AuthService } from "../../application/services/authService";
 import { BcryptAdapter } from "../../Infrastructure/bcryptAdapter";
 import { PlanRepository } from "../../Infrastructure/repositories/planRepositories";

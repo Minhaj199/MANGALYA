@@ -29,8 +29,7 @@ export class ReportUser extends BaseRepository<AbuserMongoDoc> implements Abuser
   }
   async delete(id: string): Promise<boolean> {
    try {
-     const response:{ acknowledged: boolean, deletedCount: number }=await reportUser.deleteOne({_id:new Types.ObjectId(id)})
-     console.log(response)
+     const response:{ acknowledged: boolean, deletedCount: number }=await reportUser.deleteOne({_id:new Types.ObjectId(id)})  
       if(response.acknowledged){
         return true
       }else{

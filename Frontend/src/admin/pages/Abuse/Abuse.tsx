@@ -1,4 +1,4 @@
-import { ReportModal } from "@/components/admin/AbuseModalAction/AbuseAction";
+import { ReportModal } from "@/components/admin/abuseModalAction/AbuseAction";
 import CircularIndeterminate from "@/components/circularLoading/Circular";
 import { alertWithOk, handleAlert, promptSweet } from "@/utils/alert/SweeAlert";
 import { request } from "@/utils/AxiosUtils";
@@ -118,7 +118,6 @@ export function Abuse() {
         throw new Error(response.message);
       }
 
-      showToast("updated", "info");
     } catch (error: unknown) {
       if (error instanceof Error) {
         if (error.message === "405") {

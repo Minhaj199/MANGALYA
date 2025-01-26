@@ -14,9 +14,9 @@ export interface AuthSeviceInteface{
     >
     passwordChange(email:string,password:string):Promise<boolean>
     changePasswordEditProfile(password:unknown,id:unknown):Promise<boolean>
-    degenerateToken(id:unknown,role:'user'|'admin',preferedGender:string,gender:string):string
+    regenerateToken(id:unknown,role:'user'|'admin',preferedGender:string,gender:string):string
     getNewToken(refreshToken: string): Promise<string>
-    userLoggedOut(id: unknown): Promise<void>
+    userLoggedOut(id: unknown,token:unknown): Promise<void>
 }
 
 export interface ChatServiceInterface{
@@ -30,13 +30,12 @@ export interface FixedDataServiceInterface{
     fetchFeature(): Promise<{
         features: Features;
     } | null>
+    fetchInterestAsCategory():Promise<{sports:string[],music:string[],food:string[]}|undefined> 
 }
 export interface PhotoServiceInterface{
     upload(path:string):string
 }
-export interface interestServiceInterface{
-    fetchInterestAsCategory():Promise<{sports:string[],music:string[],food:string[]}|undefined>    
-}
+
 export interface MessageServiceInterface{
     createMessage(data:IMessageWithoutId):Promise<IMessageWithoutId>
     findAllMessage(id:string):Promise<ChatMessage[]>
@@ -57,7 +56,7 @@ export interface OtpRepositoryInterface{
 export interface ParnterServiceInterface{
     addMatch(userId: unknown, matchedId: string,): Promise<boolean>
     manageReqRes(requesterId: string, userId: unknown,action: string):Promise<boolean>
-    fetechProfileData(userId:string,userGender:string,partnerGender:string):Promise<fetechProfileDataType>
+    fetchProfileData(userId:string,userGender:string,partnerGender:string):Promise<fetechProfileDataType>
     fetchUserForLandingShow():Promise< { name: string; age: number; image: string }[]|[]>
     matchedProfiles(id:unknown):Promise<MatchedProfile[] | { formatedResponse: ExtentedMatchProfile[]; Places: string[]; onlines: string[]; }>    
     deleteMatchedUser(userId:unknown,partnerId:string):Promise<boolean>
@@ -137,10 +136,13 @@ export interface JwtServiceInterface{
     decodeAccessToken(token: string): string
     decodeRefreshToken(token: string): string
     fetchRefreshToken(extractId: unknown, token: string): Promise<RefreshWithPopulatedData | null>
-    deleteRefreshToken(id: string): Promise<void>
+    deleteRefreshToken(id: string,token:string): Promise<void>
 }
 
 export interface BcryptAdapterInterface{
     hash(password: string): Promise<string>
     compare(password: string, hashed: string): Promise<boolean>
+}
+export interface CronServiceInterface{
+    checkExperation(): Promise<void>
 }

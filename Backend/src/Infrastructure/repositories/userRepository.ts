@@ -5,7 +5,7 @@ import {  Types,UpdateWriteOpResult } from "mongoose";
 import { planOrderModel } from "../db/planOrder";
 import { PlanOrder } from "../../types/TypesAndInterfaces";
 import { MatchedProfile, profileTypeFetch, userForLanding } from "../../types/TypesAndInterfaces";
-import { getDateFromAge } from "../../interface/Utility/getDateFromAge";
+import { getDateFromAge } from "../../interface/utility/getDateFromAge";
 import BaseRepository from "./baseRepository";
 
 
@@ -70,7 +70,7 @@ export class UserRepsitories extends BaseRepository<UserWithID>implements UserRe
           const result = await UserModel.bulkWrite([
             {
               updateOne: {
-                filter: { _id: userId },
+                filter: { _id: userId,match: { $not: { $elemMatch: { _id: userMatchId } } } },
                 update: {
                   $addToSet: {
                     match: { _id: userMatchId, typeOfRequest: "send" },
@@ -80,19 +80,19 @@ export class UserRepsitories extends BaseRepository<UserWithID>implements UserRe
             },
             {
               updateOne: {
-                filter: { _id: userId },
+                filter: { _id: userId , match: { $not: { $elemMatch: { _id: userMatchId } } }},
                 update: { $set: { subscriber: "connection finished" } },
               },
             },
             {
               updateOne: {
-                filter: { _id: userId },
+                filter: { _id: userId, match: { $not: { $elemMatch: { _id: userMatchId } } } },
                 update: { $inc: { "CurrentPlan.avialbleConnect": -1 } },
               },
             },
             {
               updateOne: {
-                filter: { _id: matchedId },
+                filter: { _id: matchedId, match: { $not: { $elemMatch: { _id: userMatchId } } } },
                 update: {
                   $addToSet: {
                     match: { _id: userID, typeOfRequest: "recieved" },
@@ -110,7 +110,7 @@ export class UserRepsitories extends BaseRepository<UserWithID>implements UserRe
           const result = await UserModel.bulkWrite([
             {
               updateOne: {
-                filter: { _id: userId },
+                filter: { _id: userId, match: { $not: { $elemMatch: { _id: userMatchId } } } },
                 update: {
                   $addToSet: {
                     match: { _id: userMatchId, typeOfRequest: "send" },
@@ -120,13 +120,13 @@ export class UserRepsitories extends BaseRepository<UserWithID>implements UserRe
             },
             {
               updateOne: {
-                filter: { _id: userId },
+                filter: { _id: userId, match: { $not: { $elemMatch: { _id: userMatchId } } } },
                 update: { $inc: { "CurrentPlan.avialbleConnect": -1 } },
               },
             },
             {
               updateOne: {
-                filter: { _id: matchedId },
+                filter: { _id: matchedId, match: { $not: { $elemMatch: { _id: userId } } } },
                 update: {
                   $addToSet: {
                     match: { _id: userID, typeOfRequest: "recieved" },
@@ -167,14 +167,14 @@ export class UserRepsitories extends BaseRepository<UserWithID>implements UserRe
           const response=await UserModel.bulkWrite([
             {
               updateOne:{
-                filter:{_id: convertedUserID,"match._id": convertedReqID},
+                filter:{_id: convertedUserID,"match._id": convertedReqID,'match.status':'pending'},
                 update:{ $set: { "match.$.status": "accepted" }}
 
               }
             },
             {
               updateOne:{
-                filter:{_id: convertedReqID,"match._id": convertedUserID},
+                filter:{_id: convertedReqID,"match._id": convertedUserID,'match.status':'pending'},
                 update:{ $set: { "match.$.status": "accepted" }}
 
               }
@@ -197,14 +197,14 @@ export class UserRepsitories extends BaseRepository<UserWithID>implements UserRe
           const response=await UserModel.bulkWrite([
             {
               updateOne:{
-                filter:{_id: convertedUserID,"match._id": convertedReqID},
+                filter:{_id: convertedUserID,"match._id": convertedReqID,'match.status':'pending'},
                 update:{ $set: { "match.$.status": "rejected" }}
 
               }
             },
             {
               updateOne:{
-                filter:{_id: convertedReqID,"match._id": convertedUserID},
+                filter:{_id: convertedReqID,"match._id": convertedUserID,'match.status':'pending'},
                 update:{ $set: { "match.$.status": "rejected" }}
 
               }
@@ -556,6 +556,16 @@ export class UserRepsitories extends BaseRepository<UserWithID>implements UserRe
     throw new Error(error.message||'error on request injection')
 }
  }
+ async makePlanExpire(){
+  try {
+    const currentDate=new Date()
+    console.log(currentDate)
+    const response=await this.model.updateMany({subscriber:'subscribed','CurrentPlan.Expiry':{$lte:currentDate}},{$set:{subscriber:'expired','CurrentPlan':[]}})
+    console.log(response)
+  } catch (error) {
+    console.log(error)
+  }
+ }
  async fetchName(id: string): Promise<string> {
   try {
     const name:{PersonalInfo:{firstName:string}}|null=await UserModel.findById(id,{_id:0,'PersonalInfo.firstName':1})
@@ -599,6 +609,7 @@ export class UserRepsitories extends BaseRepository<UserWithID>implements UserRe
     throw new Error(error.message)
    }
  }
+ 
 }
 
 

@@ -2,8 +2,8 @@
 
 import React, { Dispatch,SetStateAction } from 'react'
 import { CredentialInterface } from '../../../user/signup/Credentials'
-import { Validator_ } from '../../../validators/liveValidators' 
-import { capitaliser } from '../../../utils/firstWordCapitaliser'
+import { Validator_ } from '../../../validators/liveValidator' 
+import { capitaliser } from '../../../utils/firstLetterCapitaliser'
 
 
 interface InputsProbs{
@@ -46,7 +46,7 @@ export const Inputs:React.FC<InputsProbs> = ({inputFields,setCredentialData,setW
       {(fields.inputType!=='dropDown')?
       <input  type={fields.inputType} onChange={(t)=>handleChange(t,fields.inputName)} value={CredentailData[fields.inputName]} id={fields.linkingName} className="w-full font-serif   border  border-theme-blue  outline-none h-9 block pl-3" />:
       <select className='w-full    border  border-theme-blue  outline-none h-9  block pl-3' value={CredentailData[fields.inputName]} onChange={(t)=>setCredentialData(prev=>({...prev,[fields.inputName]:t.target.value}))} id={fields.linkingName}>
-        <option >SELECT</option>
+        <option value=''>SELECT</option>
         {fields.option?.map((el,index)=>{
           return(
             <>

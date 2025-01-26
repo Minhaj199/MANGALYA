@@ -1,9 +1,9 @@
 
 import React,{Dispatch,SetStateAction, useContext, useState} from "react"
 import { request } from "../../../utils/AxiosUtils"
-import { Loading } from "../../Loading/Loading"
 
 import { EmailForFogot } from "../../../shared/globalCondext/signupData"
+import CircularIndeterminate from "@/components/circularLoading/Circular"
 
 function validateEmail(email:string){
   const emailRegex=/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
@@ -52,7 +52,10 @@ export const Forgot_first:React.FC<Forgot_Props> = ({changeToggle}) => {
    }
   }
   return (
-    isLoading?<Loading/>:
+    <>
+    {isLoading&&<div className='w-full flex items-center justify-center  h-full  fixed bg-[rgba(0,0,0,.8)] z-10'>
+      <CircularIndeterminate/>
+    </div>}
     <div className="flex items-center flex-col h-3/5 w-60 sm:w-1/3 sm:h-[350px] relative sm:top-32 sm:left-96 top-28 left-14   bg-[rgba(0,0,0,0.7)]">
          <div  className=" w-full h-10 flex justify-end items-center pr-4 ">
           <p className=" text-white cursor-pointer" onClick={()=>changeToggle('2')}>X</p>
@@ -71,5 +74,6 @@ export const Forgot_first:React.FC<Forgot_Props> = ({changeToggle}) => {
           <p className="text-yellow-300 w-31 h-10 mt-3">{warnning?warnning.toUpperCase():''}</p>
           <button onClick={handle_validate} className="border border-white mt-5 w-28 sm:text-base  text-sm sm:h-10 :h-8 font-aborato text-white">VALIDATE</button>
         </div>
+    </>
   )
 }

@@ -3,7 +3,7 @@ import { adminPlanType, LandingShowUesrsInterface, PlanOrder, RequestInterface, 
 import { MatchedProfile, profileTypeFetch } from "../../types/TypesAndInterfaces";
 import { updateData } from "../../types/TypesAndInterfaces"; 
 
-import { subscriptionPlanModel } from "../../Infrastructure/db/planModel";
+import { subscriptionPlanModel } from "../../types/TypesAndInterfaces";
 import { IUserModel } from "../../Infrastructure/db/userModel";
 
 
@@ -32,6 +32,7 @@ export interface UserRepository{
     fetchSuggetions(id:string,gender:string,partnerPreference:string):Promise<{profile:suggestionType[]|[],request:profileTypeFetch|[],userProfile:IUserModel[]|[]}[]>
     createRequest(id:string):Promise<RequestInterface[]>
     findEmail(email:string):Promise<UserWithID|null>
+    makePlanExpire():Promise<void>
     fetchName(id:string):Promise<string>
     fetchUserDataForAdmin(): Promise<{username:string,email:string,match:{_id:string,status:string,typeOfRequest:string}[],subscriber:string,CreatedAt:Date,block:boolean}[]|[]>
     fetchSubscriber():Promise<adminPlanType[]|[]>

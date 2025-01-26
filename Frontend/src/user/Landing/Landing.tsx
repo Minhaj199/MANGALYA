@@ -1,14 +1,14 @@
 import "./Landing.css";
 
-import { Footer } from "../../components/user/Footer/Footer";
+import { Footer } from "../../components/user/footer/Footer";
 import  { useEffect, useState } from "react";
-import { Forgot_first } from "../../components/user/Forgot/Forgot_first";
-import { Forgot_second } from "../../components/user/Forgot/Forgot_second"; 
-import { Forgot_Final } from "../../components/user/Forgot/Forgot_final";
-import { Login } from "../../components/user/Login/Login";
-import { HomeCards } from "../../components/user/HomeCards/HomeCards";
+import { Forgot_first } from "../../components/user/forgot/Forgot_first";
+import { Forgot_second } from "../../components/user/forgot/Forgot_second"; 
+import { Forgot_Final } from "../../components/user/forgot/Forgot_final";
+import { Login } from "../../components/user/login/Login";
+import { HomeCards } from "../../components/user/homeCards/HomeCards";
 import { useDispatch } from "react-redux";
-import { Info } from "../../components/user/HomeInfo/Info";
+import { Info } from "../../components/user/homeInfo/Info";
 import CircularIndeterminate from "@/components/circularLoading/Circular";
 
 
@@ -18,7 +18,7 @@ export const Landing = () => {
   const dispatch=useDispatch()
   useEffect(()=>{
     dispatch({type:'CLEAR_DATA'})
-    localStorage.removeItem('userToken')
+  
   },[])
  
   

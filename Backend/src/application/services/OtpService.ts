@@ -2,8 +2,8 @@ import { OtpEntity } from "../../domain/entity/otpEntity";
 import {
   UserRepsitories,
 } from "../../Infrastructure/repositories/userRepository";
-import { generateOTP } from "../../interface/Utility/otpGenerator";
-import { EmailService } from "../emailService";
+import { generateOTP } from "../../interface/utility/otpGenerator";
+import { EmailService } from "../../Infrastructure/emailService";
 import { OtpRepository } from "../../Infrastructure/repositories/otpRepository";
 import { OtpRepositoryInterface } from "../../types/serviceLayerInterfaces";
 export class OtpService implements OtpRepositoryInterface {

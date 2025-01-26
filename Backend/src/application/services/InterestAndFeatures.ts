@@ -28,7 +28,7 @@ export class FixedDataService implements FixedDataServiceInterface{
         }
     }
     async createFeatures(){
-        const features=['Video call','Unlimited message','Suggestion','Priority']
+        const features=['Unlimited message','Suggestion','Priority']
         try {
 
             const isExist=await this.featureRepo.isExits()
@@ -44,6 +44,19 @@ export class FixedDataService implements FixedDataServiceInterface{
         try {
             const result=await this.featureRepo.fetchFeature()
             return result
+        } catch (error:any) {
+            throw new Error(error.message)
+        }
+    }
+    async fetchInterestAsCategory(){
+        try {
+            const data= await this.interestRepo.getInterestAsCategory( )
+            if(data){
+                return data   
+    
+            }  else{
+                throw new Error('interest not found')
+            }
         } catch (error:any) {
             throw new Error(error.message)
         }

@@ -86,9 +86,11 @@ export class TokenRepository extends BaseRepository<RefeshToken> implements Refr
       throw new Error(error.message)
     }
   }
-  async deleteToken(id:string){
+  async deleteToken(id:string,token:string){
+    console.log(token)
     try {
-      await this.model.deleteMany({userId:new Types.ObjectId(id)})
+      const response=await this.model.deleteOne({userId:new Types.ObjectId(id),token:token})
+      console.log(response)
     } catch (error:any) {
       throw new Error(error)
     }

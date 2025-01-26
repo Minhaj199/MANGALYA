@@ -10,7 +10,7 @@ import {
 
 import { planMgtWarningType } from "../addPlan/AddPlan";
 import { editedDataValidateion} from "../../../validators/planValidator";
-import { capitaliser } from "../../../utils/firstWordCapitaliser";
+import { capitaliser } from "../../../utils/firstLetterCapitaliser";
 
 export type PlanType = {
   _id: string;

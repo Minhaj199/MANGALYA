@@ -1,7 +1,7 @@
 import { UserRepository } from "../../domain/interface/userRepositoryInterface";
 import { PlanRepository } from "../../Infrastructure/repositories/planRepositories";
-import { getAge } from "../../interface/Utility/ageCalculator";
-import { Cloudinary } from "../../interface/Utility/cloudinary";
+import { getAge } from "../../interface/utility/ageCalculator";
+import { Cloudinary } from "../../interface/utility/cloudinary";
 import { UserProfileSeriviceInterface } from "../../types/serviceLayerInterfaces";
 import { adminPlanType, updateData, userProfileReturnType, UserWithID } from "../../types/TypesAndInterfaces";
 import { AuthService } from "./authService";
@@ -92,7 +92,7 @@ export class UserProfileService implements UserProfileSeriviceInterface {
             if (Object.keys(updateData).length) {
                 const data: UserWithID = await this.userRepository.update(updateData as updateData , id);
                 
-                const token: string = this.authService.degenerateToken(
+                const token: string = this.authService.regenerateToken(
                     JSON.stringify(data._id),
                     'user',
                     data.partnerData?.gender,

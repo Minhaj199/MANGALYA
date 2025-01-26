@@ -1,4 +1,4 @@
-import { Cloudinary } from '../../interface/Utility/cloudinary'; 
+import { Cloudinary } from '../../interface/utility/cloudinary'; 
 import { ImageServiceInterface } from '../../types/TypesAndInterfaces';
 
 

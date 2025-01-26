@@ -39,29 +39,29 @@ import {
 
 
 import { userJwtAuthenticator } from "../middlewares/jwtUser";
-import { upload } from "../Utility/multer";
+import { upload } from "../utility/multer";
 import { UserRepsitories } from "../../Infrastructure/repositories/userRepository"; 
 import { PurchasedPlan } from "../../Infrastructure/repositories/orderRepository";
 import { OtpRepository } from "../../Infrastructure/repositories/otpRepository";
-import { InterestRepo, TokenRepository } from "../../Infrastructure/repositories/otherRepo";
+import { FeaturesRepository, InterestRepo, TokenRepository } from "../../Infrastructure/repositories/otherRepo";
 import { ReportUser } from "../../Infrastructure/repositories/reportUser";
 import { ChatRoomRepository } from "../../Infrastructure/repositories/chatRepository";
 import { MessageRepository } from "../../Infrastructure/repositories/messageRepository";
 import { PlanRepository } from "../../Infrastructure/repositories/planRepositories"; 
 import { AuthService } from "../../application/services/authService";
-import { Cloudinary } from "../Utility/cloudinary"; 
+import { Cloudinary } from "../utility/cloudinary"; 
 import { BcryptAdapter } from "../../Infrastructure/bcryptAdapter";
 import { JWTAdapter } from "../../Infrastructure/jwt";
-import { EmailService } from "../../application/emailService";
+import { EmailService } from "../../Infrastructure/emailService";
 import { PartnerProfileService } from "../../application/services/partnersProfileService";
 import { UserProfileService } from "../../application/services/userService";
 import { PaymentSerivice } from "../../application/services/paymentService";
-import { PlanService } from "../../application/services/planService";
-import { InterestServiece } from "../../application/services/interestService";
 import { ReportAbuseService } from "../../application/services/reportAbuseService";
 import { ChatService } from "../../application/services/chatService";
 import { MessageService } from "../../application/services/messageServie";
 import { OtpService } from "../../application/services/OtpService";
+import { PlanService } from "../../application/services/planService";
+import { FixedDataService } from "../../application/services/InterestAndFeatures";
 const router = Router();
 
 
@@ -76,7 +76,7 @@ export const messageService=new MessageService(new MessageRepository, new ChatRo
 export const resportAbuserService=new ReportAbuseService(new ReportUser,new EmailService,new UserRepsitories)
 const planService=new PlanService(new PlanRepository)
 const paymentService=new PaymentSerivice(new PurchasedPlan,new UserRepsitories)
-const interestService=new InterestServiece(new InterestRepo)
+const interestService=new FixedDataService(new InterestRepo,new FeaturesRepository)
 
 
 router.post("/login",(req,res)=>  login(req,res,authService))
@@ -111,5 +111,6 @@ router.get('/countMessages',userJwtAuthenticator,(req,res)=>MsgCount(req,res,mes
 router.patch('/messageReaded',userJwtAuthenticator,(req,res)=>MessageViewed(req,res,messageService))
 router.post('/saveImage',userJwtAuthenticator,upload.single('file'),(req,res)=>saveImage(req,res,messageService))
 router.post('/getNewToken',(req,res)=>getNewToken(req,res,authService))
+
 
 export default router;

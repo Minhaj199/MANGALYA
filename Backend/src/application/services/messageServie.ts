@@ -1,7 +1,7 @@
 
 import { ChatRepository } from "../../domain/interface/chatRoomRepository";
 import { MessageRepository } from "../../Infrastructure/repositories/messageRepository"; 
-import { Cloudinary } from "../../interface/Utility/cloudinary";
+import { Cloudinary } from "../../interface/utility/cloudinary";
 import { MessageServiceInterface } from "../../types/serviceLayerInterfaces";
 import {  ChatMessage,  IMessageWithoutId, } from "../../types/TypesAndInterfaces";
 

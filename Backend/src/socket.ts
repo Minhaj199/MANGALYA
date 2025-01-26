@@ -6,6 +6,7 @@ import { UserProfileService } from "./application/services/userService"
 import { MessageService } from "./application/services/messageServie"
 import { JWTAdapter } from "./Infrastructure/jwt"
 import { AuthService } from "./application/services/authService"
+import { token } from "morgan"
 
 
 export const socketMethod=(socket:Socket,partnerService:PartnerProfileService,userProfileService:UserProfileService,messageService:MessageService,jwtService:JWTAdapter,authService:AuthService)=>{
@@ -50,14 +51,15 @@ export const socketMethod=(socket:Socket,partnerService:PartnerProfileService,us
         }
         
     })
-    socket.on('userLoggedOut',async(data:{id:string})=>{
+    socket.on('userLoggedOut',async(data:{token:string})=>{
         try {
-            const id=jwtService.decodeAccessToken(data.id)
+         
+            const id=jwtService.decodeRefreshToken(data.token)
             
             if(!id||typeof id!=='string'){
                throw new Error('id not found')
             }
-            await authService.userLoggedOut(id)
+            await authService.userLoggedOut(id,data.token)
             socketIdMap.delete(id)
             socket.broadcast.emit('user_loggedOut',{id:id}) 
         } catch (error:any) {
@@ -82,7 +84,7 @@ export const socketMethod=(socket:Socket,partnerService:PartnerProfileService,us
             })
         } catch (error:any) {
             io.to(socket.id).emit('errorFromSocket',{message:error.message||'error on user registration'})
-            throw new Error(error.error||'erro on socket')
+           
         }
     })
     socket.on('sendMessage',async(data:{
@@ -93,16 +95,14 @@ export const socketMethod=(socket:Socket,partnerService:PartnerProfileService,us
         chatId:string    
       })=>{
        try {
-        await  messageService.updateReadedMessage(data.chatId)
-        const senderId=socketIdMap.get(data.recieverId)
-        if(senderId){
+           const senderId=socketIdMap.get(data.recieverId)
+           if(senderId){
+            await  messageService.updateReadedMessage(data.chatId)
 
             io.to(senderId||'').emit('recieveMessage',data)
             io.to(senderId||'').emit('addMessageCount',{
                 id:data._id
             })
-        }else{
-            throw new Error('user is not online')
         }
        } catch (error:any) {
         io.to(socket.id).emit('errorFromSocket',{message:error.message||'error on user registration'})

@@ -4,9 +4,10 @@ import { request } from "../../utils/AxiosUtils";
 import { useNavigate } from "react-router-dom";
 import { alertWithOk, handleAlert } from "../../utils/alert/SweeAlert";
 import  StripeCheckout, { Token } from 'react-stripe-checkout'
-import { Loading } from "@/components/Loading/Loading"; 
+
 import { useDispatch, useSelector } from "react-redux";
 import { ReduxState } from "../../redux/reduxGlobal";
+import CircularIndeterminate from "@/components/circularLoading/Circular";
 
 
 
@@ -21,15 +22,9 @@ export type PlanData={
   Expiry?:Date
 }
 const PlanPurchase = () => {
-  
-  
-  
-  
   const navigate=useNavigate()
   const [loading,setLoading]=useState(false)
- 
   const [planData,setPlanData]=useState<PlanData[]>([{_id:'',amount:0,duration:0,features:[''],connect:0,name:''}])
- 
  
  ///////////fetching plan
   useEffect(()=>{
@@ -91,13 +86,13 @@ const PlanPurchase = () => {
   }
  
   return (
+    <>
+     {loading&&<div className='w-full flex items-center justify-center  h-full  fixed bg-[rgba(0,0,0,.8)] z-10'>
+        <CircularIndeterminate/>
+      </div>}
       <div className="h-svh w-screen flex items-center flex-col bg-blue-400 ">
        
-       { loading ?
-        <Loading/>
-        
-        : (
-          <>
+       
             
           <h1 className="text-white text-xl sm:text-5xl mt-10 font-italian">
             PLEASE JOIN OUR FAMILY
@@ -142,9 +137,8 @@ const PlanPurchase = () => {
               ))}
             </div>
           </div>
-          </>
-        )}
       </div>
+    </>
   );
   
 };

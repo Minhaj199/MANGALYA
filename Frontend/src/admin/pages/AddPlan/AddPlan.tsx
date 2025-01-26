@@ -5,7 +5,7 @@ import { PlanValidator } from '../../../validators/planValidator'
 import { alertWithOk, handleAlert } from '../../../utils/alert/SweeAlert'
 import { request } from '../../../utils/AxiosUtils'
 import { useNavigate } from 'react-router-dom'
-import { capitaliser } from '../../../utils/firstWordCapitaliser'
+import { capitaliser } from '../../../utils/firstLetterCapitaliser'
 export type planMgtWarningType={
 
     name:string

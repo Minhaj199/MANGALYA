@@ -211,33 +211,3 @@ export const deleteMsg=async(req:Request,res:Response,reportAbuseService:ReportA
 
 }
 
-// export const tokenAuthenticated=(req:Request,res:Response)=>{
-//     if(!req.headers['authorizationforuser']){
-//          res.json({auth:false,message:'authetication failed'})
-//     }
-//     const token=req.headers['authorizationforuser']
-//     if(token&&typeof token==='string'){
-//         const decode=jwtAdapter.verifyTock(token,'admin')
-//         if(typeof decode==='string'){
-//              res.json({auth:false,message:'authetication failed'})    
-//         }
-//         const isValid=decode as jwtInterface
-//         const currentTime = Math.floor(Date.now() / 1000);
-//                 if(isValid&&isValid.id==='123'&&isValid.role==='admin'){
-//                     if(isValid.exp&&isValid.exp>currentTime){                       
-//                         res.json({id:isValid.id,role:isValid.role,auth:true,message:'auth success'})
-//                     }else{
-//                         res.json({auth:false,message:'authetication failed'})
-//                     }
-//                 }
-//                 else{
-//                     res.json({auth:false,message:'authetication failed'})
-//                 }
-//     }else{
-//          res.json({auth:false,message:'authetication failed'})
-//     }
-// }
-
-
-
-///admin/manageUser

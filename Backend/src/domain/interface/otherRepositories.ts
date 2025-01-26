@@ -23,5 +23,5 @@ export interface FeaturesRepositoryInterface{
 export interface RefreshTokenInterface{
     create(data:RefeshToken):Promise<RefeshToken>
     fetchToken(extractId:string,refreshToken:string): Promise<RefreshWithPopulatedData|null>
-    deleteToken(id: string): Promise<void>
+    deleteToken(id: string,token:string): Promise<void>
 }

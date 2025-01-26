@@ -3,7 +3,7 @@ import { Dispatch,SetStateAction } from "react"
 import { request } from "../utils/AxiosUtils"
 
 export const  credential_validation=async(formData:CredentialInterface,setWarnning:Dispatch<SetStateAction<CredentialInterface>>):Promise<boolean>=>{
-    
+
     if(formData['FIRST NAME']?.trim()===''||formData['FIRST NAME']===undefined){
             setWarnning(el=>({...el,['FIRST NAME']:'Blank not allowed'}))
             return false
@@ -39,12 +39,12 @@ export const  credential_validation=async(formData:CredentialInterface,setWarnni
             }
          
             
-    if(formData['STATE THAT YOU LIVE']?.trim()===''||formData['STATE THAT YOU LIVE']===undefined){
-        setWarnning(el=>({...el,['STATE THAT YOU LIVE']:'please chouse an option'}))
+    if(formData['DISTRICT THAT YOU LIVE']?.trim()===''||formData['DISTRICT THAT YOU LIVE']===undefined){
+        setWarnning(el=>({...el,['DISTRICT THAT YOU LIVE']:'please chouse an option'}))
         return false
-    }else if(formData['STATE THAT YOU LIVE']?.length>0){
+    }else if(formData['DISTRICT THAT YOU LIVE']?.length>0){
         
-       setWarnning(el=>({...el,["STATE THAT YOU LIVE"]:""}))
+       setWarnning(el=>({...el,["DISTRICT THAT YOU LIVE"]:""}))
     }
     if(formData['YOUR GENDER']?.trim()===''||formData['YOUR GENDER']==undefined){
 

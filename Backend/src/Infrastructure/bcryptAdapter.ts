@@ -4,9 +4,17 @@ import { BcryptAdapterInterface } from '../types/serviceLayerInterfaces'
 
 export class BcryptAdapter implements BcryptAdapterInterface{
     async hash(password:string):Promise<string>{
-        return await bcrypt.hash(password,10)
+        try {
+            return await bcrypt.hash(password,10)
+        } catch (error:any) {
+            throw new Error(error.message)
+        }
     }
     async compare(password:string,hashed:string):Promise<boolean>{
-        return await bcrypt.compare(password,hashed)
+        try {
+            return await bcrypt.compare(password,hashed)
+        } catch (error:any) {
+            throw new Error(error.message||'erron on message')
+        }
     }
 }

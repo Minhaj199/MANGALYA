@@ -5,6 +5,7 @@ import { EmailForFogot } from "../../../shared/globalCondext/signupData"
 import { useNavigate } from "react-router-dom"
 import { request } from "../../../utils/AxiosUtils"
 import { alertWithOk, handleAlert } from "../../../utils/alert/SweeAlert"
+import CircularIndeterminate from "@/components/circularLoading/Circular"
 
 export const Forgot_second:React.FC<Forgot_Props> = ({changeToggle}) => {
   const navigate=useNavigate()
@@ -56,7 +57,10 @@ export const Forgot_second:React.FC<Forgot_Props> = ({changeToggle}) => {
     }
   }
   return (
-    loading?<><h1>Loading......</h1></>:
+  <>
+  {loading&&<div className='w-full flex items-center justify-center  h-full  fixed bg-[rgba(0,0,0,.8)] z-10'>
+    <CircularIndeterminate/>
+  </div>}
     <div className="flex items-center flex-col h-[400px] w-60 sm:w-1/3 sm:h-[400px] relative sm:top-32 sm:left-96 top-28 left-14   bg-[rgba(0,0,0,0.7)]">
     <div  className=" w-full h-10 flex justify-end items-center pr-4 ">
           <p className=" text-white cursor-pointer" onClick={()=>changeToggle('3')}>X</p>
@@ -80,5 +84,6 @@ export const Forgot_second:React.FC<Forgot_Props> = ({changeToggle}) => {
     <Countdown expiryTimeStamp={expiryTimeStamp} from="forgot" email={forgotEmail} />
     <button onClick={()=>handleReset()} className='border border-white w-20 h-10 text-white mt-10'>UPDATE</button>
   </div> 
+  </>
   )
 }

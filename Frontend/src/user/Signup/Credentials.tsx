@@ -6,11 +6,12 @@ import './Credential.css'
 import { Inputs } from "../../components/user/signupInputs/Inputs";
 import { SignupContext } from "../../shared/globalCondext/signupData";
 import { request } from "../../utils/AxiosUtils";
-import { Loading } from "@/components/Loading/Loading";
+
 import { PhotAndInt } from "./photoAndInterest.tsx/PhotAndInt";
 import { alertWithOk, handleAlert } from "../../utils/alert/SweeAlert";
 
 import { useDispatch } from "react-redux";
+import CircularIndeterminate from "@/components/circularLoading/Circular";
 
 
 
@@ -59,7 +60,7 @@ export const Credentials:React.FC<InputArrayProbs> = ({inputFields,toggle}) => {
     
   const [credentialData,setCredentialData]=useState<CredentialInterface>({})
   const [warnning,setWarnning]=useState<CredentialInterface>({})
-  const [loding,setLoding]=useState<boolean>(false)
+  const [loading,setLoding]=useState<boolean>(false)
   const navigate=useNavigate()
   async function submintCredential(){
     if(inputToggle===1){
@@ -70,7 +71,7 @@ export const Credentials:React.FC<InputArrayProbs> = ({inputFields,toggle}) => {
           const signupFirst={
             'SECOND NAME':credentialData['SECOND NAME'],
           'DATE OF BIRTH':credentialData['DATE OF BIRTH'],
-          'STATE THAT YOU LIVE':credentialData['STATE THAT YOU LIVE'],
+          'DISTRICT THAT YOU LIVE':credentialData['DISTRICT THAT YOU LIVE'],
           'YOUR GENDER':credentialData['YOUR GENDER'],
           'GENDER OF PARTNER':credentialData['GENDER OF PARTNER'],
           'EMAIL':credentialData['EMAIL'],
@@ -120,7 +121,7 @@ try {
    const response:Response=await request({url:'/user/uploadProfile',method:'post',data:formData,headers:{'Content-Type': 'multipart/form-data'}})
    
    if(response){
-    setSignupFirst({"FIRST NAME":'',"SECOND NAME":'',"DATE OF BIRTH":'',"GENDER OF PARTNER":'',"STATE THAT YOU LIVE":'',"YOUR GENDER":'','EMAIL':'','PASSWORD':''})
+    setSignupFirst({"FIRST NAME":'',"SECOND NAME":'',"DATE OF BIRTH":'',"GENDER OF PARTNER":'',"DISTRICT THAT YOU LIVE":'',"YOUR GENDER":'','EMAIL':'','PASSWORD':''})
     if(response.responseFromAddinInterest||response.url){
       dispatch({type:'SET_DATA',payload:{photo:response.url||'',subscriptionStatus:'Not subscribed'}})
       handleAlert('success','Data Added')
@@ -151,14 +152,16 @@ try {
  
   
   return (
+    <>
+    {loading&&<div className='w-full flex items-center justify-center  h-full  fixed bg-[rgba(0,0,0,.8)] z-10'>
+      <CircularIndeterminate/>
+    </div>}
     <div id="container2" onScroll={()=>alert('hii')} className={(inputToggle===1)?basic:photo}>
       <div className={scrolled?"w-full h-20 fixed top-0 right-0 left-0 p-5 bg-black":"w-full h-20 fixed top-0 right-0 left-0 p-5 "} >
         <p className="font-Lumanosimo text-white text-sm sm:text-base cursor-pointer" onClick={()=>navigate('/')}>BACK</p>
       </div>
         
-        {loding?
-      <Loading/>
-        : <div className={(inputToggle===1)?"w-3/5 sm:w-4/5 h-auto sm:h-auto bg-[rgba(25,88,99,0.5)] rounded-2xl":"w-4/5 sm:w-4/5 h-auto sm:h-auto bg-[rgba(25,88,99,0.5)] rounded-2xl"}>
+      <div className={(inputToggle===1)?"w-3/5 sm:w-4/5 h-auto sm:h-auto bg-[rgba(25,88,99,0.5)] rounded-2xl":"w-4/5 sm:w-4/5 h-auto sm:h-auto bg-[rgba(25,88,99,0.5)] rounded-2xl"}>
             <div className="w-full h-20 flex justify-center items-center">
             <div className="h-20 w-20 sm:h-full sm:w-[90px]   rounded-full relative sm:top-2">
                 <img src="/createProfile.png" className="w-full h-full" alt="" />
@@ -182,8 +185,9 @@ try {
             <button onClick={submintCredential} className="bg-dark-blue w-1/3 h-10 rounded-2xl mb-5 mt-3 text-white font-semibold">Next</button>
         </div>
         
-      </div>}
+      </div>
      
     </div>
+    </>
   );
 };

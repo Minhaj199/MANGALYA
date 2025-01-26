@@ -4,12 +4,12 @@ import { PartnerProfileService } from "../../application/services/partnersProfil
 import { UserProfileService } from "../../application/services/userService";
 import { PaymentSerivice } from "../../application/services/paymentService";
 import { PlanService } from "../../application/services/planService";
-import { InterestServiece } from "../../application/services/interestService";
 import { ReportAbuseService } from "../../application/services/reportAbuseService";
 import { ChatService } from "../../application/services/chatService";;
 import { MessageService } from "../../application/services/messageServie";
 import { OtpService } from "../../application/services/OtpService";
 import { JWTAdapter } from "../../Infrastructure/jwt";
+import { FixedDataService } from "../../application/services/InterestAndFeatures";
 
 
 
@@ -64,7 +64,6 @@ export const otpCreation=async(req:Request,res:Response,authService:AuthService,
 export const login=async(req:Request,res:Response,authService:AuthService)=>{
 
     const {email,password}=req.body
-    console.log('here')
   
     try {
         const response=await authService.login(email,password)
@@ -86,7 +85,7 @@ export const fetechProfileData=async(req:Request,res:Response,partnersProfileSer
         
         if(req.userID ){
 
-         const response= await partnersProfileService.fetechProfileData(req.userID,req.gender,req.preferedGender)            
+         const response= await partnersProfileService.fetchProfileData(req.userID,req.gender,req.preferedGender)            
         
          res.json(response)
         }else{
@@ -266,7 +265,7 @@ export const fetchDataForProfile=async (req:Request,res:Response,partnerServiece
         res.json({error:error.message})
     }
 }
-export const fetchInterest=async (req:Request,res:Response,interestService:InterestServiece):Promise<void>=>{
+export const fetchInterest=async (req:Request,res:Response,interestService:FixedDataService):Promise<void>=>{
     try {
        const response=await interestService.fetchInterestAsCategory()
 
@@ -444,6 +443,7 @@ export const MsgCount=async(req:Request,res:Response,messageService:MessageServi
     try { 
        
         const response=await messageService.fetchMessageCount(req.query?.from,req.userID)
+        console.log(response)
         res.json(response) 
     } catch (error) {
         res.json({count:0})

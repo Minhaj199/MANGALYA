@@ -4,11 +4,12 @@ import './Credential.css'
 import { SignupContext } from "../../shared/globalCondext/signupData";
 import { Countdown } from "@/components/user/timer/Countdown"; 
 import { request } from "../../utils/AxiosUtils";
-import { Loading } from "@/components/Loading/Loading"; 
+import { Loading } from "@/components/loading/Loading"; 
 import { alertWithOk, handleAlert } from "../../utils/alert/SweeAlert";
 import { promptSweet } from "../../utils/alert/SweeAlert";
 import { useDispatch, useSelector } from "react-redux";
 import { ReduxState } from "../../redux/reduxGlobal";
+import CircularIndeterminate from "@/components/circularLoading/Circular";
 
 
 
@@ -55,7 +56,7 @@ export const OTPVerification:React.FC = () => {
             }
           async function secondFunction(){
               dispatch({type:'SET_DATA',payload:{...userData,auth:true}})
-              setSignupFirst({"FIRST NAME":'',"SECOND NAME":'',"DATE OF BIRTH":'',"GENDER OF PARTNER":'',"STATE THAT YOU LIVE":'',"YOUR GENDER":'','EMAIL':'','PASSWORD':''})
+              setSignupFirst({"FIRST NAME":'',"SECOND NAME":'',"DATE OF BIRTH":'',"GENDER OF PARTNER":'',"DISTRICT THAT YOU LIVE":'',"YOUR GENDER":'','EMAIL':'','PASSWORD':''})
               alertWithOk('Signup completed','Best of luck with you journy',"success")
               navigate('/PlanDetails')
             }
@@ -80,12 +81,16 @@ export const OTPVerification:React.FC = () => {
   }
  
   return (
+    <>
+     {loading&&<div className='w-full flex items-center justify-center  h-full  fixed bg-[rgba(0,0,0,.8)] z-10'>
+          <CircularIndeterminate/>
+        </div>}
     <div id="container2" className=" flex flex-col justify-center items-center w-screen md:h-svh sm:h-svh  h-svh sm:pt-0 pt-12  bg-cover bg-center">
       <div className="w-full h-20 fixed top-0 right-0 left-0 p-5 ">
         <p className="font-Lumanosimo text-white text-sm sm:text-base cursor-pointer" onClick={()=>navigate('/signUp')}>BACK</p>
       </div>
-      {loading?<Loading/>:
-      <>
+      
+      
       <div className="w-28 relative top-[50px] h-28 rounded-full  ">
         <img src="/createProfile.png" alt="" />
       </div>
@@ -100,7 +105,8 @@ export const OTPVerification:React.FC = () => {
       </div>
       <button className="bg-white py-3 px-6 rounded-full font-bold text-neutral-900 font-inter" onClick={handleReset}>SUBMIT</button>
       </div>
-      </>}
+      
     </div>
+    </>
   );
 };

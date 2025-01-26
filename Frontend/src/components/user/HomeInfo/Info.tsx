@@ -1,5 +1,5 @@
 import React from 'react'
-import { Toggle } from '../HomeCards/HomeCards'
+import { Toggle } from '../homeCards/HomeCards'
 
 export const Info = ({setToggle}:Toggle) => {
     function handleScroll(){

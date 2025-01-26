@@ -69,7 +69,7 @@ export interface FirstBatch{
       
     'SECOND NAME':string;
       'DATE OF BIRTH':string;
-      'STATE THAT YOU LIVE':string;
+      'DISTRICT THAT YOU LIVE':string;
       'YOUR GENDER':string;
       'GENDER OF PARTNER':string;
       'EMAIL':string;

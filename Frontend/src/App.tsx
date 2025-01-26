@@ -53,7 +53,7 @@ const App: React.FC = () => {
     {linkingName:'firstName',inputType:'text',inputName:'FIRST NAME'},
     {linkingName:'secondName',inputType:'text',inputName:'SECOND NAME'},
     {linkingName:'dateOfBirth',inputType:'date',inputName:'DATE OF BIRTH'},
-    {linkingName:'state',inputType:'dropDown',option:districtsOfKerala,inputName:'STATE THAT YOU LIVE'},
+    {linkingName:'state',inputType:'dropDown',option:districtsOfKerala,inputName:'DISTRICT THAT YOU LIVE'},
     {linkingName:'Gender',inputType:'dropDown',option:['female','male'] ,inputName:"YOUR GENDER"},
     {linkingName:'partner',inputType:'dropDown',option:['male','female'], inputName:"GENDER OF PARTNER"},
     {linkingName:'email',inputType:'email',inputName:"EMAIL"},
@@ -74,7 +74,6 @@ const App: React.FC = () => {
         <Route path="Dash" element={<Dash/>} />
         <Route path="Abuse" element={<Abuse/>} />
       </Route>
-      {/* <Route path="/admin" element={<Layout/>}> */}
       </Route>
         <Route path="/PlanDetails" element={<PlanRouteUser/>}>
         <Route path="" element={<PlanPurchase/>}/>

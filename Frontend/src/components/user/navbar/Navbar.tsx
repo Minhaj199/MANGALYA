@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import {  useNavigate } from "react-router-dom";
 import { alertWithOk, handleAlert } from "../../../utils/alert/SweeAlert";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,7 +10,7 @@ import { request } from "@/utils/AxiosUtils";
 
 
 // export const Navbar = ({ openSearchModalFunc,resetProfilePage,active }: { active: string,openSearchModalFunc?:()=>void ,resetProfilePage?:()=>void}) => {
-export const Navbar = ({active }: { active: string}) => {
+export const Navbar = ({active,setShowRequest }: { active: string,setShowRequest?:Dispatch<SetStateAction<boolean>>}) => {
 
   const socket=useSocket()
 
@@ -58,7 +58,7 @@ export const Navbar = ({active }: { active: string}) => {
   function handleLogout() {
     setImage("");
     if(socket)
-    socket.emit('userLoggedOut',{id:localStorage.getItem('userToken')})
+    socket.emit('userLoggedOut',{token:localStorage.getItem('userRefresh')})
     localStorage.removeItem('userToken');
     localStorage.removeItem('userRefresh')
     dispatch({type:'CLEAR_DATA'})
@@ -70,9 +70,12 @@ export const Navbar = ({active }: { active: string}) => {
     setMenuOpen(!menuOpen);
   }
   
-  async function Protect(){
+  async function protectSearch(){
     if(userData?.subscriptionStatus&&userData.subscriptionStatus==="Not subscribed"){
       alertWithOk('Subscritpion','Your are not subscribed!!! you cannot use this option',"info")
+      return
+    }else if(userData?.subscriptionStatus&&userData.subscriptionStatus==='expired'){
+      alertWithOk('Subscritpion','Your plan is expired !!! you cannot use this option',"info")
       return
     }
     
@@ -81,6 +84,10 @@ export const Navbar = ({active }: { active: string}) => {
   function ProtectSuggestion(){
     if(userData?.subscriptionStatus&&userData.subscriptionStatus==="Not subscribed"){
       alertWithOk('Subscritpion','Your are not subscribed!!! you cannot use this option',"info")
+      return
+    }
+    else if(userData?.subscriptionStatus&&userData.subscriptionStatus==='expired'){
+      alertWithOk('Subscritpion','Your plan is expired !!! you cannot use this option',"info")
       return
     }
     navigate('/suggestion',{state:{from:'suggestion'}})
@@ -93,6 +100,14 @@ export const Navbar = ({active }: { active: string}) => {
     }
   },[shouldNavigate,messageNumber])
   async function handleMatchProfile(){
+    if(userData?.subscriptionStatus&&userData.subscriptionStatus==="Not subscribed"){
+      alertWithOk('Subscritpion','Your are not subscribed!!! you cannot use this option',"info")
+      return
+    }
+    else if(userData?.subscriptionStatus&&userData.subscriptionStatus==='expired'){
+      alertWithOk('Subscritpion','Your plan is expired !!! you cannot use this option',"info")
+      return
+    }
     try {
       const response:{status:boolean}= await request({url:'/user/messageReaded',data:{ids:ids,from:'nav'},method:'patch'})
       console.log(response)
@@ -110,7 +125,11 @@ export const Navbar = ({active }: { active: string}) => {
   
   
    }
-  
+  function handleRequestOption(){
+    toggleMenu()
+    if(setShowRequest)
+    setShowRequest(true)
+  }
   return (
     <>
       <nav className="w-[99%] fixed top-4 z-[1] left-1 rounded-full right-0 h-16 flex  bg-white border shadow-md overflow-hidden">
@@ -145,7 +164,7 @@ export const Navbar = ({active }: { active: string}) => {
               </li>
               
 
-              <li onClick={Protect} className={active==='search'?" transform transition-transform duration-300 ease-in-out hover:scale-105  cursor-pointer font-semibold text-dark-blue w-32 h-10 inline-flex justify-center items-center bg-blue-300 rounded-full    text-xs  font-inter":"bg-slate-300  rounded-full hover:bg-slate-400 transform transition-transform duration-300 ease-in-out hover:scale-105 hover:rounded-full cursor-pointer w-32 h-10 inline-flex justify-center items-center   text-xs  font-inter"} >
+              <li onClick={protectSearch} className={active==='search'?" transform transition-transform duration-300 ease-in-out hover:scale-105  cursor-pointer font-semibold text-dark-blue w-32 h-10 inline-flex justify-center items-center bg-blue-300 rounded-full    text-xs  font-inter":"bg-slate-300  rounded-full hover:bg-slate-400 transform transition-transform duration-300 ease-in-out hover:scale-105 hover:rounded-full cursor-pointer w-32 h-10 inline-flex justify-center items-center   text-xs  font-inter"} >
                 Search
               </li>
               
@@ -153,6 +172,7 @@ export const Navbar = ({active }: { active: string}) => {
                 Matched Profiles
              {(messageNumber>=1)&&<div className="w-6 h-6 text-xs rounded-full -right-2 -top-1 bg-yellow-600 absolute inline-flex justify-center items-center font-bold text-white">{(messageNumber>10)?'10+':messageNumber}</div>}
               </li>
+              
             </ul>
           </div>
         </div>
@@ -186,10 +206,10 @@ export const Navbar = ({active }: { active: string}) => {
               <li className="cursor-pointer py-2 text-sm hover:text-blue-500  " onClick={()=>(toggleMenu(),navigate('/loginLanding'))}>
                 Profiles
               </li>
-              <li className="hover:text-blue-500 cursor-pointer py-2 text-sm" onClick={()=>(toggleMenu(),navigate('/suggestion'))}>
+              <li className="hover:text-blue-500 cursor-pointer py-2 text-sm" onClick={()=>(toggleMenu(),ProtectSuggestion())}>
                 Suggestions
               </li>
-              <li className="hover:text-blue-500 cursor-pointer py-2 text-sm" onClick={()=>(toggleMenu(),navigate('/search'))}>
+              <li className="hover:text-blue-500 cursor-pointer py-2 text-sm" onClick={()=>(toggleMenu(),protectSearch())}>
                 Search
               </li>
 
@@ -197,6 +217,9 @@ export const Navbar = ({active }: { active: string}) => {
               <li className="hover:text-blue-500 cursor-pointer py-2 text-sm inline-flex" onClick={()=>(toggleMenu(),handleMatchProfile())}>
               Matched Profiles
               
+              </li>
+              <li className="hover:text-blue-500 cursor-pointer py-2 text-sm inline-flex" onClick={handleRequestOption}>
+              Requests 
               </li>
               
             </ul>

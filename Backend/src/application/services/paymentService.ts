@@ -1,10 +1,10 @@
-import { doStripePayment } from "../../interface/Utility/stripe"; 
+import { doStripePayment } from "../../interface/utility/stripe"; 
 import { Token } from '@stripe/stripe-js';
 import { PlanOrder, PlanOrderMongo, PlanOrdersEntity, UserCurrentPlan } from "../../types/TypesAndInterfaces";
 import {UserRepsitories} from "../../Infrastructure/repositories/userRepository";
 import { PurchasedPlan } from "../../Infrastructure/repositories/orderRepository";
 import { Types } from "mongoose";
-import { GetExpiryPlan } from "../../interface/Utility/getExpiryDateOfPlan";
+import { GetExpiryPlan } from "../../interface/utility/getExpiryDateOfPlan";
 import { PaymentSeriviceInterface } from "../../types/serviceLayerInterfaces";
 
 

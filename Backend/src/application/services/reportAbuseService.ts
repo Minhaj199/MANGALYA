@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 import { AbuserReport } from "../../domain/entity/abuse";
 import { ReportUser } from "../../Infrastructure/repositories/reportUser"; 
-import { EmailService } from "../emailService";
+import { EmailService } from "../../Infrastructure/emailService";
 import { UserRepsitories } from "../../Infrastructure/repositories/userRepository";
 import { ReportAbuseServiceInterface } from "../../types/serviceLayerInterfaces";
 

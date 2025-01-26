@@ -89,7 +89,7 @@ useEffect(()=>{
       try {
 
           const response:Response=await request({url:'/user/matchedUsers'})
-          console.log(response)
+          
          
         
           if(response.message){

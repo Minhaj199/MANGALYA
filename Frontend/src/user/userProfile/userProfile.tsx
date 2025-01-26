@@ -10,16 +10,17 @@ import { request } from "../../utils/AxiosUtils";
 import { useNavigate } from "react-router-dom";
 import { alertWithOk, handleAlert } from "../../utils/alert/SweeAlert";
   
-import { validateEditedData } from "../../validators/editValidate";
-import { capitaliser } from "../../utils/firstWordCapitaliser";
+import { validateEditedData } from "../../validators/editValidator.ts";
+import { capitaliser } from "../../utils/firstLetterCapitaliser.ts";
 import { Navbar } from "../../components/user/navbar/Navbar";
 
 import { showToast } from "@/utils/toast";
 
-import { Loading } from "../../components/Loading/Loading.tsx";  
+ 
 import { editedDataFinder, fetchBlankData } from "../../utils/editedDataFinder.ts";
 import { dateToDateInputGenerator } from "../../utils/dateToDateInputGenerator.ts";
 import { useSocket } from "@/shared/hoc/GlobalSocket.tsx";
+import CircularIndeterminate from "@/components/circularLoading/Circular.tsx";
 
 export type userData = {
   PersonalInfo: {
@@ -302,30 +303,8 @@ export const UserProfile = () => {
     } else {
       setPasswordWarning((el) => ({ ...el, confirmPassword: "" }));
     }
-    if (
-      passwords.password.trim().length < 5 ||
-      passwords.password.trim().length > 10
-    ) {
-      setPasswordWarning((el) => ({
-        ...el,
-        password: "Charectors should b/w 5-10",
-      }));
-      return false;
-    } else {
-      setPasswordWarning((el) => ({ ...el, password: "" }));
-    }
-    if (
-      passwords.confirmPassword.trim().length < 5 ||
-      passwords.confirmPassword.trim().length > 10
-    ) {
-      setPasswordWarning((el) => ({
-        ...el,
-        confirmPassword: "Charectors Should b/w 5-10",
-      }));
-      return false;
-    } else {
-      setPasswordWarning((el) => ({ ...el, confirmPassword: "" }));
-    }
+    
+    
     if (passwords.password !== passwords.confirmPassword) {
       setPasswordWarning({
         password: "Password is not match",
@@ -485,7 +464,7 @@ const [loading,setLoading]=useState<boolean>(false)
     editedDataFinder({dataToFind,orginalData})
  
     
-    const validate = validateEditedData(dataToFind,setFormWarning);
+    const validate =await validateEditedData(dataToFind,setFormWarning);
    
    
     
@@ -639,9 +618,9 @@ const [loading,setLoading]=useState<boolean>(false)
   return (
     <>
     
-      {loading&&<div className="w-full h-lvh  fixed z-10 ">
-        <Loading/>
-        </div>}
+    {loading&&<div className='w-full flex items-center justify-center  h-full  fixed bg-[rgba(0,0,0,.8)] z-10'>
+      <CircularIndeterminate/>
+    </div>}
     <div className="w-full flex   items-center justify-evenly  pb-12  md:min-h-[1100px]   bg-blue-100 ">
       <Navbar active="profile setting" />
       <div className="w-[90%] min-h-svh flex md:flex-row items-center flex-col md:items-start pt-36 gap-5   ">

@@ -2,7 +2,7 @@
 import { UserRepository } from "../../domain/interface/userRepositoryInterface";
 import { IUserModel } from "../../Infrastructure/db/userModel";
 import { InterestRepo } from "../../Infrastructure/repositories/otherRepo";
-import { getAge } from "../../interface/Utility/ageCalculator";
+import { getAge } from "../../interface/utility/ageCalculator";
 import { socketIdMap } from "../../server";
 import { ParnterServiceInterface } from "../../types/serviceLayerInterfaces";
 import { ExtentedMatchProfile, LandingShowUesrsInterface, MatchedProfile,  profileTypeFetch, suggestionType, UserWithID } from "../../types/TypesAndInterfaces";
@@ -55,7 +55,6 @@ export class PartnerProfileService implements ParnterServiceInterface{
         throw new Error(error.message)
      }
     }
-
     async manageReqRes(requesterId: string, userId: unknown,action: string){
        try {
         
@@ -69,7 +68,7 @@ export class PartnerProfileService implements ParnterServiceInterface{
         throw new Error(error.message||'internal server error on manage request')
        }
     }
-    async fetechProfileData(userId:string,userGender:string,partnerGender:string){
+    async fetchProfileData(userId:string,userGender:string,partnerGender:string){
        try {
         const datas:{profile:profileTypeFetch,request:profileTypeFetch}[]=await this.userRepository.fetchPartnerProfils(userId,userGender,partnerGender)
         const currntPlan=await this.userRepository.getCurrentPlan(userId)

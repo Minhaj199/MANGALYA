@@ -72,11 +72,13 @@ export class JWTAdapter implements JwtServiceInterface{
             const data:unknown=jwt.decode(token)
             if(typeof data==='object'){
                 const parsed=data as jwtInterface
+                console.log(parsed)
                 return parsed.id.slice(1,25)
             }else{
              throw new Error('error on id exraction')
             }
          } catch (error) {
+            console.log(error)
              throw new Error('error on id exraction')
          }
     }
@@ -105,9 +107,9 @@ export class JWTAdapter implements JwtServiceInterface{
         }
         
     }
-    async deleteRefreshToken(id:string){
+    async deleteRefreshToken(id:string,token:string){
         try {
-            await this.tokenRepo.deleteToken(id)
+            await this.tokenRepo.deleteToken(id,token)
         } catch (error:any) {
             throw new Error(error)
         }
